@@ -1,4 +1,5 @@
 Check file:///workspace/projects/coin-reader/backend/tests/edge_shared_test.ts
+Check file:///workspace/projects/coin-reader/backend/tests/demo_wrappers_test.ts
 running 7 tests from ./tests/edge_shared_test.ts
 UUID and malformed body rejected ... ok (1ms)
 body limit enforced ... ok (0ms)
@@ -7,6 +8,14 @@ JWT is verified by Auth server rather than decoded ... ok (0ms)
 RPC caller context preserved; service only for privileged calls ... ok (0ms)
 known DB errors mapped; unknown details hidden ... ok (0ms)
 storage signing uses 120s and service authentication ... ok (0ms)
+running 7 tests from ./tests/demo_wrappers_test.ts
+demo wrappers fail closed outside local gate ... ok (1ms)
+admin report list requires moderator and preserves JWT ... ok (1ms)
+report list validates pagination/status ... ok (0ms)
+create takedown injects caller, no auto suspension ... ok (0ms)
+payout wrapper uses transactional caller RPC and request key ... ok (7ms)
+payout business errors retain 409 code without SQL leak ... ok (3ms)
+author review preserves caller audit context and reason ... ok (0ms)
 
-ok | 7 passed | 0 failed (9ms)
+ok | 14 passed | 0 failed (79ms)
 

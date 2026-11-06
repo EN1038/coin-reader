@@ -79,15 +79,52 @@
 - finance ใช้ `admin_review_payout` pending→approved/rejected; `admin_mock_pay_payout` approved→paid พร้อม balanced debit; paid ซ้ำคืน tx เดิม
 - payout status อื่นสงวนใน enum แต่ยังไม่มี client cancel route; service ไม่มี direct UPDATE payout grant ป้องกันเปลี่ยนสถานะข้ามบัญชี
 
-## Admin/publishing stubs
-HTTP admin routes ยังไม่มี implementation: ต้องตรวจ JWT role server-side แล้วจึงใช้ service CRUD (service key bypass RLS อย่าส่งต่อ client)
-- approve/reject author → update authors.status + approved_at พร้อมตรวจสัญญา/KYC
-- publish work/chapter → ตรวจ body/pages ครบ, content_type, prices, schedule, cover path, moderation; owner เขียนได้เฉพาะ draft
-- takedown → update request + work.status='takedown' ใน transaction เดียว; HTTP stub ยังไม่ทำ ห้ามอ้างว่ารับเรื่องแล้วระงับอัตโนมัติ
-- suspend user → profiles.status และ authors.status ถ้าเป็น writer; audit ทุก write ผ่าน trigger
-- finance adjustments/review/settle ใช้ caller JWT RPC ไม่ใช้ service เพื่อรักษา actor_id
-- service admin HTTP ต้อง forward verified JWT subject เป็น transaction context หรือใช้ dedicated authenticated admin RPC; direct service calls ที่ไม่มี JWT subject audit.actor_id=NULL ไม่ถือว่า audit admin ครบ ห้ามใช้ production จนแก้
-- บันทึก audit แบบเลือก status/amount แทนการคัดลอก body/KYC/ข้อร้องเรียนที่มี PII; config/app_admins เก็บก่อน/หลังเต็ม
+## สัญญา mock สำหรับพรีเซนต์ (อัปเดต 6 พ.ย. 2569 เวลาไทย)
+**ส้มใช้ client mock store เป็นเส้นทางหลักของ demo ภายนอก** ไม่ต้องมี Supabase, ไม่เรียก gateway และไม่ใช้ KYC/คำร้อง/ยอดเงินจริง สัญญาต่อไปนี้เป็น interface ให้ mock adapter ใช้ ไม่ใช่คำกล่าวว่า HTTP ทุกเส้นทาง deploy แล้ว
+
+ทางเลือก local มี Edge stub 4 ตัว (ยังไม่ deploy): `admin-reports-list`, `create-takedown`, `request-payout`, `admin-author-review` ต้อง `APP_ENV=local` + `DEMO_BACKEND_ENABLED=true`; JWT ตรวจ `/auth/v1/user`, admin ตรวจ RPC `is_admin('moderator')`; ไม่เชื่อ role/user_id ใน body
+ทุก success ของสัญญาใหม่นี้ใช้ `{mock:true,source:"client-mock"|"edge-stub",data:...}`; source ต้องตรง runtime ที่ตอบจริง Client adapter ห้ามบอก source=edge-stub ถ้าไม่ได้เรียก backend
+ทุก operation ด้านล่างเป็น POST `/functions/v1/<ชื่อ>` ทาง HTTP เมื่อมี Edge หรือเป็นชื่อ operation ใน client mock เมื่อไม่มี wrapper; request/response JSON Schema และ examples อยู่ใน `openapi.yaml` (`x-runtime`, `x-allowed-roles`, `x-mock-contract`)
+
+| operation | ใครเรียกได้ | request | data ใน success | runtime ในชุดนี้ |
+|---|---|---|---|---|
+| writer-apply | logged-in applicant | display_name, contract_version, bio? | author_id, status=pending, contract_accepted_at | client mock; native POST /rest/v1/authors มีเดิมแต่ยังไม่มี Edge adapter |
+| writer-dashboard | เจ้าของใบสมัคร pending/approved | {} | author_id, author_status, metrics_origin=mock-fixture, works_count, unlock_count, earnings{pending,available,reserved,paid}, policy{writer_share_bps:7000,hold_days:14,minimum_payout:100,placeholder:true} | client mock เท่านั้น; ไม่มี aggregation RPC/dashboard tracking จริง |
+| admin-author-review | moderator / superadmin | author_id, decision=approved/rejected, reason 10–1000 chars | author_id, status, approved_at/null, replayed | Edge stub + demo_admin_review_author RPC ใน migration 0003; client mock ใช้ shape เดียวกัน |
+| admin-reports-list | moderator / superadmin | status?, limit?=20 (1–100), offset?=0 (0–10000) | items[], limit, offset; sort created_at DESC,id DESC; ไม่มี total สมมติ | Edge stub อ่าน reports ผ่าน caller JWT/RLS; client mock ทางเลือก |
+| admin-reports-review | moderator / superadmin | report_id, status=reviewing/resolved/rejected, reason | report_id, status | client mock เท่านั้น; ไม่ระงับเรื่องอัตโนมัติ |
+| create-takedown | logged-in claimant | work_id, claim 20–3000 chars, evidence_path ≤240 chars | id, work_id, status=open, created_at | Edge stub insert ด้วย caller JWT/RLS; client mock ใช้ fixture path |
+| admin-takedown-review | moderator / superadmin | request_id, decision=reviewing/takedown/rejected, reason | request_id, status, work_id, work_status | client mock เท่านั้น; การระงับฝั่ง backend ยังไม่ implement |
+| request-payout | approved author เจ้าของรายได้ | amount>0 ทศนิยม≤2หลัก, bank_document_id, request_id UUID | payout_id, amount, status, request_id | Edge stub เรียก request_payout RPC เดิม; ไม่โอนเงิน |
+| admin-payout-review | finance / superadmin | payout_id, decision=approved/rejected, reason | payout_id, status | client mock; underlying admin_review_payout RPC มีแล้ว แต่ไม่มี HTTP Edge wrapper ใหม่นี้ |
+| admin-payout-pay | finance / superadmin | payout_id, note, mode=mock | payout_id, status=paid, transaction_id | client mock; underlying admin_mock_pay_payout RPC มีแล้ว แต่ไม่มี HTTP Edge wrapper ใหม่นี้ |
+| admin-content-review | moderator / superadmin | target_kind=work/chapter, target_id, decision=published/suspended, reason | target_id, status | client mock เท่านั้น; ไม่ใช่ production moderation/publishing validation |
+
+### เงื่อนไข transition / replay ที่ adapter ต้องทำตาม
+- Author: pending→approved/rejected; approved_at ใช้เวลาจาก server/mock clock; ส่ง final decision เดิมคืน replayed=true ไม่เพิ่ม audit ซ้ำ; final decision ตรงข้าม = 409 AUTHOR_REVIEW_CONFLICT; การอนุมัติ demo **ไม่ยืนยันเอกสาร KYC จริง**
+- Reports: open→reviewing→resolved/rejected; same status replay ไม่เพิ่ม audit ซ้ำ; ไม่เกี่ยวกับ ledger/refund
+- Takedown: สร้างเป็น open ยังไม่ระงับ; open→reviewing แล้ว reviewing→takedown/rejected; decision=takedown ต้องแก้ request.status=resolved และ work.status=takedown แบบ atomic ใน client mock; ไม่มี Edge review ที่อ้างว่าระงับจริงแล้ว
+- Payout request: ใช้ request_id เดิมเมื่อ retry; payload เดิมคืนรายการเดิมพร้อมสถานะปัจจุบัน; เปลี่ยน amount/bank_document_id → 409 IDEMPOTENCY_CONFLICT
+- Payout review: pending→approved/rejected เท่านั้น; RPC เดิมไม่รับประกัน replay ของ review ให้ reload สถานะเมื่อ network uncertain; pay approved→paid มี ledger debit ใน transaction เดียว paid ซ้ำคืน tx เดิม ไม่โอนเงินจริง
+- Writer dashboard pending แสดงสถานะใบสมัคร/metrics=0; approved ใช้ fixtures ติดป้าย `mock-fixture`; ไม่มีข้อมูล view/read tracking จริงใน backend
+- Client role switcher เป็นเครื่องมือแสดง UI เท่านั้น **ไม่ใช่ authorization จริง**; persistence/reset ของ client store ให้ส้มเลือกและประกาศ ไม่เขียนว่าบันทึกใน Supabase ถ้าไม่ได้เชื่อมต่อ
+
+### Error contract สำหรับ demo
+ทุก failure `{error:"CODE"}` (ไม่มี mock success envelope):
+- 400: INVALID_UUID, UNKNOWN_FIELD, INVALID_FIELD, INVALID_REVIEW, INVALID_STATUS, INVALID_PAGINATION, INVALID_AMOUNT, INVALID_EVIDENCE_PATH, INVALID_REFERENCE, CONSTRAINT_VIOLATION
+- 401: LOGIN_REQUIRED / INVALID_TOKEN; 403: FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED / AUTHOR_UNAVAILABLE
+- 404: NOT_FOUND (client mock) / AUTHOR_NOT_FOUND (author RPC)
+- 409: ALREADY_EXISTS (สมัครซ้ำ), AUTHOR_REVIEW_CONFLICT, INVALID_TRANSITION (client review), PAYOUT_UNAVAILABLE, AUTHOR_FUNDS_HELD, BANK_NOT_VERIFIED, IDEMPOTENCY_CONFLICT, CONTENT_NOT_READY
+- 413 BODY_TOO_LARGE (body รวม >4096 bytes; claim ภาษาไทยอาจชน byte limit ก่อนจำนวนอักษร), 415 JSON_REQUIRED, 500 DATABASE_ERROR/INTERNAL_ERROR, 503 SERVER_NOT_CONFIGURED
+- 501 ยังใช้เฉพาะ watermark ที่ยังไม่ทำ **ไม่ใช้เป็นสัญญา success ของ admin/writer pitch**; HTTP เส้นทางที่มีแต่ client mock ยังไม่มี server listener ไม่ใช่การรับประกันว่าจะตอบ HTTP 200 จริง
+
+### การลอง Edge ทางเลือก (local เท่านั้น)
+1. ใช้ฐาน Supabase local แยกสำหรับ demo; migration 0001→0002→0003 ตามลำดับ; หรือ schema.sql + seed0002 (อย่ารัน 0001/0003 ซ้ำอีก)
+2. `.env.example` มี DEMO_BACKEND_ENABLED=false; เปิดเฉพาะ local ทดสอบ ไม่เปิด production; provision moderator/finance ผ่าน trusted SQL เท่านั้น
+3. Stub ทั้ง 4 รับ user จาก verified JWT; ไม่ใช้ service key ใน wrapper ใหม่นี้; author RPC รักษา auth.uid() เป็น audit.actor_id และเขียนเหตุผลใน DEMO_AUTHOR_REVIEW
+4. create-takedown ตรวจ path prefix user_id; ยังไม่มีตรวจ object existence/AV/หลักฐานจริง ใช้ fixture เท่านั้น; non-idempotent create อาจได้คำร้องซ้ำเมื่อ retry (reload ก่อนส่งใหม่)
+5. Writer apply/dashboard, report review, takedown review, content review และ admin payout HTTP facade ยังเป็นสัญญาสำหรับ client mock; ไม่เพิ่ม server permissions เพื่อเลียนแบบว่าทำแล้ว
+6. Config **70/30, hold14วัน, min100 เป็น placeholder สำหรับ demo/pitch** ไม่ใช่ข้อเสนอธุรกิจ/อัตราที่อนุมัติแล้ว; bank_document สำหรับ payout local ต้อง fixture verified ของ author เดียวกัน ห้าม bypass ownership
 
 ## Test vectors
 | เคส | ก่อน / request | คาดหวัง |

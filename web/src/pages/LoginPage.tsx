@@ -37,7 +37,7 @@ export function LoginPage() {
         <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>อ่านนิยายและมังงะ · ปลดล็อกด้วยเหรียญ</p>
         {isMock && (
           <div className="mb-3">
-            <MockBanner>บัญชีตัวอย่าง: demo@example.com / demo1234 · ยอดเริ่ม 248 เหรียญ</MockBanner>
+            <MockBanner>ผู้อ่าน: demo@example.com / demo1234 · นักเขียน: writer@example.com / demo1234</MockBanner>
           </div>
         )}
         <form onSubmit={onSubmit}>
@@ -48,6 +48,9 @@ export function LoginPage() {
           <div className="field">
             <label htmlFor="password">รหัสผ่าน</label>
             <input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+            <p style={{ marginTop: 8, fontSize: 13, textAlign: 'right' }}>
+              <Link to="/auth/forgot" style={{ color: 'var(--primary)', fontWeight: 600 }}>ลืมรหัสผ่าน?</Link>
+            </p>
           </div>
           {error && <p style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 12 }}>{error}</p>}
           <button type="submit" className="btn btn-primary btn-block" disabled={busy}>

@@ -9,13 +9,21 @@
 - ทุกธุรกรรมเป็นข้อมูลจำลอง **ห้ามโอนเงินจริง/นำยอด mock ไปจ่ายนักเขียน**; ไม่มีการเรียก gateway หรือ webhook จริง
 - ไม่มี VIP, refund/reversal flow, wait-for-free, analytics หรือจัดหานักเขียน
 
+## พรีเซนต์ภายนอก: mock เท่านั้น
+- ส้มใช้ client mock store เป็นหลัก ไม่ต้องต่อ Supabase; backend ส่งสัญญา request/response/errors/roles ใน `api-spec.md` + `openapi.yaml` ให้ adapter ใช้
+- ทางเลือก local มี Edge stubs ใหม่ 4 ตัว: `admin-reports-list`, `create-takedown`, `request-payout`, `admin-author-review` (ยังไม่ deploy); เปิด `DEMO_BACKEND_ENABLED=true` + `APP_ENV=local` เท่านั้น
+- Success สัญญาใหม่ติด `{mock:true,source:"client-mock"|"edge-stub",data:...}` ระบุ runtime ตามจริง; client-role switcher ไม่ใช่ระบบสิทธิ์ production
+- Writer apply/dashboard, report/takedown/content review และ admin payout facade ใช้ client mock contracts; underlying payout RPC มีเดิม แต่ยังไม่มี Edge facade เหล่านี้
+- 70/30, hold14วัน, min100 เป็น **placeholder demo/pitch ไม่ใช่ค่าธุรกิจจริง**; ไม่รับเอกสารจริง/คำร้องจริง/เงินเข้าออกจริง
+
 ## ไฟล์
 | ไฟล์ | เนื้อหา |
 |---|---|
-| schema.sql | schema เต็ม เท่ากับ migration 0001 (ไม่รวม seed) |
+| schema.sql | schema เต็ม = migration 0001 + 0003 (ไม่รวม seed) |
 | migrations/0001_init.sql | ตาราง, constraints, indexes, accounting RPC, RLS, private buckets |
+| migrations/0003_demo_author_review.sql | RPC อนุมัติ/ปฏิเสธ author จำลอง พร้อม role check/replay/audit |
 | migrations/0002_seed_coin_packs.sql | แพ็ก 50/100/300, ส่วนแบ่ง 70/30, hold 14 วัน, ขั้นต่ำ 100 ทั้งหมดตัวอย่าง |
-| openapi.yaml | OpenAPI 3.1: เส้นทางจริงของ Supabase/Edge + เส้นทาง admin ที่ยังเป็น design |
+| openapi.yaml | OpenAPI 3.1: สัญญา Supabase/Edge และ mock contracts สำหรับ writer/admin pitch พร้อม x-runtime |
 | api-spec.md | รายละเอียดตาราง/ledger/การซื้อ/test vectors/ขอบเขต stub |
 | privacy.md | PDPA/KYC/minimization/retention ที่ยังต้องอนุมัติ |
 | storage.md | folder ownership, signed URL 120 วินาที, watermark TODO และข้อจำกัด |
@@ -51,7 +59,7 @@ PGlite จำลอง `auth`/`storage` ตาม `supabase_stub.sql`; ไม่
 ### Supabase local (ขั้นตอนสำหรับผู้รับงาน ยังไม่ได้รันในรอบนี้)
 1. ใช้โปรเจกต์ Supabase local แยกใหม่เท่านั้น ไม่รันทับฐานที่มีตารางอื่นใน public
 2. `supabase init` และ `supabase start` ใน sandbox ของทีม (ต้องมี Docker)
-3. คัดลอก migration เป็น `supabase/migrations/20261106000100_init.sql` และ `20261106000200_seed.sql`; `supabase db reset`
+3. คัดลอก migration 0001/0002/0003 เป็น timestamped files ตามลำดับ; `supabase db reset`
 4. คัดลอก `edge-functions/*` ไป `supabase/functions/`; ตั้ง local env จาก `.env.example` และ `supabase functions serve --env-file <local-env>`
 5. anonymous free-page endpoint ต้อง gateway `verify_jwt=false`; function ตรวจ JWT เองเมื่อมี Authorization ส่วน endpoint อื่นใช้ JWT gateway + `/auth/v1/user`
 6. สมัครบัญชี local ด้วย Supabase Auth; profile ถูกสร้างด้วย trigger (ผู้ใช้เดิมต้อง backfill ด้วย SQL ที่ตรวจแล้ว)
@@ -64,22 +72,22 @@ npx @redocly/cli lint openapi.yaml
 # เมื่อมี Deno:
 deno check edge-functions/*/index.ts
 ```
-Endpoint ใต้ `/functions/v1/admin-*` เป็น design-only ตอบ 501 ตาม contract เมื่อพัฒนา router ต่อ; **ยังไม่มีไฟล์ implement** ส่วน RPC การเงินที่ระบุมีใน SQL แล้ว
+ดู `api-spec.md` ตารางสัญญา pitch: 4 operation มี local Edge stub; ที่เหลือเป็น client mock contracts ไม่ใช่ endpoint ที่ deploy แล้ว ไม่มีการใช้ 501 เป็นคำตอบสำเร็จของ pitch
 
 ## สิ่งที่ยังไม่พร้อม production
 - ยังไม่ทดสอบ Supabase จริง: Auth hook, grants/default privileges, storage API signing, RLS/role mappings, HTTP integration
 - ยังไม่ทดสอบหลาย connection พร้อมกัน/deadlock/retry; client ต้อง retry 40P01/40001 ด้วย key เดิม
 - watermark ฝังในภาพยังไม่ implement; paid manga URL fail closed 501 เว้นแต่เปิด local-only bypass เพื่อ demo (response `watermarked:false`)
-- distributed rate limit, image malware scan, moderation/publishing validation, KYC uploader, admin HTTP routes ยังเป็น TODO
+- distributed rate limit, image malware scan, moderation/publishing validation, KYC uploader และ admin HTTP routes ที่ระบุ client-only ยังเป็น TODO
 - 18+ **ไม่เผยแพร่ให้ผู้อ่านทุกคนใน MVP** จนกว่าจะมีนโยบาย/การตรวจอายุจริง; ไม่ใช้ self-declared boolean หลอกว่าตรวจแล้ว
 - บัญชี mock และเงินจริงต้องแยก environment/database ก่อนต่อ gateway จริง; ไม่ migrate เครดิตจำลองเป็นเงินจริง
 
 ## ผลตรวจรอบนี้
-- PGlite 0.3.14: **46 checks ผ่าน** รวม RLS, A–E, replay/conflict, paid body, whole-work, append-only, nonzero commit, payout reservation/settlement, storage ownership และ takedown
-- Deno 2.5.6: typecheck ทั้ง 3 Edge entrypoints ผ่าน; helper unit tests **7 ผ่าน** ด้วย mock fetch (ไม่มี Auth/Storage HTTP จริง)
-- Redocly CLI 2.12.0: contract valid, **0 errors / 7 warnings**: 6 ข้อจาก 3 admin design-only routes ที่มีแต่ 501 และ 1 ข้อ metadata private license ไม่มี URL/identifier ไม่ใช่ schema errors
-- `schema.sql` เท่ากับ `migrations/0001_init.sql` ตรวจใน smoke test; seed มี example flag ทุกแถว
+- PGlite 0.3.14: **52 checks ผ่าน** รวม RLS, A–E, replay/conflict, paid body, whole-work, append-only, nonzero commit, payout reservation/settlement, storage ownership และ takedown
+- Deno 2.5.6: typecheck ทั้ง 7 Edge entrypoints ผ่าน; helper/wrapper unit tests **14 ผ่าน** ด้วย mock fetch (ไม่มี Auth/Storage HTTP จริง)
+- Redocly CLI 2.12.0: contract valid, **0 errors / 1 warning**: metadata private license ไม่มี URL/identifier (ไม่ใช่ schema error)
+- `schema.sql` เท่ากับ migration 0001 + 0003 ตรวจใน smoke test; seed มี example flag ทุกแถว
 
 หลักฐาน: `tests/test-results.txt`, `tests/edge-test-results.txt`, `tests/deno-check.txt`, `tests/openapi-lint.txt`
-รัน helper: `npx deno@2.5.6 test --allow-env tests/edge_shared_test.ts`; generator contract: `python3 tests/build_contract.py` แล้ว lint ใหม่
+รัน helper: `npx deno@2.5.6 test --allow-env tests/edge_shared_test.ts tests/demo_wrappers_test.ts`; generator contract: `python3 tests/build_contract.py` แล้ว lint ใหม่
 PGlite และ helper mocks ผ่านไม่เท่ากับพร้อมเปิดบริการค่ะ

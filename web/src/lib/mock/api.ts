@@ -14,20 +14,68 @@ function canReadChapter(userId: string | undefined, chapter: Chapter): boolean {
   return mockDb.isUnlocked(userId, chapter.id);
 }
 
-/** SVG placeholder as data URL — same response shape as signed URL */
+/** SVG placeholder as data URL — richer comic-panel look for demo scroll */
 function placeholderPageUrl(label: string, page: number, wm: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="780" height="1100">
-    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1A1A1A"/><stop offset="100%" stop-color="#111"/>
-    </linearGradient></defs>
-    <rect width="100%" height="100%" fill="url(#g)"/>
-    <rect x="40" y="60" width="700" height="420" rx="8" fill="#1E1E1E" stroke="#333"/>
-    <rect x="40" y="520" width="340" height="420" rx="8" fill="#1E1E1E" stroke="#333"/>
-    <rect x="400" y="520" width="340" height="420" rx="8" fill="#1E1E1E" stroke="#333"/>
-    <text x="390" y="560" fill="#555" font-family="sans-serif" font-size="22" text-anchor="middle">${escapeXml(label)}</text>
-    <text x="390" y="1000" fill="#444" font-family="sans-serif" font-size="18" text-anchor="middle">หน้า ${page} / ตัวอย่าง</text>
-    <text x="390" y="550" fill="rgba(255,255,255,0.08)" font-family="sans-serif" font-size="28" text-anchor="middle"
-      transform="rotate(-28 390 550)">uid:${escapeXml(wm)} · Twilight Blue</text>
+  const title = escapeXml(label);
+  const wmark = escapeXml(wm);
+  const bubble =
+    page === 1
+      ? 'ที่นี่คือไหน…'
+      : page === 2
+        ? 'แผนที่เปียกฝน'
+        : 'ไปต่อไหม?';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="780" height="1200" viewBox="0 0 780 1200">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#121820"/><stop offset="100%" stop-color="#0B1018"/>
+      </linearGradient>
+      <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#1A2433"/><stop offset="100%" stop-color="#141C28"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <text x="40" y="36" fill="#7A93B5" font-family="sans-serif" font-size="14" font-weight="600">Twilight Blue · ตัวอย่างมังงะ</text>
+    <text x="740" y="36" fill="#5A6B82" font-family="sans-serif" font-size="13" text-anchor="end">หน้า ${page}/3</text>
+    <text x="40" y="62" fill="#C5D4E8" font-family="sans-serif" font-size="18" font-weight="700">${title}</text>
+
+    <!-- top wide panel -->
+    <rect x="36" y="84" width="708" height="320" rx="10" fill="url(#panel)" stroke="#3D5A80" stroke-width="2"/>
+    <circle cx="180" cy="220" r="48" fill="#2A3A52" stroke="#6B8BB5" stroke-width="2"/>
+    <circle cx="168" cy="208" r="6" fill="#9BB6D4"/><circle cx="192" cy="208" r="6" fill="#9BB6D4"/>
+    <path d="M165 235 Q180 248 195 235" fill="none" stroke="#9BB6D4" stroke-width="3"/>
+    <rect x="280" y="160" width="420" height="160" rx="8" fill="#101820" stroke="#2C3E55"/>
+    <text x="300" y="210" fill="#8FA6C4" font-family="sans-serif" font-size="16">ฉากกว้าง · หาด / ซอย / เมืองสมมติ</text>
+    <text x="300" y="240" fill="#5E738F" font-family="sans-serif" font-size="13">แผงตัวอย่างสำหรับเลื่อนอ่านแนวตั้ง</text>
+
+    <!-- speech bubble on top panel -->
+    <rect x="420" y="100" width="200" height="52" rx="16" fill="#F3F6FA" stroke="#3D5A80"/>
+    <polygon points="450,152 470,152 455,170" fill="#F3F6FA" stroke="#3D5A80"/>
+    <text x="520" y="132" fill="#1A2433" font-family="sans-serif" font-size="15" text-anchor="middle" font-weight="600">${escapeXml(bubble)}</text>
+
+    <!-- mid left -->
+    <rect x="36" y="424" width="340" height="280" rx="10" fill="url(#panel)" stroke="#3D5A80" stroke-width="2"/>
+    <rect x="70" y="460" width="270" height="140" rx="8" fill="#0E1520" stroke="#2C3E55"/>
+    <text x="205" y="535" fill="#7A93B5" font-family="sans-serif" font-size="14" text-anchor="middle">โคลสอัปตัวละคร</text>
+    <rect x="90" y="620" width="160" height="44" rx="14" fill="#F3F6FA"/>
+    <text x="170" y="648" fill="#1A2433" font-family="sans-serif" font-size="13" text-anchor="middle">…ได้ยินไหม</text>
+
+    <!-- mid right -->
+    <rect x="404" y="424" width="340" height="280" rx="10" fill="url(#panel)" stroke="#3D5A80" stroke-width="2"/>
+    <path d="M430 480 L720 480 L720 650 L430 650 Z" fill="#0E1520" stroke="#2C3E55"/>
+    <circle cx="575" cy="560" r="36" fill="#243246" stroke="#6B8BB5"/>
+    <text x="575" y="680" fill="#5E738F" font-family="sans-serif" font-size="13" text-anchor="middle">แผงปฏิกิริยา</text>
+
+    <!-- bottom full -->
+    <rect x="36" y="724" width="708" height="360" rx="10" fill="url(#panel)" stroke="#3D5A80" stroke-width="2"/>
+    <rect x="70" y="760" width="640" height="200" rx="8" fill="#0E1520" stroke="#2C3E55"/>
+    <text x="390" y="850" fill="#8FA6C4" font-family="sans-serif" font-size="18" text-anchor="middle">ฉากต่อ · หน้า ${page}</text>
+    <text x="390" y="885" fill="#5E738F" font-family="sans-serif" font-size="14" text-anchor="middle">SVG จำลองแผงมังงะ · ไม่ใช่ภาพลิขสิทธิ์จริง</text>
+    <rect x="250" y="920" width="280" height="48" rx="16" fill="#F3F6FA"/>
+    <text x="390" y="950" fill="#1A2433" font-family="sans-serif" font-size="14" text-anchor="middle" font-weight="600">พลิกหน้าถัดไปได้</text>
+
+    <text x="390" y="1120" fill="rgba(197,212,232,0.12)" font-family="sans-serif" font-size="26" text-anchor="middle"
+      transform="rotate(-24 390 980)">uid:${wmark} · Twilight Blue</text>
+    <text x="390" y="1175" fill="#4A5D75" font-family="sans-serif" font-size="13" text-anchor="middle">ตัวอย่างสำหรับพรีเซนต์ · watermark mock</text>
   </svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }

@@ -37,6 +37,8 @@ export function MePage() {
         <div className="mb-3"><ThemeToggle /></div>
 
         <nav className="stack">
+          {user && <Link to="/me/settings" className="card row-between">ตั้งค่าบัญชี <span>→</span></Link>}
+          <Link to="/help" className="card row-between">ศูนย์ช่วยเหลือ <span>→</span></Link>
           <Link to="/wallet" className="card row-between">กระเป๋าเหรียญ <span>→</span></Link>
           <Link to="/wallet/topup" className="card row-between">เติมเหรียญ (mock) <span>→</span></Link>
           <Link to="/library" className="card row-between">ชั้นหนังสือ <span>→</span></Link>
@@ -44,8 +46,9 @@ export function MePage() {
           <Link to="/legal/tos" className="card row-between">ข้อกำหนดการใช้ <span>→</span></Link>
           <Link to="/legal/privacy" className="card row-between">ความเป็นส่วนตัว <span>→</span></Link>
           <Link to="/legal/coins" className="card row-between">นโยบายเหรียญ <span>→</span></Link>
-          <Link to="/writer" className="card row-between muted">นักเขียน (โครง MVP) <span>→</span></Link>
-          <Link to="/admin" className="card row-between muted">แอดมิน (โครง MVP) <span>→</span></Link>
+          <Link to="/legal/takedown" className="card row-between">แจ้งละเมิดลิขสิทธิ์ <span>→</span></Link>
+          <Link to="/writer" className="card row-between">นักเขียน (mock demo) <span>→</span></Link>
+          <Link to="/admin" className="card row-between">แอดมิน (mock demo) <span>→</span></Link>
         </nav>
 
         {user && (

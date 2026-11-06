@@ -1,0 +1,13 @@
+# name file width height fullpage(0|1)
+help-mobile help.html 390 844 0
+report-mobile report.html 390 844 0
+takedown-mobile takedown.html 390 844 1
+settings-mobile settings.html 390 844 1
+settings-delete-mobile settings-delete.html 390 844 0
+forgot-password-mobile forgot-password.html 390 844 0
+forgot-password-sent-mobile forgot-password-sent.html 390 844 0
+writer-public-mobile writer-public.html 390 844 0
+search-mobile-light search-twilight.html 390 844 0
+series-mobile-light series-twilight.html 390 844 0
+topup-mobile-light topup-twilight.html 390 844 0
+wallet-mobile-light wallet-twilight.html 390 844 0

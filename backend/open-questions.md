@@ -6,6 +6,11 @@
 - เหรียญคืนไม่ได้ ไม่มี refund ledger/endpoint; admin adjustment ต้องมีเหตุผลเท่านั้น
 - VIP เฟส 2 ไม่มีตาราง VIP; frontend/หานักเขียนไม่อยู่ในงานนี้
 
+## Placeholder สำหรับ demo/pitch เท่านั้น
+- writer 70% / platform 30% (7000 bps), hold 14 วัน, minimum payout 100 เป็น fixture/config สมมติ **ไม่ใช่ค่าธุรกิจที่อนุมัติ ไม่ใช่คำมั่นจ่ายจริง**
+- UI/slide/dashboard ต้องติดป้าย placeholder; เปลี่ยนค่าเพื่อเล่า scenario ได้แต่ห้ามนำยอด mock ไปชำระจริง
+- ส้มใช้ client mock store เป็นหลัก; สัญญา backend มีทั้ง client-only และ local Edge stub 4 ตัวตาม api-spec.md ไม่มี Supabase deployment ในงานนี้
+
 ## สำคัญก่อนเปลี่ยนจาก mock →เงินจริง
 1. **ส่วนแบ่ง/ภาษี:** 70/30 gross, 1 coin≈1 THB เป็นสมมติฐาน; gateway fee ก่อน/หลังแบ่ง? rounding? ภาษีมูลค่าเพิ่ม/หัก ณ ที่จ่าย/50 ทวิ ใครรับผิดชอบ? การจ่ายเป็นเงินบาทและ rounding ทำอย่างไร?
 2. **Hold/withdrawal:** hold 14 วัน, ขั้นต่ำ100 เป็น placeholder; freeze หลังร้องเรียนระดับเรื่องหรือทั้ง author, appeal/SLA, dual approval payout/adjustment และเครดิต mock จะถูก reset อย่างไร? ห้ามโอนจากยอดจำลอง
@@ -17,6 +22,6 @@
 - Full-work: ปัจจุบันเฉพาะ completed, ทั้งหมดเผยแพร่, ไม่มี partial ownership; freeze เพิ่มตอนหลังขายทั้งเล่ม ยอมรับข้อจำกัดนี้หรือจะออกแบบ pro-rata ในเฟสถัดไป?
 - Novel body ใช้ plain text/Markdown/HTML? storage/content sanitizer และ editor schema ต้องตกลงกับส้ม; ไม่ render HTML ดิบ
 - Watermark renderer ยังไม่มี: paid image fail closed; เลือก Edge vs image-worker และ budget ก่อนเปิดใช้งานจริง
-- Admin HTTP routes/publishing validation/KYC uploader ยังเป็น design-only; audit actor ห้าม NULL สำหรับ admin actions จริง; เพิ่ม read-audit KYC ด้วย
+- Admin HTTP บางส่วนมี local demo stub แล้ว; report/takedown/content review, writer dashboard และ admin payout facade ยังเป็น client mock contracts; publishing validation/KYC uploader ยังไม่ทำ; audit actor ห้าม NULL สำหรับ admin actions จริง; เพิ่ม read-audit KYC ด้วย
 - ระบุ admin owner สำหรับ coin packs/settings, policy change effective date, การตรวจ audit และ retention job
 - Proof ที่ยังขาด: Supabase integration/storage signing/Deno runtime และ concurrent SQL; PGlite ไม่แทนการทดสอบเหล่านี้

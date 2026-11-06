@@ -2,8 +2,8 @@
 "openapi": "3.1.0"
 "info":
   "title": "Coin Reader — mock backend MVP"
-  "version": "0.1.0"
-  "description": "6 พ.ย. 2569 (2026-11-06) เวลาไทย; mock-only ไม่มี VIP/refund/gateway จริง. admin HTTP เป็น design-only. PostgREST ขึ้นกับ grants/RLS ใน schema.sql."
+  "version": "0.2.0-demo"
+  "description": "6 พ.ย. 2569 (2026-11-06) เวลาไทย: mock contract สำหรับพรีเซนต์. UI ภายนอกใช้ client mock ของส้ม. Edge wrappers เป็นทางเลือก local ยังไม่ deploy. ไม่มีเงินจริง/gateway/webhook/VIP. source บอก runtime จริงของแต่ละ response."
   "license":
     "name": "Private — internal design only"
 "servers":
@@ -32,7 +32,7 @@
     "description": "รายงานและ takedown"
   -
     "name": "Admin"
-    "description": "RPC ที่ทำแล้วและ HTTP design-only"
+    "description": "mock contracts สำหรับพรีเซนต์; ดู x-runtime แยก client mock กับ local Edge"
   -
     "name": "Auth"
     "description": "Supabase managed Auth"
@@ -1658,111 +1658,6 @@
                 - "p_payout"
                 - "p_note"
               "additionalProperties": false
-  "/functions/v1/admin-author-review":
-    "post":
-      "tags":
-        - "Admin"
-      "summary": "ตรวจ KYC/อนุมัตินักเขียน — ยังไม่ implement"
-      "operationId": "admin_author_review"
-      "x-implementation-status": "design-only"
-      "description": "ไม่มี function นี้ใน deliverable; ผู้รับงานต้องพัฒนา role check + audit actor ก่อนใช้. 501 เป็นผลที่ router ในอนาคตควรคืน ไม่ใช่ endpoint ที่ deploy แล้ว."
-      "requestBody":
-        "required": true
-        "content":
-          "application/json":
-            "schema":
-              "type": "object"
-              "properties":
-                "target_id":
-                  "type": "string"
-                  "format": "uuid"
-                "action":
-                  "type": "string"
-                "reason":
-                  "type": "string"
-                  "minLength": 10
-              "required":
-                - "target_id"
-                - "action"
-                - "reason"
-              "additionalProperties": false
-      "responses":
-        "501":
-          "description": "NOT_IMPLEMENTED"
-          "content":
-            "application/json":
-              "schema":
-                "$ref": "#/components/schemas/Error"
-  "/functions/v1/admin-content-review":
-    "post":
-      "tags":
-        - "Admin"
-      "summary": "เผยแพร่/ระงับเรื่องและตอน — ยังไม่ implement"
-      "operationId": "admin_content_review"
-      "x-implementation-status": "design-only"
-      "description": "ไม่มี function นี้ใน deliverable; ผู้รับงานต้องพัฒนา role check + audit actor ก่อนใช้. 501 เป็นผลที่ router ในอนาคตควรคืน ไม่ใช่ endpoint ที่ deploy แล้ว."
-      "requestBody":
-        "required": true
-        "content":
-          "application/json":
-            "schema":
-              "type": "object"
-              "properties":
-                "target_id":
-                  "type": "string"
-                  "format": "uuid"
-                "action":
-                  "type": "string"
-                "reason":
-                  "type": "string"
-                  "minLength": 10
-              "required":
-                - "target_id"
-                - "action"
-                - "reason"
-              "additionalProperties": false
-      "responses":
-        "501":
-          "description": "NOT_IMPLEMENTED"
-          "content":
-            "application/json":
-              "schema":
-                "$ref": "#/components/schemas/Error"
-  "/functions/v1/admin-takedown-review":
-    "post":
-      "tags":
-        - "Admin"
-      "summary": "ตรวจร้องเรียนและระงับเรื่องใน transaction เดียว — ยังไม่ implement"
-      "operationId": "admin_takedown_review"
-      "x-implementation-status": "design-only"
-      "description": "ไม่มี function นี้ใน deliverable; ผู้รับงานต้องพัฒนา role check + audit actor ก่อนใช้. 501 เป็นผลที่ router ในอนาคตควรคืน ไม่ใช่ endpoint ที่ deploy แล้ว."
-      "requestBody":
-        "required": true
-        "content":
-          "application/json":
-            "schema":
-              "type": "object"
-              "properties":
-                "target_id":
-                  "type": "string"
-                  "format": "uuid"
-                "action":
-                  "type": "string"
-                "reason":
-                  "type": "string"
-                  "minLength": 10
-              "required":
-                - "target_id"
-                - "action"
-                - "reason"
-              "additionalProperties": false
-      "responses":
-        "501":
-          "description": "NOT_IMPLEMENTED"
-          "content":
-            "application/json":
-              "schema":
-                "$ref": "#/components/schemas/Error"
   "/auth/v1/otp":
     "post":
       "tags":
@@ -1793,6 +1688,1350 @@
           "description": "Supabase managed response"
         "429":
           "description": "Auth rate limited"
+  "/functions/v1/admin-author-review":
+    "post":
+      "tags":
+        - "Admin"
+      "summary": "อนุมัติ/ปฏิเสธนักเขียน — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_author_review"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "$ref": "#/components/schemas/DemoAuthorReview"
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+              "example":
+                "mock": true
+                "source": "edge-stub"
+                "data":
+                  "author_id": "30000000-0000-4000-8000-000000000001"
+                  "status": "approved"
+                  "approved_at": "2026-11-06T11:49:00+07:00"
+                  "replayed": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "author_id":
+                  "type": "string"
+                  "format": "uuid"
+                "decision":
+                  "enum":
+                    - "approved"
+                    - "rejected"
+                "reason":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+              "required":
+                - "author_id"
+                - "decision"
+                - "reason"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "moderator"
+        - "superadmin"
+      "x-implementation-status": "edge-demo-stub"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "edge-functions/admin-author-review/index.ts (local only, not deployed)"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. Edge ทางเลือกต้อง APP_ENV=local และ DEMO_BACKEND_ENABLED=true, JWT ตรวจ Auth; สิทธิ์ตาม RPC/RLS. Error codes: 400 INVALID_REVIEW, 404 AUTHOR_NOT_FOUND, 409 AUTHOR_REVIEW_CONFLICT. same decision replay=true; opposite final decision conflict."
+  "/functions/v1/admin-reports-list":
+    "post":
+      "tags":
+        - "Moderation"
+      "summary": "รายการรายงานพร้อมแบ่งหน้า — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_reports_list"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "$ref": "#/components/schemas/DemoReportList"
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+              "example":
+                "mock": true
+                "source": "edge-stub"
+                "data":
+                  "items": []
+                  "limit": 20
+                  "offset": 0
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "status":
+                  "enum":
+                    - "open"
+                    - "reviewing"
+                    - "resolved"
+                    - "rejected"
+                "limit":
+                  "type": "integer"
+                  "minimum": 1
+                  "maximum": 100
+                  "default": 20
+                "offset":
+                  "type": "integer"
+                  "minimum": 0
+                  "maximum": 10000
+                  "default": 0
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "moderator"
+        - "superadmin"
+      "x-implementation-status": "edge-demo-stub"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "edge-functions/admin-reports-list/index.ts (local only, not deployed)"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. Edge ทางเลือกต้อง APP_ENV=local และ DEMO_BACKEND_ENABLED=true, JWT ตรวจ Auth; สิทธิ์ตาม RPC/RLS. Error codes: 400 INVALID_STATUS / INVALID_PAGINATION; ไม่มี total หากไม่ได้คำนวณจริง"
+  "/functions/v1/admin-reports-review":
+    "post":
+      "tags":
+        - "Moderation"
+      "summary": "ทบทวนรายงาน — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_reports_review"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "report_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "enum":
+                          - "open"
+                          - "reviewing"
+                          - "resolved"
+                          - "rejected"
+                    "required":
+                      - "report_id"
+                      - "status"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "report_id":
+                  "type": "string"
+                  "format": "uuid"
+                "status":
+                  "enum":
+                    - "reviewing"
+                    - "resolved"
+                    - "rejected"
+                "reason":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+              "required":
+                - "report_id"
+                - "status"
+                - "reason"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "moderator"
+        - "superadmin"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 404 NOT_FOUND, 409 INVALID_TRANSITION; open→reviewing→resolved/rejected, replay same status ไม่เพิ่ม audit ซ้ำ; ไม่ระงับงานอัตโนมัติ"
+  "/functions/v1/create-takedown":
+    "post":
+      "tags":
+        - "Moderation"
+      "summary": "รับคำร้องลิขสิทธิ์จำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_create_takedown"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "$ref": "#/components/schemas/DemoTakedownReceipt"
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "work_id":
+                  "type": "string"
+                  "format": "uuid"
+                "claim":
+                  "type": "string"
+                  "minLength": 20
+                  "maxLength": 3000
+                "evidence_path":
+                  "type": "string"
+                  "maxLength": 240
+              "required":
+                - "work_id"
+                - "claim"
+                - "evidence_path"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "authenticated"
+      "x-implementation-status": "edge-demo-stub"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "edge-functions/create-takedown/index.ts (local only, not deployed)"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. Edge ทางเลือกต้อง APP_ENV=local และ DEMO_BACKEND_ENABLED=true, JWT ตรวจ Auth; สิทธิ์ตาม RPC/RLS. Error codes: 400 INVALID_EVIDENCE_PATH / INVALID_REFERENCE; prefix evidence_path ต้องเป็น user_id ของ caller. รับเรื่องแล้วไม่ระงับงานเอง; fixture เท่านั้น ไม่ใช่การแจ้งทางกฎหมาย"
+  "/functions/v1/admin-takedown-review":
+    "post":
+      "tags":
+        - "Admin"
+      "summary": "ทบทวน/ระงับงานจากคำร้องจำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_takedown_review"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "request_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "enum":
+                          - "open"
+                          - "reviewing"
+                          - "resolved"
+                          - "rejected"
+                      "work_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "work_status":
+                        "enum":
+                          - "draft"
+                          - "published"
+                          - "suspended"
+                          - "takedown"
+                    "required":
+                      - "request_id"
+                      - "status"
+                      - "work_id"
+                      - "work_status"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "request_id":
+                  "type": "string"
+                  "format": "uuid"
+                "decision":
+                  "enum":
+                    - "reviewing"
+                    - "takedown"
+                    - "rejected"
+                "reason":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+              "required":
+                - "request_id"
+                - "decision"
+                - "reason"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "moderator"
+        - "superadmin"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 404 NOT_FOUND, 409 INVALID_TRANSITION; open→reviewing; reviewing→takedown/rejected. takedown ต้องเปลี่ยน request=resolved + work=takedown แบบ atomic ใน mock store; ห้าม refund"
+  "/functions/v1/request-payout":
+    "post":
+      "tags":
+        - "Author"
+      "summary": "ขอถอนค่าตอบแทนจำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_request_payout"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "$ref": "#/components/schemas/DemoPayoutReceipt"
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+              "example":
+                "mock": true
+                "source": "edge-stub"
+                "data":
+                  "payout_id": "80000000-0000-4000-8000-000000000001"
+                  "amount": 100
+                  "status": "pending"
+                  "request_id": "60000000-0000-4000-8000-000000000001"
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+              "example":
+                "error": "BANK_NOT_VERIFIED"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "amount":
+                  "type": "number"
+                  "multipleOf": 0.01
+                  "exclusiveMinimum": 0
+                  "maximum": 1000000000
+                "bank_document_id":
+                  "type": "string"
+                  "format": "uuid"
+                "request_id":
+                  "type": "string"
+                  "format": "uuid"
+              "required":
+                - "amount"
+                - "bank_document_id"
+                - "request_id"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "approved-writer-owner"
+      "x-implementation-status": "edge-demo-stub"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "edge-functions/request-payout/index.ts (local only, not deployed)"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. Edge ทางเลือกต้อง APP_ENV=local และ DEMO_BACKEND_ENABLED=true, JWT ตรวจ Auth; สิทธิ์ตาม RPC/RLS. Error codes: 403 AUTHOR_UNAVAILABLE; 409 PAYOUT_UNAVAILABLE / AUTHOR_FUNDS_HELD / BANK_NOT_VERIFIED / IDEMPOTENCY_CONFLICT. request_id เดิม payload เดิมคืนคำขอเดิม; ไม่จ่ายเงินจริง"
+  "/functions/v1/admin-payout-review":
+    "post":
+      "tags":
+        - "Admin"
+      "summary": "อนุมัติ/ปฏิเสธคำขอถอนจำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_payout_review"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "payout_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "enum":
+                          - "approved"
+                          - "rejected"
+                    "required":
+                      - "payout_id"
+                      - "status"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "payout_id":
+                  "type": "string"
+                  "format": "uuid"
+                "decision":
+                  "enum":
+                    - "approved"
+                    - "rejected"
+                "reason":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+              "required":
+                - "payout_id"
+                - "decision"
+                - "reason"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "finance"
+        - "superadmin"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 400 INVALID_REVIEW; 409 PAYOUT_UNAVAILABLE. pending เท่านั้น; replay ไม่รับประกันใน RPC เดิม"
+  "/functions/v1/admin-payout-pay":
+    "post":
+      "tags":
+        - "Admin"
+      "summary": "บันทึกจ่ายจำลอง ไม่โอนเงิน — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_payout_pay"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "payout_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "const": "paid"
+                      "transaction_id":
+                        "type": "string"
+                        "format": "uuid"
+                    "required":
+                      - "payout_id"
+                      - "status"
+                      - "transaction_id"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "payout_id":
+                  "type": "string"
+                  "format": "uuid"
+                "note":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+                "mode":
+                  "const": "mock"
+              "required":
+                - "payout_id"
+                - "note"
+                - "mode"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "finance"
+        - "superadmin"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 409 PAYOUT_UNAVAILABLE; approved→paid, paid ซ้ำคืน transaction เดิม. ห้ามรับ mode=real"
+  "/functions/v1/writer-apply":
+    "post":
+      "tags":
+        - "Author"
+      "summary": "ส่งใบสมัครนักเขียนจำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_writer_apply"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "author_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "const": "pending"
+                      "contract_accepted_at":
+                        "type": "string"
+                        "format": "date-time"
+                    "required":
+                      - "author_id"
+                      - "status"
+                      - "contract_accepted_at"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "display_name":
+                  "type": "string"
+                  "minLength": 1
+                  "maxLength": 80
+                "bio":
+                  "type": "string"
+                  "maxLength": 2000
+                "contract_version":
+                  "type": "string"
+                  "minLength": 1
+                  "maxLength": 80
+              "required":
+                - "display_name"
+                - "contract_version"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "authenticated"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 409 ALREADY_EXISTS; user_id และเวลา acceptance มาจาก mock session/server ไม่รับจาก body"
+  "/functions/v1/writer-dashboard":
+    "post":
+      "tags":
+        - "Author"
+      "summary": "dashboard นักเขียนตนเองจาก fixture — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_writer_dashboard"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "$ref": "#/components/schemas/DemoWriterDashboard"
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties": {}
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "writer-owner-pending-or-approved"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 404 AUTHOR_NOT_FOUND; pending แสดงสถานะใบสมัครพร้อม metrics=0; approved แสดง fixture ติดป้าย ไม่ใช่ยอดใช้งานจริง"
+  "/functions/v1/admin-content-review":
+    "post":
+      "tags":
+        - "Admin"
+      "summary": "เผยแพร่/ระงับเนื้อหาจำลอง — MOCK สำหรับพรีเซนต์"
+      "operationId": "demo_admin_content_review"
+      "responses":
+        "200":
+          "description": "สำเร็จ"
+          "content":
+            "application/json":
+              "schema":
+                "type": "object"
+                "properties":
+                  "mock":
+                    "const": true
+                  "source":
+                    "enum":
+                      - "edge-stub"
+                      - "client-mock"
+                  "data":
+                    "type": "object"
+                    "properties":
+                      "target_id":
+                        "type": "string"
+                        "format": "uuid"
+                      "status":
+                        "enum":
+                          - "published"
+                          - "suspended"
+                    "required":
+                      - "target_id"
+                      - "status"
+                    "additionalProperties": false
+                "required":
+                  - "mock"
+                  - "source"
+                  - "data"
+                "additionalProperties": false
+        "400":
+          "description": "ข้อมูลไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "401":
+          "description": "ต้อง login / token ไม่ถูกต้อง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "403":
+          "description": "FORBIDDEN / DEMO_DISABLED / MOCK_DISABLED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "409":
+          "description": "ราคา/ยอด/สถานะ/idempotency ขัดแย้ง"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "500":
+          "description": "ข้อผิดพลาดภายใน"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "404":
+          "description": "NOT_FOUND / AUTHOR_NOT_FOUND ตามชนิดข้อมูล"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "413":
+          "description": "BODY_TOO_LARGE (>4096 bytes ทั้ง body)"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "415":
+          "description": "JSON_REQUIRED"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+        "503":
+          "description": "SERVER_NOT_CONFIGURED / upstream ไม่พร้อม"
+          "content":
+            "application/json":
+              "schema":
+                "$ref": "#/components/schemas/Error"
+      "requestBody":
+        "required": true
+        "content":
+          "application/json":
+            "schema":
+              "type": "object"
+              "properties":
+                "target_kind":
+                  "enum":
+                    - "work"
+                    - "chapter"
+                "target_id":
+                  "type": "string"
+                  "format": "uuid"
+                "decision":
+                  "enum":
+                    - "published"
+                    - "suspended"
+                "reason":
+                  "type": "string"
+                  "minLength": 10
+                  "maxLength": 1000
+              "required":
+                - "target_kind"
+                - "target_id"
+                - "decision"
+                - "reason"
+              "additionalProperties": false
+      "x-mock-contract": true
+      "x-allowed-roles":
+        - "moderator"
+        - "superadmin"
+      "x-implementation-status": "client-mock-contract"
+      "x-runtime":
+        "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
+        "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
+      "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 404 NOT_FOUND; 409 CONTENT_NOT_READY; publication checks เป็น mock เท่านั้น ไม่ใช่การตรวจลิขสิทธิ์/18+ จริง"
 "components":
   "securitySchemes":
     "ApiKey":
@@ -2241,4 +3480,204 @@
         - "work_id"
         - "claim"
         - "evidence_path"
+      "additionalProperties": false
+    "DemoAuthorReview":
+      "type": "object"
+      "properties":
+        "author_id":
+          "type": "string"
+          "format": "uuid"
+        "status":
+          "enum":
+            - "approved"
+            - "rejected"
+        "approved_at":
+          "type":
+            - "string"
+            - "null"
+          "format": "date-time"
+        "replayed":
+          "type": "boolean"
+      "required":
+        - "author_id"
+        - "status"
+        - "approved_at"
+        - "replayed"
+      "additionalProperties": false
+    "DemoReport":
+      "type": "object"
+      "properties":
+        "id":
+          "type": "string"
+          "format": "uuid"
+        "reporter_id":
+          "type": "string"
+          "format": "uuid"
+        "work_id":
+          "type":
+            - "string"
+            - "null"
+          "format": "uuid"
+        "chapter_id":
+          "type":
+            - "string"
+            - "null"
+          "format": "uuid"
+        "target_user_id":
+          "type":
+            - "string"
+            - "null"
+          "format": "uuid"
+        "reason":
+          "type": "string"
+        "status":
+          "enum":
+            - "open"
+            - "reviewing"
+            - "resolved"
+            - "rejected"
+        "created_at":
+          "type": "string"
+          "format": "date-time"
+      "required":
+        - "id"
+        - "reporter_id"
+        - "reason"
+        - "status"
+        - "created_at"
+    "DemoReportList":
+      "type": "object"
+      "properties":
+        "items":
+          "type": "array"
+          "items":
+            "$ref": "#/components/schemas/DemoReport"
+        "limit":
+          "type": "integer"
+          "minimum": 1
+          "maximum": 100
+        "offset":
+          "type": "integer"
+          "minimum": 0
+          "maximum": 10000
+      "required":
+        - "items"
+        - "limit"
+        - "offset"
+      "additionalProperties": false
+    "DemoTakedownReceipt":
+      "type": "object"
+      "properties":
+        "id":
+          "type": "string"
+          "format": "uuid"
+        "work_id":
+          "type": "string"
+          "format": "uuid"
+        "status":
+          "const": "open"
+        "created_at":
+          "type": "string"
+          "format": "date-time"
+      "required":
+        - "id"
+        - "work_id"
+        - "status"
+        - "created_at"
+      "additionalProperties": false
+    "DemoPayoutReceipt":
+      "type": "object"
+      "properties":
+        "payout_id":
+          "type": "string"
+          "format": "uuid"
+        "amount":
+          "type": "number"
+          "multipleOf": 0.01
+        "status":
+          "enum":
+            - "pending"
+            - "approved"
+            - "paid"
+            - "rejected"
+            - "cancelled"
+        "request_id":
+          "type": "string"
+          "format": "uuid"
+      "required":
+        - "payout_id"
+        - "amount"
+        - "status"
+        - "request_id"
+      "additionalProperties": false
+    "DemoWriterDashboard":
+      "type": "object"
+      "properties":
+        "author_id":
+          "type": "string"
+          "format": "uuid"
+        "author_status":
+          "enum":
+            - "pending"
+            - "approved"
+            - "rejected"
+            - "suspended"
+        "metrics_origin":
+          "const": "mock-fixture"
+        "works_count":
+          "type": "integer"
+          "minimum": 0
+        "unlock_count":
+          "type": "integer"
+          "minimum": 0
+        "earnings":
+          "type": "object"
+          "properties":
+            "pending":
+              "type": "number"
+              "multipleOf": 0.01
+              "minimum": 0
+            "available":
+              "type": "number"
+              "multipleOf": 0.01
+              "minimum": 0
+            "reserved":
+              "type": "number"
+              "multipleOf": 0.01
+              "minimum": 0
+            "paid":
+              "type": "number"
+              "multipleOf": 0.01
+              "minimum": 0
+          "required":
+            - "pending"
+            - "available"
+            - "reserved"
+            - "paid"
+          "additionalProperties": false
+        "policy":
+          "type": "object"
+          "properties":
+            "writer_share_bps":
+              "const": 7000
+            "hold_days":
+              "const": 14
+            "minimum_payout":
+              "const": 100
+            "placeholder":
+              "const": true
+          "required":
+            - "writer_share_bps"
+            - "hold_days"
+            - "minimum_payout"
+            - "placeholder"
+          "additionalProperties": false
+      "required":
+        - "author_id"
+        - "author_status"
+        - "metrics_origin"
+        - "works_count"
+        - "unlock_count"
+        - "earnings"
+        - "policy"
       "additionalProperties": false

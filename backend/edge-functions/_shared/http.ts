@@ -29,8 +29,10 @@ export async function rest(path: string, token: string, init: RequestInit = {}, 
   if (!result.ok) {
     const error = await result.json().catch(() => ({}));
     const code = String(error.message ?? 'UPSTREAM_ERROR');
-    const known: Record<string, number> = { LOGIN_REQUIRED: 401, FORBIDDEN: 403, ACCOUNT_UNAVAILABLE: 403, INSUFFICIENT_COINS: 409, PRICE_CHANGED: 409, IDEMPOTENCY_CONFLICT: 409, PARTIAL_OWNERSHIP: 409, MOCK_DISABLED: 403, PACK_NOT_FOUND: 404, CHAPTER_UNAVAILABLE: 404, WORK_UNAVAILABLE: 404, WORK_NOT_FINAL: 409, NO_PAID_CHAPTERS: 409 };
-    throw new ApiError(known[code] ?? 500, known[code] ? code : 'DATABASE_ERROR');
+    const known: Record<string, number> = { LOGIN_REQUIRED: 401, FORBIDDEN: 403, ACCOUNT_UNAVAILABLE: 403, INSUFFICIENT_COINS: 409, PRICE_CHANGED: 409, IDEMPOTENCY_CONFLICT: 409, PARTIAL_OWNERSHIP: 409, MOCK_DISABLED: 403, PACK_NOT_FOUND: 404, CHAPTER_UNAVAILABLE: 404, WORK_UNAVAILABLE: 404, WORK_NOT_FINAL: 409, NO_PAID_CHAPTERS: 409, AUTHOR_UNAVAILABLE: 403, AUTHOR_FUNDS_HELD: 409, BANK_NOT_VERIFIED: 409, PAYOUT_UNAVAILABLE: 409, INVALID_REVIEW: 400, INVALID_ADJUSTMENT: 400, NOTE_REQUIRED: 400, AUTHOR_NOT_FOUND: 404, AUTHOR_REVIEW_CONFLICT: 409 };
+    const sqlErrors: Record<string, [number, string]> = { '23505': [409, 'ALREADY_EXISTS'], '23503': [400, 'INVALID_REFERENCE'], '23514': [400, 'CONSTRAINT_VIOLATION'], '42501': [403, 'FORBIDDEN'] };
+    const fallback = sqlErrors[String(error.code)] ?? [500, 'DATABASE_ERROR'];
+    throw new ApiError(known[code] ?? fallback[0], known[code] ? code : fallback[1]);
   }
   return result.status === 204 ? null : result.json();
 }

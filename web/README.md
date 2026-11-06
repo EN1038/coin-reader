@@ -35,13 +35,16 @@ npm run preview  # ดูผล build
 
 - อีเมล: `demo@example.com`
 - รหัส: `demo1234`
-- ยอดเริ่มต้น: 248 เหรียญ (ตัวอย่าง)
+- ผู้อ่าน: `demo@example.com` / `demo1234` · ยอดเริ่ม 248 เหรียญ · ชั้นเริ่มต้นคาเฟ่ + เกาะไร้ชื่อ
+- นักเขียน: `writer@example.com` / `demo1234` · ผูก author `a-001` (approved) · มีผลงาน seed ใน writer studio
+- แอดมิน: ล็อกอินบัญชีใดก็เปิด `/admin` ได้ใน mock (แบนเนอร์บอกว่าไม่ใช่ RBAC จริง)
+- LS key: `twilight-blue-mock-v2`
 - แพ็ก: 50 / 100 / 300 เหรียญ = บาท ตาม seed `0002_seed_coin_packs.sql`
 
 ## Responsive (ผู้อ่าน)
 
 Breakpoint ตาม tokens เซน: `sm 390` / `md 768` / `lg 861` / `xl 1280`  
-ครอบคลุมหน้าผู้อ่านทั้งหมด — `/writer` และ `/admin` เป็นโครง ไม่ได้ทำ responsive
+ครอบคลุมหน้าผู้อ่านทั้งหมด — `/writer` และ `/admin` เป็น mock demo แบบเดสก์ท็อป ไม่ได้ทำ responsive
 
 ## ธีม
 
@@ -73,12 +76,42 @@ Breakpoint ตาม tokens เซน: `sm 390` / `md 768` / `lg 861` / `xl 1280
 | `/library` | ชั้นหนังสือ |
 | `/history` | ประวัติการอ่าน |
 | `/me` | บัญชี |
+| `/me/settings` | ตั้งค่าบัญชี (ธีม · กฎหมาย · PDPA · โซนลบ) |
+| `/me/settings/delete` | ยืนยันลบบัญชี (พิมพ์ DELETE + รหัสผ่าน) |
+| `/help` | ศูนย์ช่วยเหลือ + FAQ (เหรียญคืนไม่ได้) |
+| `/help/report` | รายงานปัญหา (ไม่ใช่ฟอร์มคืนเหรียญ) |
+| `/auth/forgot` | ลืมรหัสผ่าน (mock ส่งลิงก์) |
 | `/legal/tos` `/legal/privacy` `/legal/coins` | ข้อกำหนด / ความเป็นส่วนตัว / นโยบายเหรียญ |
+| `/legal/takedown` | แจ้งละเมิดลิขสิทธิ์ |
+| `/authors/:authorId` | โปรไฟล์สาธารณะนักเขียน |
 
-## โครงเท่านั้น (ไม่บล็อกส่งมอบ)
+## นักเขียน / แอดมิน (mock demo · ไม่ทำ responsive)
 
-- `/writer` — โครงนักเขียน
-- `/admin` — โครงแอดมิน
+แทนที่ StubPages แล้ว — ใช้ localStorage ไม่เรียก HTTP จริง · ส่วนแบ่ง 70/30 · hold 14 วัน · ขั้นต่ำถอน 100 = **placeholder ตัวอย่าง**
+
+### Writer
+
+| เส้นทาง | หน้า |
+|---|---|
+| `/writer` | แดชบอร์ดรายได้ mock + ทางลัด |
+| `/writer/works` | รายการผลงาน |
+| `/writer/works/new` · `/writer/works/:workId/edit` | สร้าง/แก้เรื่อง |
+| `/writer/works/:workId/chapters/new` · `.../chapters/:chapterId/edit` | สร้าง/แก้ตอน |
+| `/writer/payout` | ขอถอน + ประวัติ |
+| `/writer/register` | สมัครนักเขียน / ดูสถานะ |
+
+### Admin
+
+| เส้นทาง | หน้า |
+|---|---|
+| `/admin` | สรุปคิว |
+| `/admin/authors` | อนุมัติ/ปฏิเสธนักเขียน |
+| `/admin/works` | รายการเรื่อง + ระงับ |
+| `/admin/reports` | helpReports |
+| `/admin/takedowns` | takedownRequests |
+| `/admin/ledger` | อ่าน ledger mock |
+| `/admin/payouts` | อนุมัติ/จ่ายถอน mock |
+| `/admin/refunds` | stub — คืนเงินชำระผิดพลาดเท่านั้น ไม่คืนเหรียญ |
 
 ## โครงสร้างหลัก
 

@@ -13,9 +13,10 @@ const pack='10000000-0000-4000-8000-000000000100', request='60000000-0000-4000-8
 async function role(r,id=''){await db.exec(`reset role; select set_config('request.jwt.claim.sub','${id}',false);set role ${r}`)}
 try {
  await db.exec(await read('./supabase_stub.sql'));
- assert.equal(await read('../schema.sql'),await read('../migrations/0001_init.sql'));
+ assert.equal(await read('../schema.sql'),await read('../migrations/0001_init.sql')+'\n'+await read('../migrations/0003_demo_author_review.sql'));
  await db.exec(await read('../migrations/0001_init.sql'));
  await db.exec(await read('../migrations/0002_seed_coin_packs.sql'));
+ await db.exec(await read('../migrations/0003_demo_author_review.sql'));
  ok(true,'schema + seed execute on PGlite');
  const r=await q("select relname from pg_class join pg_namespace n on n.oid=relnamespace where n.nspname='public' and relkind='r' and not relrowsecurity");ok(!r.rows.length,'RLS enabled on ALL public tables');
  await db.exec(`insert into auth.users values('${user}'),('${other}'),('${writer}');
@@ -97,5 +98,18 @@ try {
  await role('authenticated',user);ok((await q(`select * from public.chapter_contents where chapter_id='${chapter}'`)).rows.length===0,'takedown revokes purchased body access');
  await role('postgres');
  ok((await q('select transaction_id from public.coin_ledger group by transaction_id having sum(amount)<>0 or count(*)<2')).rows.length===0,'accounting remains balanced after payouts and rollback cases');
+
+ const applicant='30000000-0000-4000-8000-000000000002';
+ await db.exec(`insert into public.authors(id,user_id,display_name,contract_version) values('${applicant}','${other}','mock applicant','demo-only');update public.app_admins set role='moderator' where user_id='${writer}';`);
+ await role('authenticated',user);await fails(`select public.demo_admin_review_author('${applicant}','approved','demo approval fake fixture only')`,/FORBIDDEN/,'non-admin cannot approve author');
+ await role('authenticated',writer);
+ let reviewed=(await q(`select public.demo_admin_review_author('${applicant}','approved','demo approval fake fixture only') r`)).rows[0].r;
+ ok(reviewed.status==='approved'&&!reviewed.replayed,'moderator approves demo author');
+ reviewed=(await q(`select public.demo_admin_review_author('${applicant}','approved','demo approval fake fixture only') r`)).rows[0].r;
+ ok(reviewed.replayed,'same author decision replays without second mutation');
+ await fails(`select public.demo_admin_review_author('${applicant}','rejected','demo rejected fake fixture only')`,/AUTHOR_REVIEW_CONFLICT/,'opposite final author decision conflicts');
+ await role('postgres');ok((await q(`select * from public.audit_log where action='DEMO_AUTHOR_REVIEW' and actor_id='${writer}'`)).rows.length===1,'author review audit keeps actual moderator actor');
+ await db.exec('update public.platform_settings set mock_enabled=false');
+ await role('authenticated',writer);await fails(`select public.demo_admin_review_author('${applicant}','approved','demo approval fake fixture only')`,/MOCK_DISABLED/,'author review RPC disabled when mock disabled');
  console.log(`\n${passed} checks passed. Not a real Supabase integration/concurrency test.`);
 } finally {await db.close()}

@@ -3,5 +3,4 @@
 - `../mockups/legal-tos-mobile.png`
 - `../mockups/legal-privacy-mobile.png`
 - `../mockups/legal-coins-mobile.png`
-
-ซอร์ส HTML: `../mockups/src/legal-*.html`
+- `../mockups/takedown-mobile.png` — ฟอร์มแจ้งละเมิดลิขสิทธิ์ (ใหม่ · Twilight light)

@@ -125,7 +125,11 @@ export function SeriesPage() {
         </div>
         <h1 style={{ fontSize: 22, margin: '12px 0 4px' }}>{work.title}</h1>
         <div className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
-          โดย {work.author_name} · {work.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {work.category}
+          โดย{' '}
+          <Link to={`/authors/${work.author_id}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>
+            {work.author_name}
+          </Link>
+          {' '}· {work.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {work.category}
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <Badge kind="ex">ข้อมูลตัวอย่าง</Badge>

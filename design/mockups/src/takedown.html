@@ -1,0 +1,37 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Twilight Blue — แจ้งละเมิดลิขสิทธิ์</title>
+<link rel="stylesheet" href="app.css"/><link rel="stylesheet" href="twilight.css"/>
+<style>
+.form{padding:0 16px 28px}
+.hint{font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5}
+textarea{min-height:72px;padding:12px 14px;resize:none;width:100%;border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--surface);font:inherit}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;color:var(--text);margin:12px 0 16px}
+.check .box{width:20px;height:20px;border:2px solid var(--primary);border-radius:5px;flex-shrink:0;margin-top:2px;background:var(--locked-bg);display:grid;place-items:center;font-size:12px;color:var(--primary)}
+</style></head><body data-theme="light">
+<div class="phone scroll" id="screen" style="height:auto;min-height:844px">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">แจ้งละเมิดลิขสิทธิ์</div></div>
+  <div class="content">
+    <div style="padding:12px 16px 0">
+      <div class="card" style="background:var(--note-bg);border-color:#E8D9B8;font-size:12px;color:var(--note);line-height:1.55">
+        แบบฟอร์ม notice-and-takedown ฉบับร่างออกแบบ · ต้องให้ทนายตรวจก่อนเปิดจริง · <strong>ไม่คืนเหรียญ</strong> เมื่อเรื่องถูกนำออกตามนโยบายปัจจุบัน
+      </div>
+    </div>
+    <div class="form">
+      <div class="sec" style="padding-left:0;padding-right:0"><h2 style="font-size:16px">1. ผู้แจ้ง</h2><span class="badge badge-ex">ตัวอย่าง</span></div>
+      <div class="field"><label>ชื่อ-นามสกุล / นิติบุคคล</label><input placeholder="ชื่อตามบัตรหรือเอกสารสิทธิ"/></div>
+      <div class="field"><label>อีเมลติดต่อ</label><input type="email" placeholder="rights@example.com"/></div>
+      <div class="field"><label>โทรศัพท์ (ถ้ามี)</label><input type="tel" placeholder="0xx-xxx-xxxx"/></div>
+      <div class="sec" style="padding-left:0;padding-right:0"><h2 style="font-size:16px">2. เนื้อหาที่อ้างว่าละเมิด</h2></div>
+      <div class="field"><label>URL หรือ slug เรื่อง/ตอน</label><input placeholder="https://…/works/… หรือชื่อเรื่อง"/></div>
+      <div class="field"><label>คำอธิบายสั้น ๆ</label><textarea placeholder="ระบุงานต้นฉบับและส่วนที่ถูกใช้โดยไม่ได้รับอนุญาต"></textarea></div>
+      <div class="field"><label>หลักฐาน (ลิงก์ / คำอธิบาย)</label><textarea placeholder="ลิงก์ต้นฉบับ เลขจดทะเบียน หรือไฟล์อ้างอิง — อัปโหลดจริงเฟสถัดไป"></textarea></div>
+      <div class="sec" style="padding-left:0;padding-right:0"><h2 style="font-size:16px">3. คำรับรอง</h2></div>
+      <div class="check"><div class="box">✓</div><div>ข้าพเจ้าเป็นเจ้าของลิขสิทธิ์หรือตัวแทนที่ได้รับมอบอำนาจ และข้อมูลที่ยื่นเป็นจริงตามที่รู้ หากเป็นเท็จข้าพเจ้ายินยอมรับผิดตามกฎหมาย</div></div>
+      <button class="btn btn-primary btn-block">ส่งคำขอ takedown</button>
+      <p class="hint" style="text-align:center;margin-top:12px">ทีมจะระงับ/ตรวจตามคิวแอดมิน · ไม่ใช่ช่องคืนเหรียญผู้อ่าน</p>
+    </div>
+  </div>
+</div>
+</body></html>

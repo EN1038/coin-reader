@@ -48,5 +48,11 @@ PASS 43: full-work purchase freezes adding future chapters
 PASS 44: sum nonzero rejected at commit
 PASS 45: takedown revokes purchased body access
 PASS 46: accounting remains balanced after payouts and rollback cases
+PASS 47: non-admin cannot approve author
+PASS 48: moderator approves demo author
+PASS 49: same author decision replays without second mutation
+PASS 50: opposite final author decision conflicts
+PASS 51: author review audit keeps actual moderator actor
+PASS 52: author review RPC disabled when mock disabled
 
-46 checks passed. Not a real Supabase integration/concurrency test.
+52 checks passed. Not a real Supabase integration/concurrency test.

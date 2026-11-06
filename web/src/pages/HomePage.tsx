@@ -99,7 +99,25 @@ export function HomePage() {
           <CoverRailItem key={w.id} work={w} />
         ))}
       </div>
-      <div style={{ height: 12 }} />
+      <footer
+        className="pad"
+        style={{
+          paddingTop: 8,
+          paddingBottom: 28,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '8px 14px',
+          justifyContent: 'center',
+          fontSize: 12,
+          color: 'var(--text-muted)',
+        }}
+      >
+        <Link to="/help" style={{ color: 'var(--text-muted)' }}>ช่วยเหลือ</Link>
+        <Link to="/legal/tos" style={{ color: 'var(--text-muted)' }}>ข้อกำหนด</Link>
+        <Link to="/legal/privacy" style={{ color: 'var(--text-muted)' }}>ความเป็นส่วนตัว</Link>
+        <Link to="/legal/coins" style={{ color: 'var(--text-muted)' }}>นโยบายเหรียญ</Link>
+        <Link to="/legal/takedown" style={{ color: 'var(--text-muted)' }}>แจ้งละเมิด</Link>
+      </footer>
     </>
   );
 }

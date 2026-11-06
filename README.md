@@ -35,19 +35,29 @@ cp .env.example .env
 รันคำสั่งนั้นจากในโฟลเดอร์ `web/` แล้วเปิด URL ที่ Vite แสดง (ปกติ `http://localhost:5173`)  
 Run that copy from inside `web/`, then open the URL Vite prints (usually `http://localhost:5173`).
 
-## บัญชีเดโม / Demo login
+## บัญชีเดโม / Demo accounts
 
 ใช้ได้เมื่อ `VITE_USE_MOCK=true` (ค่าใน `.env.example`)  
 Works while `VITE_USE_MOCK=true` (the value in `.env.example`).
 
-- Email: `demo@example.com`
-- Password: `demo1234`
+| บทบาท / Role | อีเมล / Email | รหัส / Password |
+|---|---|---|
+| ผู้อ่าน / Reader | `demo@example.com` | `demo1234` |
+| นักเขียน / Writer | `writer@example.com` | `demo1234` |
+| แอดมิน / Admin | ล็อกอิน mock บัญชีใดก็ได้ / any mock login | `demo1234` |
+
+แอดมินเป็นแดชบอร์ด mock: แบนเนอร์บอกว่าไม่ใช่ RBAC จริง บัญชีที่ล็อกอินแล้วเปิด `/admin` ได้  
+Admin is a mock dashboard. The banner says this is not real RBAC; any signed-in mock account can open `/admin`.
+
+นักเขียนและแอดมินคลิกได้ แต่ยังไม่ทำ responsive  
+Writer and admin screens are clickable mocks and are not responsive.
 
 ## โครงรีโป / Layout
 
 | Path | คืออะไร / What it is |
 |---|---|
 | `plan.md` | แผนผลิตภัณฑ์ / product plan |
+| `pitch-gap.md` | ช่องว่างก่อนพรีเซนต์ / pitch gap notes |
 | `design/` | โทเคน, ม็อกอัป, ไวร์เฟรม / tokens, mockups, wireframes |
-| `backend/` | schema และเอกสาร Supabase (ยังไม่ deploy) / Supabase schema and docs (not deployed) |
-| `web/` | แอปผู้อ่าน React + Vite + TypeScript / reader app |
+| `backend/` | schema, OpenAPI, edge stubs (ยังไม่ deploy) / schema, OpenAPI, edge stubs (not deployed) |
+| `web/` | แอป React + Vite + TypeScript (mock) / app |
