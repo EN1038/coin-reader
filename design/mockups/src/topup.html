@@ -1,0 +1,47 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>เติมเหรียญ</title><link rel="stylesheet" href="app.css"/>
+<style>
+.bal{margin:12px 16px;padding:14px;border-radius:16px;background:linear-gradient(145deg,#1C1828,#3D2E6B);color:#fff}
+.bal .l{font-size:13px;opacity:.75}.bal .v{font-size:32px;font-family:var(--font-head);font-weight:700;margin:6px 0}
+.packs{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.pay{padding:8px 16px;display:flex;flex-direction:column;gap:8px}
+.pay .opt{display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface)}
+.pay .opt.on{border-color:var(--primary);background:var(--c-violet-50)}
+.pay .opt .r{width:20px;height:20px;border-radius:50%;border:2px solid var(--line)}
+.pay .opt.on .r{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff}
+.foot{padding:16px;border-top:1px solid var(--line);background:var(--surface)}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">เติมเหรียญ</div><span class="coin-pill"><span class="dot"></span>248</span></div>
+  <div class="content">
+    <div style="padding:12px 16px"><div class="mock-banner">โหมด mock · ไม่มีการชำระเงินจริง · ไม่มี QR PromptPay</div></div>
+    <div class="bal">
+      <div class="l">ยอดคงเหลือ (ตัวอย่าง)</div>
+      <div class="v">🪙 248</div>
+      <div class="l">1 เหรียญ ≈ 1 บาท (มาตรฐานตลาด · ยังไม่ล็อกราคาผลิตภัณฑ์)</div>
+    </div>
+    <div class="sec" style="padding-top:8px;padding-bottom:4px"><h2>เลือกแพ็ก</h2><span class="ex">ราคาตัวอย่าง</span></div>
+    <div class="packs">
+      <div class="pack"><div><div class="amt">🪙 50</div><div class="baht">50 บาท</div></div><span class="badge">แพ็กเล็ก</span></div>
+      <div class="pack on"><div><div class="amt">🪙 100</div><div class="baht">100 บาท</div></div><span class="badge badge-note">แนะนำ</span></div>
+      <div class="pack"><div><div class="amt">🪙 300</div><div class="baht">300 บาท</div></div><span class="badge">แพ็กกลาง</span></div>
+      <div class="pack"><div><div class="amt">🪙 500</div><div class="baht">500 บาท</div></div><span class="badge">แพ็กใหญ่</span></div>
+    </div>
+    <div class="sec" style="padding-top:8px;padding-bottom:4px"><h2>ช่องทางชำระ (mock)</h2></div>
+    <div class="pay">
+      <div class="opt on"><div class="r"></div><div style="flex:1"><b style="font-family:var(--font-head)">PromptPay QR</b><div style="font-size:12px;color:var(--text-muted)">จำลองเท่านั้น · ไม่สร้าง QR จริง</div></div></div>
+      <div class="opt"><div class="r"></div><div style="flex:1"><b style="font-family:var(--font-head)">บัตรเครดิต/เดบิต</b><div style="font-size:12px;color:var(--text-muted)">จำลองเท่านั้น</div></div></div>
+    </div>
+    <div style="padding:0 16px 8px">
+      <div class="card" style="background:var(--note-bg);border-color:#F0E0B0;font-size:12px;color:var(--note);line-height:1.55">
+        <strong>เหรียญคืนไม่ได้</strong> — เมื่อเติมแล้วไม่สามารถแลกคืนเป็นเงินสดหรือโอนให้ผู้อื่นได้ ดู <u>นโยบายเหรียญ</u>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="btn btn-coin btn-block">จำลองชำระ 100 บาท → ได้ 100 เหรียญ</button>
+  </div>
+</div>
+</body></html>

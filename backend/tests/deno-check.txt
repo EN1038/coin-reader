@@ -1,0 +1,3 @@
+Check file:///workspace/projects/coin-reader/backend/edge-functions/mock-topup/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/unlock-chapter/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/get-manga-page-url/index.ts

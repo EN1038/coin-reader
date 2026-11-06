@@ -1,0 +1,52 @@
+
+> test
+> node smoke.mjs
+
+PASS 1: schema + seed execute on PGlite
+PASS 2: RLS enabled on ALL public tables
+PASS 3: anonymous sees free body only
+PASS 4: client cannot insert ledger
+PASS 5: client cannot invoke privileged topup
+PASS 6: client cannot query arbitrary wallet via helper
+PASS 7: client cannot modify privileged profile columns
+PASS 8: E: insufficient coins rolls back
+PASS 9: A: mock topup credits 100
+PASS 10: B: replay credits once
+PASS 11: idempotency key binds pack
+PASS 12: C: unlock debits 10
+PASS 13: D: unlock replay no debit
+PASS 14: purchased body readable
+PASS 15: stale price rejected
+PASS 16: whole-work rejects partial ownership
+PASS 17: other user cannot see wallet
+PASS 18: other user cannot see paid body
+PASS 19: whole work atomic purchase
+PASS 20: whole work idempotent
+PASS 21: non-admin adjustment rejected
+PASS 22: every transaction balances with at least 2 entries
+PASS 23: writer share 70%, decimal precision
+PASS 24: ledger UPDATE blocked even as owner
+PASS 25: ledger DELETE blocked even as owner
+PASS 26: ledger TRUNCATE blocked
+PASS 27: deferred check rejects transaction without entries
+PASS 28: old committed transaction sealed
+PASS 29: admin reason required
+PASS 30: admin adjustment appends balanced entries
+PASS 31: admin adjustment audited
+PASS 32: no VIP table
+PASS 33: hold blocks immature revenue payout
+PASS 34: payout request idempotent
+PASS 35: payout key binds amount
+PASS 36: reservation prevents over-request
+PASS 37: payout settlement idempotent
+PASS 38: paid debits writer exactly once and releases reservation
+PASS 39: reader cannot upload to another author chapter
+PASS 40: author cannot bind other user storage path
+PASS 41: even author cannot SELECT/sign storage originals directly
+PASS 42: KYC upload has no client policy
+PASS 43: full-work purchase freezes adding future chapters
+PASS 44: sum nonzero rejected at commit
+PASS 45: takedown revokes purchased body access
+PASS 46: accounting remains balanced after payouts and rollback cases
+
+46 checks passed. Not a real Supabase integration/concurrency test.

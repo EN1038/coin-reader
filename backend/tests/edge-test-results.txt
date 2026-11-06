@@ -1,0 +1,12 @@
+Check file:///workspace/projects/coin-reader/backend/tests/edge_shared_test.ts
+running 7 tests from ./tests/edge_shared_test.ts
+UUID and malformed body rejected ... ok (1ms)
+body limit enforced ... ok (0ms)
+anonymous free session, including SDK anon Authorization ... ok (0ms)
+JWT is verified by Auth server rather than decoded ... ok (0ms)
+RPC caller context preserved; service only for privileged calls ... ok (0ms)
+known DB errors mapped; unknown details hidden ... ok (0ms)
+storage signing uses 120s and service authentication ... ok (0ms)
+
+ok | 7 passed | 0 failed (9ms)
+
