@@ -1,0 +1,66 @@
+[
+  {
+    "mockup": "home-mobile-light.png",
+    "bg": "#F3F6FA",
+    "text": "#1C2C40",
+    "readerLineHeight": null,
+    "readerFontSize": null,
+    "overflow": false,
+    "thai_platform_fonts": [
+      {
+        "familyName": "Prompt SemiBold",
+        "postScriptName": "Prompt-SemiBold",
+        "isCustomFont": false,
+        "glyphCount": 16
+      }
+    ]
+  },
+  {
+    "mockup": "home-mobile-dark.png",
+    "bg": "#101827",
+    "text": "#E7EDF5",
+    "readerLineHeight": null,
+    "readerFontSize": null,
+    "overflow": false,
+    "thai_platform_fonts": [
+      {
+        "familyName": "Prompt SemiBold",
+        "postScriptName": "Prompt-SemiBold",
+        "isCustomFont": false,
+        "glyphCount": 16
+      }
+    ]
+  },
+  {
+    "mockup": "read-novel-mobile-light.png",
+    "bg": "#F0F3F4",
+    "text": "#293644",
+    "readerLineHeight": "33.3px",
+    "readerFontSize": "18px",
+    "overflow": false,
+    "thai_platform_fonts": [
+      {
+        "familyName": "Sarabun",
+        "postScriptName": "Sarabun-Regular",
+        "isCustomFont": false,
+        "glyphCount": 82
+      }
+    ]
+  },
+  {
+    "mockup": "read-novel-mobile-dark.png",
+    "bg": "#0F171E",
+    "text": "#DCE2E6",
+    "readerLineHeight": "33.3px",
+    "readerFontSize": "18px",
+    "overflow": false,
+    "thai_platform_fonts": [
+      {
+        "familyName": "Sarabun",
+        "postScriptName": "Sarabun-Regular",
+        "isCustomFont": false,
+        "glyphCount": 82
+      }
+    ]
+  }
+]

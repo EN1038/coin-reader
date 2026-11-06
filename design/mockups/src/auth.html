@@ -1,0 +1,43 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>เข้าสู่ระบบ</title><link rel="stylesheet" href="app.css"/>
+<style>
+.brand{text-align:center;padding:32px 24px 16px}
+.brand .mark{width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,#5B3FD6,#3D2E6B);margin:0 auto 16px;display:grid;place-items:center;font-size:28px;color:#E8B84A;box-shadow:var(--sh-2)}
+.brand h1{font-size:24px}
+.brand p{font-size:13px;color:var(--text-muted);margin-top:6px}
+.social{display:flex;flex-direction:column;gap:10px;padding:8px 20px 20px}
+.social .btn{background:var(--surface);border:1.5px solid var(--line);color:var(--text);font-weight:600}
+.div{display:flex;align-items:center;gap:12px;padding:0 20px 16px;color:var(--text-muted);font-size:12px}
+.div::before,.div::after{content:"";flex:1;height:1px;background:var(--line)}
+.form{padding:0 20px 24px}
+.fine{font-size:12px;color:var(--text-muted);text-align:center;padding:0 24px 24px;line-height:1.5}
+.fine a{color:var(--primary);font-weight:600}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">เข้าสู่ระบบ</div></div>
+  <div class="content">
+    <div class="brand">
+      <div class="mark">🪙</div>
+      <h1>Coin Reader</h1>
+      <p>ชื่อชั่วคราว · เข้าสู่ระบบเพื่อปลดล็อกตอน</p>
+    </div>
+    <div class="social">
+      <button class="btn btn-block">เข้าด้วย Google</button>
+      <button class="btn btn-block">เข้าด้วย LINE</button>
+    </div>
+    <div class="div">หรือใช้อีเมล</div>
+    <div class="form">
+      <div class="field"><label>อีเมล</label><input type="email" placeholder="you@example.com" value=""/></div>
+      <div class="field"><label>รหัสผ่าน</label><input type="password" placeholder="••••••••"/></div>
+      <button class="btn btn-primary btn-block" style="margin-top:8px">เข้าสู่ระบบ</button>
+      <div style="text-align:center;margin-top:16px;font-size:14px">
+        ยังไม่มีบัญชี? <a href="#" style="color:var(--primary);font-weight:600;font-family:var(--font-head)">สมัคร</a>
+        · <a href="#" style="color:var(--text-muted)">ลืมรหัส</a>
+      </div>
+    </div>
+    <p class="fine">การสมัครถือว่ายอมรับ <a>ข้อกำหนดการใช้</a> และ <a>นโยบายความเป็นส่วนตัว</a></p>
+  </div>
+</div>
+</body></html>

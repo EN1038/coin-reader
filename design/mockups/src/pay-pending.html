@@ -1,0 +1,23 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>รอชำระ</title><link rel="stylesheet" href="app.css"/>
+<style>.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center}
+.icon{width:80px;height:80px;border-radius:50%;background:var(--c-coin-50);display:grid;place-items:center;font-size:36px;margin-bottom:20px;border:2px dashed var(--c-coin-500)}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><div class="title">ผลการชำระเงิน</div></div>
+  <div class="content center">
+    <div class="mock-banner" style="width:100%;margin-bottom:24px">โหมด mock · ไม่รอ webhook จริง</div>
+    <div class="icon">⏳</div>
+    <h1 style="font-size:22px;margin-bottom:8px">รอการยืนยัน</h1>
+    <p style="color:var(--text-muted);font-size:14px;line-height:1.6;max-width:280px">ระบบจำลองสถานะ “รอชำระ” — ในเวอร์ชันจริงจะรอ event จาก gateway ก่อนเติมเหรียญ (ห้ามเติมตอน redirect กลับ)</p>
+    <div class="card" style="width:100%;margin-top:24px;text-align:left">
+      <div class="row-between" style="margin-bottom:8px"><span class="ex">แพ็ก</span><span style="font-weight:600">🪙 100</span></div>
+      <div class="row-between" style="margin-bottom:8px"><span class="ex">ยอด</span><span>100 บาท (ตัวอย่าง)</span></div>
+      <div class="row-between"><span class="ex">รหัสอ้างอิง</span><span style="font-family:monospace;font-size:12px">MOCK-20261106-001</span></div>
+    </div>
+    <button class="btn btn-ghost btn-block" style="margin-top:20px">จำลองว่าชำระแล้ว</button>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,16 @@
+[
+  {
+    "mockup": "topup-mobile-light.png",
+    "selector": ".topbar .title",
+    "fonts": [
+      {
+        "familyName": "Prompt SemiBold",
+        "postScriptName": "Prompt-SemiBold",
+        "isCustomFont": false,
+        "glyphCount": 10
+      }
+    ],
+    "thai_ok": true,
+    "overflow": false
+  }
+]

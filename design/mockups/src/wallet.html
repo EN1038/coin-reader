@@ -1,0 +1,36 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>กระเป๋า</title><link rel="stylesheet" href="app.css"/>
+<style>
+.bal{margin:16px;padding:20px;border-radius:16px;background:linear-gradient(145deg,#1C1828,#3D2E6B);color:#fff}
+.bal .v{font-size:36px;font-family:var(--font-head);font-weight:700;margin:8px 0}
+.tx{padding:14px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--line);background:var(--surface)}
+.tx .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.tx .ic.in{background:var(--ok-bg)}.tx .ic.out{background:var(--c-violet-50)}.tx .ic.adj{background:var(--c-surface-2)}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">กระเป๋าเหรียญ</div></div>
+  <div class="content">
+    <div class="bal">
+      <div style="font-size:13px;opacity:.75">ยอดคงเหลือ (ตัวอย่าง)</div>
+      <div class="v">🪙 248</div>
+      <button class="btn btn-coin btn-sm" style="margin-top:8px">เติมเหรียญ</button>
+    </div>
+    <div style="padding:0 16px 12px"><div class="mock-banner" style="font-size:11px">เหรียญคืน/แลกเงินสดไม่ได้ · โอนให้ผู้ใช้อื่นไม่ได้</div></div>
+    <div class="sec"><h2>ประวัติธุรกรรม</h2><span class="ex">ตัวอย่าง</span></div>
+    <div class="tx"><div class="ic in">＋</div><div style="flex:1"><div style="font-family:var(--font-head);font-weight:600;font-size:14px">เติมแพ็ก 100</div><div style="font-size:12px;color:var(--text-muted)">6 พ.ย. 2569 · mock</div></div><div style="color:var(--ok);font-weight:700;font-family:var(--font-head)">+100</div></div>
+    <div class="tx"><div class="ic out">🔓</div><div style="flex:1"><div style="font-family:var(--font-head);font-weight:600;font-size:14px">ปลดล็อกตอน 4 · คาเฟ่ตอนตีสาม</div><div style="font-size:12px;color:var(--text-muted)">5 พ.ย. 2569</div></div><div style="color:var(--locked);font-weight:700;font-family:var(--font-head)">−8</div></div>
+    <div class="tx"><div class="ic out">🔓</div><div style="flex:1"><div style="font-family:var(--font-head);font-weight:600;font-size:14px">ปลดล็อกตอน 5 · คาเฟ่ตอนตีสาม</div><div style="font-size:12px;color:var(--text-muted)">5 พ.ย. 2569</div></div><div style="color:var(--locked);font-weight:700;font-family:var(--font-head)">−8</div></div>
+    <div class="tx"><div class="ic in">＋</div><div style="flex:1"><div style="font-family:var(--font-head);font-weight:600;font-size:14px">เติมแพ็ก 50</div><div style="font-size:12px;color:var(--text-muted)">1 พ.ย. 2569 · mock</div></div><div style="color:var(--ok);font-weight:700;font-family:var(--font-head)">+50</div></div>
+    <div class="tx"><div class="ic out">🔓</div><div style="flex:1"><div style="font-family:var(--font-head);font-weight:600;font-size:14px">ซื้อทั้งเล่ม · เงาในกระจก</div><div style="font-size:12px;color:var(--text-muted)">28 ต.ค. 2569</div></div><div style="color:var(--locked);font-weight:700;font-family:var(--font-head)">−120</div></div>
+  </div>
+  <nav class="bottomnav">
+    <a><span class="ic">⌂</span>หน้าแรก</a>
+    <a><span class="ic">⌕</span>ค้นหา</a>
+    <a><span class="ic">▤</span>ชั้นหนังสือ</a>
+    <a><span class="ic">◷</span>ประวัติ</a>
+    <a class="on"><span class="ic">☺</span>ฉัน</a>
+  </nav>
+</div>
+</body></html>

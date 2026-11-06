@@ -1,0 +1,61 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Twilight Blue — ค้นหา</title>
+<link rel="stylesheet" href="app.css"/><link rel="stylesheet" href="twilight.css"/>
+<style>
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px 20px}
+.cat{border-radius:14px;padding:18px 14px;background:var(--surface);border:1px solid var(--line);font-family:var(--font-head);font-weight:600;font-size:14px}
+.cat small{display:block;font-weight:400;color:var(--text-muted);font-size:12px;margin-top:4px;font-family:var(--font-body)}
+.result{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.result .c{width:56px;height:74px;border-radius:8px;flex-shrink:0}
+</style></head><body data-theme="light">
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">ค้นหา / หมวด</div></div>
+  <div class="content">
+    <div style="padding:12px 16px">
+      <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--primary);border-radius:999px;padding:12px 16px;box-shadow:0 0 0 3px var(--locked-bg)">
+        <span style="color:var(--primary)">⌕</span>
+        <span style="flex:1;font-size:15px">คาเฟ่</span>
+        <span style="color:var(--text-muted)">✕</span>
+      </div>
+    </div>
+    <div class="sec" style="padding-top:4px"><h2 style="font-size:15px;color:var(--text-muted);font-weight:500">ผลค้นหา · ตัวอย่าง</h2></div>
+    <div class="result">
+      <div class="c cover warm"></div>
+      <div style="flex:1">
+        <div style="font-family:var(--font-head);font-weight:600">คาเฟ่ตอนตีสาม</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:4px 0">นามปากกาตัวอย่าง · นิยาย · โรแมนติก</div>
+        <span class="badge badge-lock">🪙 ตอนละ 8</span>
+        <span class="badge badge-ex">ตัวอย่าง</span>
+      </div>
+    </div>
+    <div class="result">
+      <div class="c cover teal"></div>
+      <div style="flex:1">
+        <div style="font-family:var(--font-head);font-weight:600">คาเฟ่ใต้ถุนบ้าน</div>
+        <div style="font-size:12px;color:var(--text-muted);margin:4px 0">นักเขียนตัวอย่าง · มังงะ</div>
+        <span class="badge badge-free">มีตอนฟรี</span>
+        <span class="badge badge-ex">ตัวอย่าง</span>
+      </div>
+    </div>
+    <div class="sec"><h2>หมวดทั้งหมด</h2></div>
+    <div class="cats">
+      <div class="cat">โรแมนติก<small>นิยาย · มังงะ</small></div>
+      <div class="cat">แฟนตาซี<small>นิยาย · มังงะ</small></div>
+      <div class="cat">สยองขวัญ<small>นิยาย · มังงะ</small></div>
+      <div class="cat">ชีวิตประจำวัน<small>นิยาย · มังงะ</small></div>
+      <div class="cat">ไซไฟ<small>นิยาย · มังงะ</small></div>
+      <div class="cat">วาย / ยูริ<small>นิยาย · มังงะ</small></div>
+    </div>
+  </div>
+  <nav class="bottomnav">
+    <a><span class="ic">⌂</span>หน้าแรก</a>
+    <a class="on"><span class="ic">⌕</span>ค้นหา</a>
+    <a><span class="ic">▤</span>ชั้นหนังสือ</a>
+    <a><span class="ic">◷</span>ประวัติ</a>
+    <a><span class="ic">☺</span>ฉัน</a>
+  </nav>
+</div>
+<script>const dark=new URLSearchParams(location.search).get("theme")==="dark";document.body.dataset.theme=dark?"dark":"light";</script>
+</body></html>

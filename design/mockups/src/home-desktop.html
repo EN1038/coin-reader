@@ -1,0 +1,46 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>หน้าแรก Desktop</title><link rel="stylesheet" href="app.css"/>
+<style>
+.desk-top{height:64px;display:flex;align-items:center;gap:24px;padding:0 40px;background:var(--surface);border-bottom:1px solid var(--line)}
+.desk-top .logo{font-family:var(--font-head);font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+.desk-top nav{display:flex;gap:8px;flex:1}
+.desk-top nav a{padding:8px 14px;border-radius:999px;font-family:var(--font-head);font-size:14px;font-weight:500;color:var(--text-muted)}
+.desk-top nav a.on{background:var(--c-violet-50);color:var(--primary)}
+.hero{margin:28px 40px;padding:32px;border-radius:20px;background:linear-gradient(120deg,#1C1828,#5B3FD6);color:#fff;display:flex;gap:28px;align-items:center}
+.hero .c{width:140px;height:186px;border-radius:12px;flex-shrink:0}
+.rail{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;padding:0 40px 32px}
+.rail .name{font-size:13px;font-family:var(--font-head);font-weight:600;margin-top:8px}
+.rail .by{font-size:12px;color:var(--text-muted)}
+.sec-d{padding:8px 40px;display:flex;justify-content:space-between;align-items:baseline}
+</style></head><body>
+<div class="desktop" id="screen">
+  <div class="desk-top">
+    <div class="logo">🪙 Coin Reader <span class="badge badge-ex">ชื่อชั่วคราว</span></div>
+    <nav><a class="on">หน้าแรก</a><a>นิยาย</a><a>มังงะ</a><a>หมวด</a><a>ชั้นหนังสือ</a></nav>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:220px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--text-muted)">⌕ ค้นหา</div>
+      <span class="coin-pill"><span class="dot"></span>248</span>
+      <button class="btn btn-primary btn-sm">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="c cover rose" style="padding:12px"><span class="cover-title" style="font-size:14px">คืนที่ดาวตก</span></div>
+    <div>
+      <div style="font-size:13px;opacity:.75;margin-bottom:6px">เรื่องเด่น · ตัวอย่าง</div>
+      <h1 style="font-size:36px;margin-bottom:8px">คืนที่ดาวตก</h1>
+      <p style="opacity:.85;max-width:480px;line-height:1.6;margin-bottom:16px">เมื่อดาวเทียมดวงสุดท้ายดับลง เธอได้รับสัญญาณจากคนที่ควรจากไปแล้ว</p>
+      <button class="btn btn-coin">เริ่มอ่าน</button>
+    </div>
+  </div>
+  <div class="sec-d"><h2 style="font-size:22px">ยอดนิยม</h2><a style="color:var(--primary);font-weight:600;font-family:var(--font-head)">ดูทั้งหมด</a></div>
+  <div class="rail">
+    <div><div class="cover"><span class="tag badge badge-free">ฟรี</span><span class="cover-title">เงาในกระจก</span></div><div class="name">เงาในกระจก</div><div class="by">ตัวอย่าง</div></div>
+    <div><div class="cover warm"><span class="tag badge badge-lock">🪙 8</span><span class="cover-title">คาเฟ่ตอนตีสาม</span></div><div class="name">คาเฟ่ตอนตีสาม</div><div class="by">ตัวอย่าง</div></div>
+    <div><div class="cover teal"><span class="cover-title">เกาะไร้ชื่อ</span></div><div class="name">เกาะไร้ชื่อ</div><div class="by">มังงะ</div></div>
+    <div><div class="cover blue"><span class="tag badge badge-free">ฟรี</span><span class="cover-title">จดหมายถึงทะเล</span></div><div class="name">จดหมายถึงทะเล</div><div class="by">ตัวอย่าง</div></div>
+    <div><div class="cover rose"><span class="cover-title">ห้อง 407</span></div><div class="name">ห้อง 407</div><div class="by">มังงะ</div></div>
+    <div><div class="cover"><span class="cover-title">ดาวเทียมดวงสุดท้าย</span></div><div class="name">ดาวเทียมดวงสุดท้าย</div><div class="by">มังงะ</div></div>
+  </div>
+</div>
+</body></html>
