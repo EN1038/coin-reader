@@ -28,33 +28,14 @@ export function CoverRailItem({ work, badge }: { work: Work; badge?: React.React
   );
 }
 
-export function WorkListRow({ work }: { work: Work }) {
-  return (
-    <Link to={`/works/${work.slug}`} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)' }}>
-      <Cover work={work} className="" />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 15 }}>{work.title}</div>
-        <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-          {work.author_name} · {work.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {work.category}
-        </div>
-        <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
-          <Badge kind="ex">ตัวอย่าง</Badge>
-          <Badge>{work.chapter_count} ตอน</Badge>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-/** fix cover size in list */
 export function WorkListCard({ work }: { work: Work }) {
   return (
-    <Link to={`/works/${work.slug}`} className="row" style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)' }}>
-      <div style={{ width: 56, flexShrink: 0 }}>
+    <Link to={`/works/${work.slug}`} className="work-list-card">
+      <div className="thumb">
         <Cover work={work} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 15 }}>{work.title}</div>
+      <div className="meta">
+        <div className="t">{work.title}</div>
         <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
           {work.author_name} · {work.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {work.category}
         </div>

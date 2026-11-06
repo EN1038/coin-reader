@@ -30,7 +30,11 @@ export function LibraryPage() {
           <Link to="/search" className="btn btn-primary btn-sm mt-3" style={{ display: 'inline-flex' }}>ค้นหาเรื่อง</Link>
         </div>
       )}
-      {works.map((w) => <WorkListCard key={w.id} work={w} />)}
+      {works.length > 0 && (
+        <div className="work-grid work-list">
+          {works.map((w) => <WorkListCard key={w.id} work={w} />)}
+        </div>
+      )}
     </>
   );
 }

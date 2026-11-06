@@ -32,7 +32,7 @@ export function LoginPage() {
   return (
     <>
       <Topbar title="เข้าสู่ระบบ" back="/" showCoin={false} />
-      <div className="pad">
+      <div className="pad form-narrow">
         <p className="center head" style={{ fontSize: 22, marginBottom: 4 }}>{PRODUCT_NAME}</p>
         <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>อ่านนิยายและมังงะ · ปลดล็อกด้วยเหรียญ</p>
         {isMock && (

@@ -16,7 +16,7 @@ export function MePage() {
   return (
     <>
       <Topbar title="บัญชีของฉัน" showCoin />
-      <div className="pad">
+      <div className="pad form-narrow">
         {user ? (
           <div className="card mb-3">
             <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 18 }}>{user.display_name}</div>

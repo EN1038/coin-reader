@@ -37,23 +37,26 @@ export function HistoryPage() {
           <Link to="/" className="btn btn-primary btn-sm mt-3" style={{ display: 'inline-flex' }}>ไปหน้าแรก</Link>
         </div>
       )}
-      {rows.map(({ progress, work, chapter }) => (
-        <Link
-          key={`${progress.work_id}-${progress.chapter_id}`}
-          to={work.kind === 'manga' ? `/read/manga/${work.id}/${chapter.id}` : `/read/novel/${work.id}/${chapter.id}`}
-          className="row"
-          style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)' }}
-        >
-          <div style={{ width: 48, flexShrink: 0 }}><Cover work={work} /></div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 14 }}>{work.title}</div>
-            <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>ตอนที่ {chapter.number} — {chapter.title}</div>
-            <div className="ex" style={{ marginTop: 4 }}>
-              {new Date(progress.updated_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })} · Asia/Bangkok
-            </div>
-          </div>
-        </Link>
-      ))}
+      {rows.length > 0 && (
+        <div className="work-grid work-list">
+          {rows.map(({ progress, work, chapter }) => (
+            <Link
+              key={`${progress.work_id}-${progress.chapter_id}`}
+              to={work.kind === 'manga' ? `/read/manga/${work.id}/${chapter.id}` : `/read/novel/${work.id}/${chapter.id}`}
+              className="work-list-card"
+            >
+              <div className="thumb"><Cover work={work} /></div>
+              <div className="meta">
+                <div className="t">{work.title}</div>
+                <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>ตอนที่ {chapter.number} — {chapter.title}</div>
+                <div className="ex" style={{ marginTop: 4 }}>
+                  {new Date(progress.updated_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })} · Asia/Bangkok
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </>
   );
 }

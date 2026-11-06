@@ -33,7 +33,7 @@ export function SignupPage() {
   return (
     <>
       <Topbar title="สมัครสมาชิก" back showCoin={false} />
-      <div className="pad">
+      <div className="pad form-narrow">
         <p className="center head" style={{ fontSize: 22, marginBottom: 4 }}>{PRODUCT_NAME}</p>
         <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>สร้างบัญชีเพื่อปลดล็อกและเก็บชั้นหนังสือ</p>
         {isMock && <div className="mb-3"><MockBanner>สมัครใน mock เก็บในเครื่องคุณเท่านั้น</MockBanner></div>}

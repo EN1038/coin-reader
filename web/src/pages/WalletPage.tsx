@@ -19,15 +19,16 @@ export function WalletPage() {
   return (
     <>
       <Topbar title="กระเป๋าเหรียญ" back="/me" />
+      <div className="form-narrow">
       <div className="px-4 py-2"><MockBanner>รายการด้านล่างเป็นการอ่าน ledger อย่างเดียว · client ไม่เขียน coin_ledger</MockBanner></div>
-      <div style={{ margin: '8px 16px', padding: 16, borderRadius: 16, background: 'linear-gradient(145deg,#1C1828,#3D2E6B)', color: '#fff' }}>
+      <div style={{ margin: '8px 16px', padding: 16, borderRadius: 16, background: 'linear-gradient(145deg,var(--hero-start),var(--hero-end))', color: 'var(--on-hero)' }}>
         <div style={{ fontSize: 13, opacity: 0.75 }}>ยอดคงเหลือ</div>
         <div style={{ fontSize: 36, fontFamily: 'var(--font-head)', fontWeight: 700, margin: '6px 0' }}>🪙 {balance}</div>
         <div style={{ fontSize: 12, opacity: 0.7 }}>{isMock ? 'ข้อมูลตัวอย่างในเครื่อง' : 'จาก my_wallet()'}</div>
         <Link to="/wallet/topup" className="btn btn-coin btn-sm" style={{ marginTop: 12 }}>เติมเหรียญ</Link>
       </div>
       <div className="px-4 mb-3">
-        <div className="card" style={{ background: 'var(--note-bg)', borderColor: '#F0E0B0', fontSize: 12, color: 'var(--note)' }}>
+        <div className="card" style={{ background: 'var(--note-bg)', borderColor: 'color-mix(in srgb, var(--accent-coin) 45%, var(--line))', fontSize: 12, color: 'var(--note)' }}>
           เหรียญคืนไม่ได้ · ไม่แลกเป็นเงินสด · ไม่โอนให้ผู้อื่น — <Link to="/legal/coins"><u>นโยบายเหรียญ</u></Link>
         </div>
       </div>
@@ -46,6 +47,7 @@ export function WalletPage() {
           </div>
         </div>
       ))}
+      </div>
     </>
   );
 }

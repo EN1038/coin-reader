@@ -116,11 +116,11 @@ export function SeriesPage() {
 
   return (
     <>
-      <div style={{ height: 160, background: 'linear-gradient(160deg,#2C1810,#8B4513)', position: 'relative' }}>
-        <button type="button" className="icon-btn" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.35)', color: '#fff', borderRadius: 999, width: 40, height: 40, border: 'none' }} onClick={() => nav(-1)}>←</button>
+      <div className="series-banner">
+        <button type="button" className="icon-btn" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.35)', color: '#fff', borderRadius: 999, border: 'none' }} onClick={() => nav(-1)}>←</button>
       </div>
-      <div style={{ padding: '0 16px 16px', marginTop: -48, position: 'relative' }}>
-        <div style={{ width: 110 }}>
+      <div className="series-head">
+        <div className="series-cover">
           <Cover work={work} />
         </div>
         <h1 style={{ fontSize: 22, margin: '12px 0 4px' }}>{work.title}</h1>
@@ -135,23 +135,22 @@ export function SeriesPage() {
         <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--text-muted)', margin: '12px 0' }}>
           {work.synopsis}
         </p>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="series-actions">
           <button
             type="button"
             className="btn btn-primary"
-            style={{ flex: 1 }}
             onClick={() => lastReadable && openChapter(lastReadable)}
           >
             อ่านตอนล่าสุด
           </button>
-          <button type="button" className="btn btn-ghost" style={{ width: 48, padding: 0 }} onClick={toggleShelf} aria-label="ชั้นหนังสือ">
+          <button type="button" className="btn btn-ghost" style={{ width: 48, minWidth: 48, padding: 0 }} onClick={toggleShelf} aria-label="ชั้นหนังสือ">
             {inShelf ? '♥' : '♡'}
           </button>
         </div>
       </div>
 
       {work.price_full_work != null && (
-        <div style={{ margin: '0 16px 12px', padding: 14, borderRadius: 14, background: 'var(--c-violet-50)', border: '1px solid var(--c-violet-100)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div className="series-buy">
           <div>
             <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 14 }}>ซื้อทั้งเล่ม</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>ตัวอย่างราคา · ประหยัดกว่าซื้อทีละตอน</div>
@@ -165,18 +164,13 @@ export function SeriesPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--line)', padding: '0 16px', background: 'var(--surface)', position: 'sticky', top: 0, zIndex: 5 }}>
+      <div className="series-tabs">
         {(['toc', 'about'] as const).map((t) => (
           <button
             key={t}
             type="button"
+            className={tab === t ? 'on' : undefined}
             onClick={() => setTab(t)}
-            style={{
-              flex: 1, padding: 14, border: 'none', background: 'none',
-              fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 14,
-              color: tab === t ? 'var(--primary)' : 'var(--text-muted)',
-              borderBottom: tab === t ? '2px solid var(--primary)' : '2px solid transparent',
-            }}
           >
             {t === 'toc' ? 'สารบัญ' : 'เกี่ยวกับ'}
           </button>

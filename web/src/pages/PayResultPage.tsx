@@ -14,7 +14,7 @@ export function PayResultPage() {
   return (
     <>
       <Topbar title={title} back="/wallet/topup" showCoin={false} />
-      <div className="pad">
+      <div className="pad form-narrow">
         <MockBanner />
         <div className="card center mt-3" style={{ padding: 28 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>

@@ -60,7 +60,7 @@ export function TopupPage() {
         <h2>เลือกแพ็ก</h2>
         <span className="ex">ราคาตัวอย่างจาก seed</span>
       </div>
-      <div className="stack px-4">
+      <div className="pack-grid px-4">
         {packs.map((pk) => (
           <button
             key={pk.id}
@@ -92,7 +92,7 @@ export function TopupPage() {
             className="row"
             style={{
               padding: 14, borderRadius: 14, border: `1.5px solid ${payMethod === id ? 'var(--primary)' : 'var(--line)'}`,
-              background: payMethod === id ? 'var(--c-violet-50)' : 'var(--surface)', width: '100%', textAlign: 'left',
+              background: payMethod === id ? 'var(--locked-bg)' : 'var(--surface)', width: '100%', textAlign: 'left',
             }}
           >
             <span style={{
@@ -109,7 +109,7 @@ export function TopupPage() {
       </div>
 
       <div className="px-4 mt-3 mb-4">
-        <div className="card" style={{ background: 'var(--note-bg)', borderColor: '#F0E0B0', fontSize: 12, color: 'var(--note)', lineHeight: 1.55 }}>
+        <div className="card" style={{ background: 'var(--note-bg)', borderColor: 'color-mix(in srgb, var(--accent-coin) 45%, var(--line))', fontSize: 12, color: 'var(--note)', lineHeight: 1.55 }}>
           <strong>เหรียญคืนไม่ได้</strong> — เมื่อเติมแล้วไม่สามารถแลกคืนเป็นเงินสดหรือโอนให้ผู้อื่นได้ ดู{' '}
           <Link to="/legal/coins"><u>นโยบายเหรียญ</u></Link>
         </div>

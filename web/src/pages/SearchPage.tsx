@@ -51,9 +51,13 @@ export function SearchPage() {
         <span className="ex">{works.length} เรื่อง · ตัวอย่าง</span>
       </div>
       {works.length === 0 && <p className="center muted p-4">ไม่พบเรื่องที่ตรงเงื่อนไข</p>}
-      {works.map((w) => (
-        <WorkListCard key={w.id} work={w} />
-      ))}
+      {works.length > 0 && (
+        <div className="work-grid work-list">
+          {works.map((w) => (
+            <WorkListCard key={w.id} work={w} />
+          ))}
+        </div>
+      )}
     </>
   );
 }
