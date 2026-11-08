@@ -10,8 +10,7 @@ function requireUser(): SessionUser {
 }
 
 function canReadChapter(userId: string | undefined, chapter: Chapter): boolean {
-  if (chapter.pricing === 'free') return true;
-  return mockDb.isUnlocked(userId, chapter.id);
+  return mockDb.canRead(userId, chapter.id);
 }
 
 /** SVG placeholder as data URL — richer comic-panel look for demo scroll */
@@ -99,12 +98,15 @@ export const mockApi: CoinReaderApi = {
     }
   },
 
-  async signup(email, password, displayName) {
+  async signup(email, password, displayName, referralCode) {
     try {
-      return mockDb.signup(email, password, displayName);
+      return mockDb.signup(email, password, displayName, referralCode);
     } catch (e) {
       if (e instanceof Error && e.message === 'EMAIL_TAKEN') {
         throw new ApiError(409, 'VALIDATION', 'อีเมลนี้ถูกใช้แล้ว');
+      }
+      if (e instanceof Error && e.message === 'BAD_REFERRAL') {
+        throw new ApiError(400, 'VALIDATION', 'รหัสแนะนำไม่ถูกต้อง');
       }
       throw e;
     }
@@ -132,6 +134,15 @@ export const mockApi: CoinReaderApi = {
     if (params?.popular) list = list.filter((w) => w.popular);
     if (params?.isNew) list = list.filter((w) => w.is_new);
     if (params?.featured) list = list.filter((w) => w.featured);
+    if (params?.status) list = list.filter((w) => w.status === params.status);
+    const sort = params?.sort;
+    if (sort === 'views') list.sort((a, b) => b.views - a.views);
+    else if (sort === 'rating') list.sort((a, b) => b.score - a.score || b.rating_count - a.rating_count);
+    else if (sort === 'new') list.sort((a, b) => Number(!!b.is_new) - Number(!!a.is_new) || b.latest_at.localeCompare(a.latest_at));
+    else if (sort === 'daily') list.sort((a, b) => b.rank_daily - a.rank_daily);
+    else if (sort === 'weekly') list.sort((a, b) => b.rank_weekly - a.rank_weekly);
+    else if (sort === 'monthly') list.sort((a, b) => b.rank_monthly - a.rank_monthly);
+    else if (sort === 'updated' || sort) list.sort((a, b) => b.latest_at.localeCompare(a.latest_at));
     return list;
   },
 
@@ -180,8 +191,8 @@ export const mockApi: CoinReaderApi = {
   },
 
   async listLedger() {
-    requireUser();
-    return [...mockDb.getState().ledger];
+    const u = requireUser();
+    return mockDb.getState().ledger.filter((e) => !e.user_id || e.user_id === u.id);
   },
 
   async mockTopup(packId, idempotencyKey) {
@@ -205,18 +216,22 @@ export const mockApi: CoinReaderApi = {
     }
 
     const tx = mockDb.newTxId();
-    const bal = mockDb.balanceOf(u.id) + pack.coins;
+    const bonus = pack.bonus_coins ?? 0;
+    const total = pack.coins + bonus;
+    const bal = mockDb.balanceOf(u.id) + total;
     mockDb.setBalance(u.id, bal);
-    mockDb.getState().topupKeys[key] = { pack_id: packId, transaction_id: tx, coins: pack.coins };
+    mockDb.getState().topupKeys[key] = { pack_id: packId, transaction_id: tx, coins: total };
     mockDb.addLedger({
+      user_id: u.id,
       kind: 'topup',
-      amount: pack.coins,
-      coins: pack.coins,
-      label: `เติม ${pack.coins} เหรียญ (mock)`,
+      amount: total,
+      coins: total,
+      label: bonus > 0 ? `เติม ${pack.coins} เหรียญ + โบนัส ${bonus} (mock)` : `เติม ${pack.coins} เหรียญ (mock)`,
       transaction_id: tx,
     });
+    mockDb.creditReferral(u.id, pack.coins, tx);
     mockDb.persist();
-    return { transaction_id: tx, balance: bal, coins_added: pack.coins, replayed: false };
+    return { transaction_id: tx, balance: mockDb.balanceOf(u.id), coins_added: total, replayed: false };
   },
 
   async unlockChapter(input) {
@@ -265,7 +280,12 @@ export const mockApi: CoinReaderApi = {
 
     const chapter = mockDb.chapters.find((c) => c.id === input.chapter_id);
     if (!chapter) throw new ApiError(404, 'NOT_FOUND');
-    if (chapter.pricing === 'free') {
+    const parent = mockDb.findWork(chapter.work_id);
+    const withinFree = !!parent && chapter.number <= parent.free_episode_count;
+    if (chapter.pricing === 'free' || withinFree) {
+      return { free: true, balance: mockDb.balanceOf(u.id), chapter_id: chapter.id };
+    }
+    if (chapter.follow_free && mockDb.inBookshelf(u.id, chapter.work_id)) {
       return { free: true, balance: mockDb.balanceOf(u.id), chapter_id: chapter.id };
     }
     if (input.expected_price !== chapter.coin_price) {
@@ -349,8 +369,110 @@ export const mockApi: CoinReaderApi = {
   async isChapterUnlocked(chapterId) {
     const chapter = mockDb.chapters.find((c) => c.id === chapterId);
     if (!chapter) return false;
-    if (chapter.pricing === 'free') return true;
+    return mockDb.canRead(mockDb.getState().user?.id, chapterId);
+  },
+
+  async listRecentUpdates(limit = 10) {
+    const works = [...mockDb.works].sort((a, b) => b.latest_at.localeCompare(a.latest_at)).slice(0, limit);
+    return works.map((work) => {
+      const episodes = mockDb.chapters
+        .filter((c) => c.work_id === work.id)
+        .sort((a, b) => b.number - a.number)
+        .slice(0, 2)
+        .map((c) => ({ id: c.id, number: c.number, title: c.title, published_at: c.published_at }));
+      return { work, episodes };
+    });
+  },
+
+  async checkInCalendar() {
+    const u = requireUser();
+    return mockDb.checkInView(u.id);
+  },
+
+  async claimCheckIn() {
+    const u = requireUser();
+    return mockDb.claimCheckIn(u.id);
+  },
+
+  async ticketBalance() {
     const u = mockDb.getState().user;
-    return mockDb.isUnlocked(u?.id, chapterId);
+    if (!u) return 0;
+    return mockDb.ticketCount(u.id);
+  },
+
+  async unlockWithTicket(chapterId) {
+    const u = requireUser();
+    try {
+      const r = mockDb.spendTicket(u.id, chapterId);
+      return { transaction_id: r.transaction_id, balance: r.balance, chapter_id: r.chapter_id };
+    } catch (e) {
+      const code = e instanceof Error ? e.message : '';
+      if (code === 'NO_TICKET') throw new ApiError(409, 'VALIDATION', 'ตั๋วอ่านฟรีไม่พอ');
+      if (code === 'ALREADY_UNLOCKED' || code === 'ALREADY_FREE') {
+        return { already: true, balance: mockDb.balanceOf(u.id), chapter_id: chapterId };
+      }
+      if (code === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
+
+  async referralInfo() {
+    const u = requireUser();
+    return mockDb.referralView(u.id);
+  },
+
+  async listComments(chapterId) {
+    return mockDb.listComments(chapterId, mockDb.getState().user?.id);
+  },
+
+  async addComment(chapterId, body) {
+    const u = requireUser();
+    try {
+      return mockDb.addComment(u.id, chapterId, body);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'UNAUTHORIZED') {
+        throw new ApiError(403, 'UNAUTHORIZED', 'อ่านตอนนี้ก่อนจึงจะคอมเมนต์ได้');
+      }
+      if (e instanceof Error && e.message === 'VALIDATION') throw new ApiError(400, 'VALIDATION', 'ความเห็นว่างหรือยาวเกินไป');
+      throw e;
+    }
+  },
+
+  async toggleCommentLike(commentId) {
+    const u = requireUser();
+    try {
+      return mockDb.toggleCommentLike(u.id, commentId);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
+
+  async rateWork(workId, stars) {
+    const u = requireUser();
+    try {
+      return mockDb.rateWork(u.id, workId, stars);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      if (e instanceof Error && e.message === 'VALIDATION') throw new ApiError(400, 'VALIDATION', 'ให้คะแนนได้ 1–5');
+      throw e;
+    }
+  },
+
+  async myRating(workId) {
+    return mockDb.myStars(mockDb.getState().user?.id, workId);
+  },
+
+  async tipWriter(workId, coins) {
+    const u = requireUser();
+    try {
+      return mockDb.tipWriter(u.id, workId, coins);
+    } catch (e) {
+      const code = e instanceof Error ? e.message : '';
+      if (code === 'INSUFFICIENT_COINS') throw new ApiError(409, 'INSUFFICIENT_COINS');
+      if (code === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      if (code === 'VALIDATION') throw new ApiError(400, 'VALIDATION', 'จำนวนเหรียญไม่ถูกต้อง');
+      throw e;
+    }
   },
 };

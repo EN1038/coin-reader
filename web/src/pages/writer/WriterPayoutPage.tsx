@@ -34,6 +34,16 @@ export function WriterPayoutPage() {
   return (
     <>
       <h1 style={{ fontSize: 20, marginBottom: 12 }}>รายได้ / ขอถอน</h1>
+      <div className="card mb-3" style={{ maxWidth: 720 }}>
+        <p className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
+          ส่วนแบ่งและขั้นต่ำเป็น placeholder สำหรับเดโม ไม่ใช่อัตราที่ล็อกแล้ว หน้านี้แปลง 1 เหรียญ = 1 บาทเฉพาะเพื่อแสดงยอดถอนจำลอง
+        </p>
+        <div className="row-between" style={{ padding: '6px 0' }}><span>ยอดขายเหรียญ</span><strong>{dash!.earnings.sales_coins.toLocaleString()}</strong></div>
+        <div className="row-between" style={{ padding: '6px 0' }}><span>ทิปจากผู้อ่าน</span><strong>{dash!.earnings.tip_coins.toLocaleString()}</strong></div>
+        <div className="row-between" style={{ padding: '6px 0' }}><span>ค่าธรรมเนียมแพลตฟอร์ม 30% (placeholder)</span><strong>{dash!.earnings.platform_fee_coins.toLocaleString()}</strong></div>
+        <div className="row-between" style={{ padding: '6px 0' }}><span>ส่วนนักเขียน 70% (placeholder)</span><strong>{dash!.earnings.net_coins.toLocaleString()}</strong></div>
+        <div className="row-between" style={{ padding: '6px 0' }}><span>ขั้นต่ำถอน (placeholder)</span><strong>฿ {mockDb.WRITER_POLICY.minimum_payout}</strong></div>
+      </div>
       <div className="stat-grid mb-3">
         <div className="card stat"><div className="lbl">AVAILABLE</div><div className="val">฿ {dash!.earnings.available.toLocaleString()}</div></div>
         <div className="card stat"><div className="lbl">PENDING</div><div className="val">฿ {dash!.earnings.pending.toLocaleString()}</div></div>

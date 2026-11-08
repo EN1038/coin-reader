@@ -14,6 +14,9 @@ import { PayResultPage } from './pages/PayResultPage';
 import { WalletPage } from './pages/WalletPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { RankingPage } from './pages/RankingPage';
+import { CheckInPage } from './pages/CheckInPage';
+import { ReferralPage } from './pages/ReferralPage';
 import { MePage } from './pages/MePage';
 import { LegalTosPage } from './pages/LegalTosPage';
 import { LegalPrivacyPage } from './pages/LegalPrivacyPage';
@@ -51,6 +54,10 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="search" element={<SearchPage />} />
+            <Route path="discover" element={<SearchPage />} />
+            <Route path="ranking" element={<RankingPage />} />
+            <Route path="check-in" element={<CheckInPage />} />
+            <Route path="referral" element={<ReferralPage />} />
             <Route path="works/:slug" element={<SeriesPage />} />
             <Route path="read/novel/:workId/:chapterId" element={<ReadNovelPage />} />
             <Route path="read/manga/:workId/:chapterId" element={<ReadMangaPage />} />

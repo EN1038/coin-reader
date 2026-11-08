@@ -5,6 +5,7 @@ import type { Chapter, Work } from '../lib/types';
 import { Badge } from '../components/Badge';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
+import { CommentThread } from '../components/CommentThread';
 
 export function ReadNovelPage() {
   const { workId, chapterId } = useParams();
@@ -72,6 +73,7 @@ export function ReadNovelPage() {
           <p key={i} style={{ marginBottom: '1.1em' }}>{para}</p>
         ))}
       </article>
+      <CommentThread chapterId={chapter.id} />
       <div className="reader-nav">
         <button type="button" className="btn" disabled={!prev} onClick={() => prev && go(prev)}>← ก่อนหน้า</button>
         <button type="button" className="btn" disabled={!next} onClick={() => next && go(next)}>ถัดไป →</button>

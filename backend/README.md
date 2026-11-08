@@ -19,10 +19,11 @@
 ## ไฟล์
 | ไฟล์ | เนื้อหา |
 |---|---|
-| schema.sql | schema เต็ม = migration 0001 + 0003 (ไม่รวม seed) |
+| schema.sql | schema เต็ม = migration 0001 + 0003 + 0004 (ไม่รวม seed) |
 | migrations/0001_init.sql | ตาราง, constraints, indexes, accounting RPC, RLS, private buckets |
 | migrations/0003_demo_author_review.sql | RPC อนุมัติ/ปฏิเสธ author จำลอง พร้อม role check/replay/audit |
 | migrations/0002_seed_coin_packs.sql | แพ็ก 50/100/300, ส่วนแบ่ง 70/30, hold 14 วัน, ขั้นต่ำ 100 ทั้งหมดตัวอย่าง |
+| migrations/0004_reader_economy.sql | ตอนฟรี/ราคาต่อตอน/ติดตามอ่านฟรี, เช็คอิน, ตั๋ว, referral, ทิปใน ledger, คอมเมนต์และดาว — ยังไม่มี RPC ลงบัญชี |
 | openapi.yaml | OpenAPI 3.1: สัญญา Supabase/Edge และ mock contracts สำหรับ writer/admin pitch พร้อม x-runtime |
 | api-spec.md | รายละเอียดตาราง/ledger/การซื้อ/test vectors/ขอบเขต stub |
 | privacy.md | PDPA/KYC/minimization/retention ที่ยังต้องอนุมัติ |
@@ -44,6 +45,10 @@
 6. adjustment เฉพาะ finance/superadmin ผ่าน caller JWT พร้อมเหตุผล 10–1000 ตัวอักษรและ audit; ห้ามทำยอดติดลบ ไม่ใช่ช่องคืนเงิน
 7. แบ่ง writer 70%/platform 30% เป็น **ค่าตัวอย่างรอตัดสินใจ** (basis points); ปัด writer 2 หลัก เศษให้ platform เพื่อ sum=0
 8. DB owner ยัง disable trigger/เปลี่ยน schema ได้: จำกัดสิทธิ์ SQL/secret, แยก approval และตรวจ audit; ไม่อ้างว่ากัน DBA ได้
+9. เช็คอิน referral และทิปลง `coin_ledger` แบบ sum=0 ผ่าน `promo_clearing` หรือส่วนแบ่งนักเขียนเท่านั้น โบนัสแพ็กแยกจากยอดจ่ายที่ใช้คิด referral
+10. ตั๋วอ่านฟรีอยู่ `ticket_ledger` append-only คนละบัญชีกับเหรียญ ใช้ปลดหนึ่งตอนแล้วหัก 1 ห้ามยอดติดลบ และ client ไม่มีสิทธิ์ INSERT
+11. `works.free_episode_count` กับ `chapters.follow_to_read` เป็นกติกาอ่าน ไม่ใช่รายการเงิน ราคาที่หักต้องเป็นราคาตอนหลังใช้กติกานี้
+12. เหรียญจากเติม โบนัส เช็คอิน และ referral ใช้กฎเดียวกัน: ไม่คืน ไม่โอน ไม่แลกเงิน และหายเมื่อปิดบัญชี
 
 ## วิธีรัน/ตรวจ
 ชุดนี้เป็นไฟล์ออกแบบใหม่บน box ยังไม่มี repo/ไม่มี deployment; ไม่สร้าง repository หรือใช้บริการเสียเงิน
@@ -86,7 +91,7 @@ deno check edge-functions/*/index.ts
 - PGlite 0.3.14: **52 checks ผ่าน** รวม RLS, A–E, replay/conflict, paid body, whole-work, append-only, nonzero commit, payout reservation/settlement, storage ownership และ takedown
 - Deno 2.5.6: typecheck ทั้ง 7 Edge entrypoints ผ่าน; helper/wrapper unit tests **14 ผ่าน** ด้วย mock fetch (ไม่มี Auth/Storage HTTP จริง)
 - Redocly CLI 2.12.0: contract valid, **0 errors / 1 warning**: metadata private license ไม่มี URL/identifier (ไม่ใช่ schema error)
-- `schema.sql` เท่ากับ migration 0001 + 0003 ตรวจใน smoke test; seed มี example flag ทุกแถว
+- `schema.sql` เท่ากับ migration 0001 + 0003 + 0004 ตรวจใน smoke test; seed มี example flag ทุกแถว
 
 หลักฐาน: `tests/test-results.txt`, `tests/edge-test-results.txt`, `tests/deno-check.txt`, `tests/openapi-lint.txt`
 รัน helper: `npx deno@2.5.6 test --allow-env tests/edge_shared_test.ts tests/demo_wrappers_test.ts`; generator contract: `python3 tests/build_contract.py` แล้ว lint ใหม่

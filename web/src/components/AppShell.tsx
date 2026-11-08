@@ -1,14 +1,16 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
+import { ReaderHeader } from './ReaderHeader';
 
-const HIDE_NAV = [/^\/read\//, /^\/auth\//, /^\/wallet\/pay/, /^\/legal\//, /^\/writer/, /^\/admin/];
+const HIDE = [/^\/read\//, /^\/auth\//, /^\/writer/, /^\/admin/];
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const hide = HIDE_NAV.some((re) => re.test(pathname));
+  const hide = HIDE.some((re) => re.test(pathname));
   return (
-    <div className="app-shell">
-      <div className="content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div className={hide ? 'app-shell' : 'app-shell has-nav'}>
+      {!hide && <ReaderHeader />}
+      <div className="content">
         <Outlet />
       </div>
       {!hide && <BottomNav />}

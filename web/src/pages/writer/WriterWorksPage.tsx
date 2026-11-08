@@ -29,7 +29,7 @@ export function WriterWorksPage() {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700 }}>{w.title}</div>
                     <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                      {w.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {w.category} · {chs.length} ตอน · {w.status}
+                      {w.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {w.category} · {chs.length} ตอน · ฟรี {w.free_episode_count ?? 0} ตอนแรก · {w.status}
                     </div>
                     <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <Badge kind="ex">ตัวอย่าง</Badge>
@@ -45,7 +45,7 @@ export function WriterWorksPage() {
                   <div style={{ marginTop: 12, borderTop: '1px solid var(--line)', paddingTop: 10 }}>
                     {chs.map((c) => (
                       <div key={c.id} className="row-between" style={{ padding: '6px 0', fontSize: 13 }}>
-                        <span>ตอน {c.number}. {c.title} · {c.pricing === 'free' ? 'ฟรี' : `🪙 ${c.coin_price}`}</span>
+                        <span>ตอน {c.number}. {c.title} · {c.number <= (w.free_episode_count ?? 0) || c.pricing === 'free' ? 'ฟรี' : `🪙 ${c.coin_price}`}{c.follow_free ? ' · ติดตามอ่านฟรี' : ''}</span>
                         <Link to={`/writer/works/${w.id}/chapters/${c.id}/edit`} style={{ color: 'var(--primary)', fontWeight: 600 }}>แก้</Link>
                       </div>
                     ))}

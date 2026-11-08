@@ -44,6 +44,7 @@ Works while `VITE_USE_MOCK=true` (the value in `.env.example`).
 |---|---|---|
 | ผู้อ่าน / Reader | `demo@example.com` | `demo1234` |
 | นักเขียน / Writer | `writer@example.com` | `demo1234` |
+| เพื่อนที่ถูกชวน / Referred friend | `friend@example.com` | `demo1234` |
 | แอดมิน / Admin | ล็อกอิน mock บัญชีใดก็ได้ / any mock login | `demo1234` |
 
 แอดมินเป็นแดชบอร์ด mock: แบนเนอร์บอกว่าไม่ใช่ RBAC จริง บัญชีที่ล็อกอินแล้วเปิด `/admin` ได้  

@@ -7,6 +7,8 @@ export function UnlockSheet({
   price,
   onConfirm,
   onClose,
+  onUseTicket,
+  tickets = 0,
   busy,
   mode = 'chapter',
 }: {
@@ -14,6 +16,8 @@ export function UnlockSheet({
   price: number;
   onConfirm: () => void;
   onClose: () => void;
+  onUseTicket?: () => void;
+  tickets?: number;
   busy?: boolean;
   mode?: 'chapter' | 'work' | 'insufficient';
 }) {
@@ -84,6 +88,11 @@ export function UnlockSheet({
             <button type="button" className="btn btn-coin btn-block" disabled={busy} onClick={onConfirm}>
               {busy ? 'กำลังปลดล็อก…' : `ยืนยันใช้ ${price} เหรียญ`}
             </button>
+            {mode === 'chapter' && onUseTicket && tickets > 0 && (
+              <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} disabled={busy} onClick={onUseTicket}>
+                ใช้ตั๋วอ่านฟรี 1 ใบ (เหลือ {tickets})
+              </button>
+            )}
             <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} onClick={onClose} disabled={busy}>
               ยกเลิก
             </button>

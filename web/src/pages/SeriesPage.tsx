@@ -5,43 +5,61 @@ import type { Chapter, Work } from '../lib/types';
 import { ApiError } from '../lib/types';
 import { useApp, errMessage } from '../context/AppContext';
 import { Cover } from '../components/CoverCard';
-import { Badge } from '../components/Badge';
+import { CoverBadges } from '../components/SeriesCard';
 import { UnlockSheet } from '../components/UnlockSheet';
+import { episodeState, isFreeEpisode } from '../lib/access';
+import { formatCount, kindLabel, relativeTime, statusLabel } from '../lib/format';
+
+const TIP_AMOUNTS = [5, 10, 20, 50];
 
 export function SeriesPage() {
   const { slug } = useParams();
   const nav = useNavigate();
-  const { user, setBalance, refresh } = useApp();
+  const { user, setBalance, tickets, setTickets, refresh } = useApp();
   const [work, setWork] = useState<Work | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [unlocked, setUnlocked] = useState<Record<string, boolean>>({});
+  const [purchased, setPurchased] = useState<Record<string, boolean>>({});
   const [inShelf, setInShelf] = useState(false);
-  const [tab, setTab] = useState<'toc' | 'about'>('toc');
   const [sheet, setSheet] = useState<{ chapter?: Chapter; work?: boolean; insufficient?: boolean } | null>(null);
+  const [tipOpen, setTipOpen] = useState(false);
+  const [tipAmount, setTipAmount] = useState(10);
+  const [mine, setMine] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [note, setNote] = useState('');
+
+  async function load(nextSlug: string) {
+    const w = await api.getWorkBySlug(nextSlug);
+    setWork(w);
+    const chs = await api.listChapters(w.id);
+    setChapters(chs);
+    const shelf = user ? await api.inBookshelf(w.id) : false;
+    setInShelf(shelf);
+    const map: Record<string, boolean> = {};
+    await Promise.all(chs.map(async (c) => {
+      const readable = await api.isChapterUnlocked(c.id);
+      const followOpen = !!c.follow_free && shelf;
+      map[c.id] = readable && !isFreeEpisode(w, c) && !followOpen;
+    }));
+    setPurchased(map);
+    setMine(await api.myRating(w.id));
+  }
 
   useEffect(() => {
     if (!slug) return;
-    (async () => {
-      const w = await api.getWorkBySlug(slug);
-      setWork(w);
-      const chs = await api.listChapters(w.id);
-      setChapters(chs);
-      const map: Record<string, boolean> = {};
-      await Promise.all(chs.map(async (c) => { map[c.id] = await api.isChapterUnlocked(c.id); }));
-      setUnlocked(map);
-      if (user) setInShelf(await api.inBookshelf(w.id));
-    })().catch(() => setError('ไม่พบเรื่อง'));
+    load(slug).catch(() => setError('ไม่พบเรื่อง'));
   }, [slug, user]);
 
-  async function openChapter(c: Chapter) {
+  function readPath(c: Chapter) {
+    if (!work) return '/';
+    return work.kind === 'manga' ? `/read/manga/${work.id}/${c.id}` : `/read/novel/${work.id}/${c.id}`;
+  }
+
+  function openChapter(c: Chapter) {
     if (!work) return;
-    if (c.pricing === 'free' || unlocked[c.id]) {
-      const path = work.kind === 'manga'
-        ? `/read/manga/${work.id}/${c.id}`
-        : `/read/novel/${work.id}/${c.id}`;
-      nav(path);
+    const state = episodeState(work, c, { unlocked: purchased[c.id], following: inShelf });
+    if (state === 'free' || state === 'unlocked') {
+      nav(readPath(c));
       return;
     }
     if (!user) {
@@ -61,19 +79,16 @@ export function SeriesPage() {
         setBalance(r.balance);
         const map: Record<string, boolean> = {};
         chapters.forEach((c) => { map[c.id] = true; });
-        setUnlocked(map);
+        setPurchased(map);
         setSheet(null);
       } else if (sheet.chapter) {
         const c = sheet.chapter;
         try {
           const r = await api.unlockChapter({ chapter_id: c.id, expected_price: c.coin_price });
           setBalance(r.balance);
-          setUnlocked((m) => ({ ...m, [c.id]: true }));
+          setPurchased((m) => ({ ...m, [c.id]: true }));
           setSheet(null);
-          const path = work.kind === 'manga'
-            ? `/read/manga/${work.id}/${c.id}`
-            : `/read/novel/${work.id}/${c.id}`;
-          nav(path);
+          nav(readPath(c));
         } catch (e) {
           if (e instanceof ApiError && e.code === 'INSUFFICIENT_COINS') {
             setSheet({ chapter: c, insufficient: true });
@@ -90,132 +105,184 @@ export function SeriesPage() {
     }
   }
 
+  async function useTicket() {
+    if (!sheet?.chapter || !work) return;
+    setBusy(true);
+    setError('');
+    try {
+      const r = await api.unlockWithTicket(sheet.chapter.id);
+      setBalance(r.balance);
+      setTickets(await api.ticketBalance());
+      setPurchased((m) => ({ ...m, [sheet.chapter!.id]: true }));
+      const id = sheet.chapter.id;
+      setSheet(null);
+      nav(readPath(chapters.find((c) => c.id === id) ?? sheet.chapter));
+    } catch (e) {
+      setError(errMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function toggleShelf() {
     if (!work) return;
     if (!user) { nav(`/auth/login?next=/works/${work.slug}`); return; }
-    setInShelf(await api.toggleBookshelf(work.id));
+    const on = await api.toggleBookshelf(work.id);
+    setInShelf(on);
+    setNote(on ? 'ติดตามแล้ว — ตอนที่ตั้งให้อ่านฟรีเมื่อติดตามเปิดให้แล้ว' : 'เลิกติดตามแล้ว');
+  }
+
+  async function rate(stars: number) {
+    if (!work) return;
+    if (!user) { nav(`/auth/login?next=/works/${work.slug}`); return; }
+    const r = await api.rateWork(work.id, stars);
+    setMine(r.mine);
+    setWork({ ...work, score: r.score, rating_count: r.rating_count });
+  }
+
+  async function sendTip() {
+    if (!work) return;
+    if (!user) { nav(`/auth/login?next=/works/${work.slug}`); return; }
+    setBusy(true);
+    setError('');
+    try {
+      const r = await api.tipWriter(work.id, tipAmount);
+      setBalance(r.balance);
+      setTipOpen(false);
+      setNote(`สนับสนุน ${work.author_name} ${tipAmount} เหรียญแล้ว · เหรียญคืนไม่ได้`);
+      await refresh();
+    } catch (e) {
+      if (e instanceof ApiError && e.code === 'INSUFFICIENT_COINS') {
+        setError('เหรียญไม่พอสำหรับสนับสนุน');
+      } else setError(errMessage(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (error && !work) {
-    return (
-      <div className="pad center">
-        <p>{error}</p>
-        <Link to="/">กลับหน้าแรก</Link>
-      </div>
-    );
+    return <div className="pad center"><p>{error}</p><Link to="/">กลับหน้าแรก</Link></div>;
   }
   if (!work) return <div className="pad muted">กำลังโหลด…</div>;
 
-  const lastReadable = [...chapters].reverse().find((c) => c.pricing === 'free' || unlocked[c.id]) ?? chapters[0];
+  const continueChapter = [...chapters].reverse().find((c) => episodeState(work, c, { unlocked: purchased[c.id], following: inShelf }) !== 'locked' && episodeState(work, c, { unlocked: purchased[c.id], following: inShelf }) !== 'follow') ?? chapters[0];
   const price = sheet?.work ? (work.price_full_work ?? 0) : (sheet?.chapter?.coin_price ?? 0);
-  const sheetTitle = sheet?.work
-    ? `ทั้งเล่ม · ${work.title}`
-    : sheet?.chapter
-      ? `ตอนที่ ${sheet.chapter.number} — ${sheet.chapter.title}`
-      : '';
 
   return (
-    <>
-      <div className="series-banner">
-        <button type="button" className="icon-btn" style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,.35)', color: '#fff', borderRadius: 999, border: 'none' }} onClick={() => nav(-1)}>←</button>
-      </div>
-      <div className="series-head">
-        <div className="series-cover">
-          <Cover work={work} />
-        </div>
-        <h1 style={{ fontSize: 22, margin: '12px 0 4px' }}>{work.title}</h1>
-        <div className="muted" style={{ fontSize: 13, marginBottom: 10 }}>
-          โดย{' '}
-          <Link to={`/authors/${work.author_id}`} style={{ color: 'var(--primary)', fontWeight: 600 }}>
-            {work.author_name}
-          </Link>
-          {' '}· {work.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {work.category}
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <Badge kind="ex">ข้อมูลตัวอย่าง</Badge>
-          <Badge kind="note">เรตติ้ง {work.rating}</Badge>
-          <Badge>{work.chapter_count} ตอน</Badge>
-        </div>
-        <p style={{ fontSize: 14, lineHeight: 1.65, color: 'var(--text-muted)', margin: '12px 0' }}>
-          {work.synopsis}
-        </p>
-        <div className="series-actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => lastReadable && openChapter(lastReadable)}
-          >
-            อ่านตอนล่าสุด
-          </button>
-          <button type="button" className="btn btn-ghost" style={{ width: 48, minWidth: 48, padding: 0 }} onClick={toggleShelf} aria-label="ชั้นหนังสือ">
-            {inShelf ? '♥' : '♡'}
-          </button>
-        </div>
-      </div>
-
-      {work.price_full_work != null && (
-        <div className="series-buy">
-          <div>
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 14 }}>ซื้อทั้งเล่ม</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>ตัวอย่างราคา · ประหยัดกว่าซื้อทีละตอน</div>
+    <div className="series-page">
+      <div className="series-layout">
+        <aside className="series-info">
+          <div className="series-cover-lg">
+            <Cover work={work} tag={<CoverBadges work={work} />} />
           </div>
-          <button type="button" className="btn btn-coin btn-sm" onClick={() => {
-            if (!user) { nav(`/auth/login?next=/works/${work.slug}`); return; }
-            setSheet({ work: true });
-          }}>
-            🪙 {work.price_full_work}
-          </button>
-        </div>
-      )}
+          <h1>{work.title}</h1>
+          <Link to={`/authors/${work.author_id}`} className="author-link">{work.author_name}</Link>
+          <div className="series-pills">
+            <span>{kindLabel(work.kind)}</span>
+            <span>{work.category}</span>
+            <span>{statusLabel(work.status)}</span>
+            <span>{work.chapter_count} ตอน</span>
+            {work.rating === '18+' && <span>18+ เดโม ไม่ได้ตรวจอายุ</span>}
+          </div>
+          <div className="series-stats">
+            <span>👁 {formatCount(work.views)}</span>
+            <span>★ {work.score.toFixed(1)} ({work.rating_count.toLocaleString('th-TH')})</span>
+            <span>ฟรี {work.free_episode_count} ตอนแรก</span>
+          </div>
+          <div className="star-row" role="group" aria-label="ให้คะแนนเรื่อง">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" className={mine != null && n <= mine ? 'on' : undefined} onClick={() => rate(n)} aria-label={`${n} ดาว`}>
+                ★
+              </button>
+            ))}
+            <span className="muted">{mine ? `คุณให้ ${mine}` : 'ให้คะแนน'}</span>
+          </div>
+          <p className="synopsis">{work.synopsis}</p>
+          <div className="series-actions">
+            {continueChapter && (
+              <button type="button" className="btn btn-primary" onClick={() => openChapter(continueChapter)}>อ่านต่อ</button>
+            )}
+            <button type="button" className="btn btn-ghost" onClick={toggleShelf}>{inShelf ? 'กำลังติดตาม' : 'ติดตาม'}</button>
+            <button type="button" className="btn btn-coin" onClick={() => setTipOpen(true)}>สนับสนุน</button>
+          </div>
+          {work.price_full_work != null && (
+            <button type="button" className="series-buy" onClick={() => {
+              if (!user) { nav(`/auth/login?next=/works/${work.slug}`); return; }
+              setSheet({ work: true });
+            }}>
+              <span>ซื้อทั้งเรื่อง</span>
+              <strong>🪙 {work.price_full_work}</strong>
+            </button>
+          )}
+          {note && <p className="ok-note">{note}</p>}
+          {error && <p className="form-error">{error}</p>}
+        </aside>
 
-      <div className="series-tabs">
-        {(['toc', 'about'] as const).map((t) => (
-          <button
-            key={t}
-            type="button"
-            className={tab === t ? 'on' : undefined}
-            onClick={() => setTab(t)}
-          >
-            {t === 'toc' ? 'สารบัญ' : 'เกี่ยวกับ'}
-          </button>
-        ))}
+        <section className="episode-panel">
+          <div className="sec" style={{ paddingLeft: 0, paddingRight: 0 }}>
+            <h2>ตอนทั้งหมด ({chapters.length})</h2>
+            <span className="muted">ราคาต่อตอนตั้งโดยนักเขียน</span>
+          </div>
+          <div className="ep-list">
+            {chapters.map((c) => {
+              const state = episodeState(work, c, { unlocked: purchased[c.id], following: inShelf });
+              return (
+                <button key={c.id} type="button" className={`episode ${state}`} onClick={() => openChapter(c)}>
+                  <span className="ep-main">
+                    <span className="ep-no">ตอนที่ {c.number}</span>
+                    <span className="ep-title">{c.title}</span>
+                    <span className="ep-time">{relativeTime(c.published_at)}</span>
+                  </span>
+                  <span className="ep-state">
+                    {state === 'free' && 'ฟรี'}
+                    {state === 'unlocked' && (c.follow_free && !purchased[c.id] ? 'อ่านฟรีเพราะติดตาม' : 'ปลดแล้ว')}
+                    {state === 'follow' && (
+                      <span>ติดตามเพื่ออ่านฟรี<br />หรือ 🪙 {c.coin_price}</span>
+                    )}
+                    {state === 'locked' && <span>🪙 {c.coin_price}</span>}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
       </div>
-
-      {tab === 'toc' && chapters.map((c) => (
-        <button key={c.id} type="button" className="ep" onClick={() => openChapter(c)}>
-          <div className="n">{c.number}</div>
-          <div className="meta">
-            <div className="t">ตอนที่ {c.number} — {c.title}</div>
-            <div className="s">{unlocked[c.id] || c.pricing === 'free' ? 'อ่านได้' : 'ยังไม่ปลดล็อก'} · ตัวอย่าง</div>
-          </div>
-          {c.pricing === 'free' || unlocked[c.id]
-            ? <Badge kind="free">{unlocked[c.id] && c.pricing === 'coin' ? 'ปลดแล้ว' : 'ฟรี'}</Badge>
-            : <Badge kind="lock">🪙 {c.coin_price}</Badge>}
-        </button>
-      ))}
-
-      {tab === 'about' && (
-        <div className="pad">
-          <p className="muted" style={{ lineHeight: 1.7 }}>{work.synopsis}</p>
-          <div className="mt-3" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {work.tags.map((t) => <Badge key={t}>{t}</Badge>)}
-          </div>
-          <p className="ex mt-3">เนื้อหาและราคาทั้งหมดเป็นตัวอย่าง (is_example_data)</p>
-        </div>
-      )}
-
-      {error && <p className="center" style={{ color: 'var(--danger)', padding: 12 }}>{error}</p>}
 
       {sheet && (
         <UnlockSheet
-          title={sheetTitle}
+          title={sheet.work ? `ทั้งเรื่อง · ${work.title}` : `ตอนที่ ${sheet.chapter?.number} — ${sheet.chapter?.title}`}
           price={price}
-          mode={sheet.insufficient ? 'insufficient' : sheet.work ? 'work' : 'chapter'}
           busy={busy}
-          onClose={() => setSheet(null)}
+          mode={sheet.insufficient ? 'insufficient' : sheet.work ? 'work' : 'chapter'}
+          tickets={tickets}
+          onUseTicket={sheet.chapter ? useTicket : undefined}
           onConfirm={confirmUnlock}
+          onClose={() => setSheet(null)}
         />
       )}
-    </>
+
+      {tipOpen && (
+        <div className="sheet-bg" onClick={() => setTipOpen(false)} role="presentation">
+          <div className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="handle" />
+            <h2 style={{ fontSize: 18 }}>สนับสนุน {work.author_name}</h2>
+            <p className="muted" style={{ fontSize: 13, margin: '8px 0 14px' }}>
+              ใช้เหรียญในบัญชี · คืนไม่ได้ โอนไม่ได้ ส่วนที่นักเขียนได้หักค่าธรรมเนียมแพลตฟอร์มซึ่งยังเป็น placeholder
+            </p>
+            <div className="tip-grid">
+              {TIP_AMOUNTS.map((n) => (
+                <button key={n} type="button" className={tipAmount === n ? 'on' : undefined} onClick={() => setTipAmount(n)}>
+                  🪙 {n}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="btn btn-coin btn-block" disabled={busy} onClick={sendTip}>
+              {busy ? 'กำลังส่ง…' : `ส่ง ${tipAmount} เหรียญ`}
+            </button>
+            <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} onClick={() => setTipOpen(false)}>ปิด</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

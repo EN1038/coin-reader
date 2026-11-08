@@ -5,6 +5,7 @@ import type { Chapter, Work, MangaPageUrl } from '../lib/types';
 import { Badge } from '../components/Badge';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
+import { CommentThread } from '../components/CommentThread';
 
 export function ReadMangaPage() {
   const { workId, chapterId } = useParams();
@@ -74,6 +75,7 @@ export function ReadMangaPage() {
           />
         ))}
       </div>
+      <CommentThread chapterId={chapter.id} />
       <div style={{ position: 'sticky', bottom: 0, padding: '12px 16px 20px', background: 'linear-gradient(transparent, var(--bg))', textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-head)' }}>
         ↕ เลื่อนแนวตั้ง · signed URL ผ่าน get-manga-page-url
       </div>

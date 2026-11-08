@@ -3032,6 +3032,54 @@
         "client": "สัญญาสำหรับ adapter/mock store ของส้ม; ยังไม่ได้ตรวจ implementation UI"
         "edge": "ไม่มี Edge wrapper ในชุดนี้; ใช้ client mock เท่านั้น"
       "description": "ทุก success มี mock=true และ source. ภายนอกใช้ client mock ของส้ม ไม่มีการเรียกเงินจริง/ยืนยัน KYC จริง. นี่เป็นสัญญาสำหรับ client adapter ไม่ใช่ HTTP endpoint ที่ deploy แล้ว; UI demo-role ไม่ใช่ระบบ security จริง. Error codes: 404 NOT_FOUND; 409 CONTENT_NOT_READY; publication checks เป็น mock เท่านั้น ไม่ใช่การตรวจลิขสิทธิ์/18+ จริง"
+  "/functions/v1/claim-check-in":
+    "post":
+      "tags": ["Wallet"]
+      "operationId": "claimCheckIn"
+      "x-mock-contract": true
+      "x-runtime":
+        "client": "client mock ลง coin_ledger kind check_in และ ticket_ledger; ไม่มี Edge ในชุดนี้"
+        "edge": "ยังไม่มี RPC"
+      "description": "รับของวันละครั้งตาม Asia/Bangkok เหรียญเข้า wallet แบบ sum=0 ผ่าน promo_clearing ตั๋วเข้า ticket_ledger วันที่ซ้ำไม่ลงซ้ำ client ห้าม insert ตารางเอง"
+      "responses":
+        "200":
+          "description": "claimed or already"
+  "/functions/v1/unlock-with-ticket":
+    "post":
+      "tags": ["Wallet"]
+      "operationId": "unlockWithTicket"
+      "x-mock-contract": true
+      "x-runtime":
+        "client": "client mock หักตั๋ว 1 ใบและสร้าง unlock โดยไม่แตะ coin_ledger"
+        "edge": "ยังไม่มี RPC"
+      "description": "ตั๋วหนึ่งใบปลดหนึ่งตอนที่ยังล็อก ยอดตั๋วห้ามติดลบ ถ้าฟรีหรือปลดแล้วไม่หักซ้ำ"
+      "responses":
+        "200":
+          "description": "unlocked"
+  "/functions/v1/tip-writer":
+    "post":
+      "tags": ["Wallet"]
+      "operationId": "tipWriter"
+      "x-mock-contract": true
+      "x-runtime":
+        "client": "client mock หัก wallet แล้วแบ่ง writer_payable/platform_revenue ด้วย writer_share_bps placeholder"
+        "edge": "ยังไม่มี RPC"
+      "description": "สนับสนุนนักเขียนด้วยเหรียญ kind tip เหรียญคืนไม่ได้ ส่วนแบ่งยังเป็น placeholder"
+      "responses":
+        "200":
+          "description": "tipped"
+  "/functions/v1/referral-info":
+    "post":
+      "tags": ["Reader"]
+      "operationId": "referralInfo"
+      "x-mock-contract": true
+      "x-runtime":
+        "client": "client mock คิด floor(paid_coins * referral_bps / 10000) โดยไม่รวม bonus_coins"
+        "edge": "ยังไม่มี RPC"
+      "description": "รหัสแนะนำและประวัติรางวัลเป็นเหรียญ ถอนเป็นเงินไม่ได้"
+      "responses":
+        "200":
+          "description": "referral summary"
 "components":
   "securitySchemes":
     "ApiKey":

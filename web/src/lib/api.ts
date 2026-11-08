@@ -1,7 +1,8 @@
 import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser, WalletInfo,
   LedgerEntry, UnlockResult, TopupResult, MangaPageUrl, BookshelfItem,
-  ReadingProgress,
+  ReadingProgress, SeriesUpdate, CheckInCalendar, CheckInClaim, ReferralInfo,
+  ReaderComment, RatingResult,
 } from './types';
 
 export interface ListWorksParams {
@@ -11,13 +12,15 @@ export interface ListWorksParams {
   popular?: boolean;
   isNew?: boolean;
   featured?: boolean;
+  status?: 'published' | 'completed';
+  sort?: 'updated' | 'views' | 'rating' | 'new' | 'daily' | 'weekly' | 'monthly';
 }
 
 export interface CoinReaderApi {
   isMock: boolean;
   getSession(): Promise<SessionUser | null>;
   login(email: string, password: string): Promise<SessionUser>;
-  signup(email: string, password: string, displayName: string): Promise<SessionUser>;
+  signup(email: string, password: string, displayName: string, referralCode?: string): Promise<SessionUser>;
   logout(): Promise<void>;
   listWorks(params?: ListWorksParams): Promise<Work[]>;
   getWorkBySlug(slug: string): Promise<Work>;
@@ -41,4 +44,16 @@ export interface CoinReaderApi {
   listHistory(): Promise<ReadingProgress[]>;
   saveProgress(workId: string, chapterId: string, position: number): Promise<void>;
   isChapterUnlocked(chapterId: string): Promise<boolean>;
+  listRecentUpdates(limit?: number): Promise<SeriesUpdate[]>;
+  checkInCalendar(): Promise<CheckInCalendar>;
+  claimCheckIn(): Promise<CheckInClaim>;
+  ticketBalance(): Promise<number>;
+  unlockWithTicket(chapterId: string): Promise<UnlockResult>;
+  referralInfo(): Promise<ReferralInfo>;
+  listComments(chapterId: string): Promise<ReaderComment[]>;
+  addComment(chapterId: string, body: string): Promise<ReaderComment>;
+  toggleCommentLike(commentId: string): Promise<ReaderComment>;
+  rateWork(workId: string, stars: number): Promise<RatingResult>;
+  myRating(workId: string): Promise<number | null>;
+  tipWriter(workId: string, coins: number): Promise<{ balance: number; transaction_id: string }>;
 }

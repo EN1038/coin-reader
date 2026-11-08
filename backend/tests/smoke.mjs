@@ -13,10 +13,11 @@ const pack='10000000-0000-4000-8000-000000000100', request='60000000-0000-4000-8
 async function role(r,id=''){await db.exec(`reset role; select set_config('request.jwt.claim.sub','${id}',false);set role ${r}`)}
 try {
  await db.exec(await read('./supabase_stub.sql'));
- assert.equal(await read('../schema.sql'),await read('../migrations/0001_init.sql')+'\n'+await read('../migrations/0003_demo_author_review.sql'));
+ assert.equal(await read('../schema.sql'),await read('../migrations/0001_init.sql')+'\n'+await read('../migrations/0003_demo_author_review.sql')+'\n'+await read('../migrations/0004_reader_economy.sql'));
  await db.exec(await read('../migrations/0001_init.sql'));
  await db.exec(await read('../migrations/0002_seed_coin_packs.sql'));
  await db.exec(await read('../migrations/0003_demo_author_review.sql'));
+ await db.exec(await read('../migrations/0004_reader_economy.sql'));
  ok(true,'schema + seed execute on PGlite');
  const r=await q("select relname from pg_class join pg_namespace n on n.oid=relnamespace where n.nspname='public' and relkind='r' and not relrowsecurity");ok(!r.rows.length,'RLS enabled on ALL public tables');
  await db.exec(`insert into auth.users values('${user}'),('${other}'),('${writer}');
@@ -109,6 +110,11 @@ try {
  ok(reviewed.replayed,'same author decision replays without second mutation');
  await fails(`select public.demo_admin_review_author('${applicant}','rejected','demo rejected fake fixture only')`,/AUTHOR_REVIEW_CONFLICT/,'opposite final author decision conflicts');
  await role('postgres');ok((await q(`select * from public.audit_log where action='DEMO_AUTHOR_REVIEW' and actor_id='${writer}'`)).rows.length===1,'author review audit keeps actual moderator actor');
+ await role('authenticated',user);
+ await fails(`insert into public.check_ins(user_id,claim_date,coins,tickets) values('${user}',current_date,2,0)`,/permission denied|row-level security/,'client cannot insert check-ins');
+ await fails(`insert into public.ticket_ledger(user_id,amount,reason) values('${user}',1,'check_in')`,/permission denied|row-level security/,'client cannot insert ticket ledger');
+ await fails(`insert into public.coin_ledger(transaction_id,account,user_id,amount) values('90000000-0000-4000-8000-000000000099','wallet','${user}',5)`,/permission denied|row-level security/,'client still cannot insert coin ledger');
+ await role('postgres');
  await db.exec('update public.platform_settings set mock_enabled=false');
  await role('authenticated',writer);await fails(`select public.demo_admin_review_author('${applicant}','approved','demo approval fake fixture only')`,/MOCK_DISABLED/,'author review RPC disabled when mock disabled');
  console.log(`\n${passed} checks passed. Not a real Supabase integration/concurrency test.`);
