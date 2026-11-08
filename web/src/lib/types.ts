@@ -15,13 +15,25 @@ export interface Work {
   kind: WorkKind;
   category: string;
   tags: string[];
+  /** 'ทั่วไป' or '18+' — badge only, not an age check */
   rating: string;
+  /** published = กำลังดำเนินเรื่อง, completed = จบ */
   status: 'published' | 'completed';
   cover_tone: CoverTone;
   author_id: string;
   author_name: string;
   price_full_work: number | null;
   chapter_count: number;
+  /** first N episodes are free regardless of the stored per-episode price */
+  free_episode_count: number;
+  views: number;
+  score: number;
+  rating_count: number;
+  /** higher sorts first on /ranking tabs */
+  rank_daily: number;
+  rank_weekly: number;
+  rank_monthly: number;
+  latest_at: string;
   is_example_data: true;
   featured?: boolean;
   popular?: boolean;
@@ -35,6 +47,9 @@ export interface Chapter {
   title: string;
   pricing: Pricing;
   coin_price: number;
+  /** followers can read this paid episode without spending coins */
+  follow_free?: boolean;
+  published_at: string;
   status: 'published';
   is_example_data: true;
 }
@@ -54,7 +69,10 @@ export interface ChapterPage {
 export interface CoinPack {
   id: string;
   name: string;
+  /** paid coins, the base used for referral (bonus excluded) */
   coins: number;
+  /** extra coins that are not part of the paid top-up */
+  bonus_coins: number;
   amount_thb: number;
   active: boolean;
   is_example_data: true;
@@ -67,10 +85,13 @@ export interface SessionUser {
   watermark_id: string;
 }
 
+export type LedgerKind = 'topup' | 'unlock' | 'unlock_work' | 'checkin' | 'referral' | 'tip';
+
 export interface LedgerEntry {
   id: string;
-  kind: 'topup' | 'unlock' | 'unlock_work';
-  amount: number; // signed for wallet view: +topup, -spend
+  user_id?: string;
+  kind: LedgerKind;
+  amount: number; // signed for wallet view: +credit, -spend
   coins: number;
   label: string;
   created_at: string;
@@ -153,4 +174,62 @@ export interface MangaPageUrl {
   url: string;
   expires_in: number;
   watermarked: boolean;
+}
+
+export interface SeriesUpdate {
+  work: Work;
+  episodes: Pick<Chapter, 'id' | 'number' | 'title' | 'published_at'>[];
+}
+
+export interface CheckInCalendar {
+  month: string;
+  today: string;
+  claimed: string[];
+  claimed_today: boolean;
+  tickets: number;
+  daily_coins: number;
+  month_end_coins: number;
+  month_end_tickets: number;
+  days_in_month: number;
+}
+
+export interface CheckInClaim {
+  already: boolean;
+  coins: number;
+  tickets: number;
+  balance: number;
+  ticket_balance: number;
+  month_end: boolean;
+  today: string;
+}
+
+export interface ReferralFriend {
+  display_name: string;
+  paid_coins: number;
+  reward_coins: number;
+  created_at: string;
+}
+
+export interface ReferralInfo {
+  code: string;
+  percent: number;
+  earned_coins: number;
+  friends: ReferralFriend[];
+}
+
+export interface ReaderComment {
+  id: string;
+  chapter_id: string;
+  user_id: string;
+  display_name: string;
+  body: string;
+  created_at: string;
+  like_count: number;
+  liked_by_me: boolean;
+}
+
+export interface RatingResult {
+  score: number;
+  rating_count: number;
+  mine: number;
 }

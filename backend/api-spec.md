@@ -142,5 +142,39 @@
 | K | ซื้อเต็ม 15 จากยอด100, ยังไม่เคยซื้อรายตอน | balance85, ทุก paid chapter unlock, replay ไม่เสียซ้ำ |
 | L | transaction ไม่มี entry / sum ไม่ศูนย์ | COMMIT ล้มเหลว |
 
+## เศรษฐกิจผู้อ่าน (8 พ.ย. 2569) — check-in, ตั๋ว, referral, ทิป, คอมเมนต์, ราคาต่อตอน
+
+migration `0004_reader_economy.sql` เพิ่มคอลัมน์และตาราง เปิด RLS และล็อกแถวการเงินให้ append-only
+ยังไม่มี SQL RPC ที่ลงรายการเหล่านี้ เส้นทางที่เดินได้ในเดโมคือ client mock (`web/src/lib/mock`) ซึ่งห้ามให้ UI เขียน `coin_ledger` ตรง ๆ เช่นกัน
+`can_read_chapter` เดิมยังดู `pricing` กับ `unlocks` เท่านั้น ยังไม่รู้จัก `free_episode_count` / `follow_to_read` / ตั๋ว — ตอนจะเผยแพร่จริง ฟังก์ชัน publish ต้องตั้ง `pricing='free'` ให้ช่วงตอนฟรี และ RPC อ่านต้องตามกฎด้านล่าง
+
+### เอนทิตี
+| ตาราง / คอลัมน์ | ความหมาย | client |
+|---|---|---|
+| works.free_episode_count | ตอนที่ 1..N อ่านฟรี แม้แถวตอนจะยังเก็บราคา | owner ตั้งผ่านงานเขียน; ผู้อ่านอ่านได้อย่างเดียว |
+| chapters.follow_to_read | ถ้าติดตามเรื่องอยู่ อ่านตอนนี้ได้โดยไม่เสียเหรียญ มิฉะนั้นจ่าย `coin_price` | เหมือนกัน |
+| chapters.coin_price | ราคาต่อตอนที่นักเขียนตั้ง ไม่จำเป็นต้องเท่ากันทุกตอน | metadata อ่านได้เมื่อตอนเผยแพร่ |
+| coin_packs.bonus_coins | เหรียญแถม ไม่ใช่ฐานของ referral | อ่านแพ็กที่ active |
+| platform_settings.referral_bps | ส่วนแบ่งผู้แนะนำ เป็น basis points ค่าเริ่ม 700 = 7% placeholder | ไม่มี direct access |
+| check_ins | หนึ่งแถวต่อผู้ใช้ต่อวัน `unique(user_id, claim_date)` | SELECT ของตัวเอง ไม่มี INSERT |
+| ticket_ledger | ตั๋วอ่านฟรี append-only ยอด = SUM(amount) ห้ามติดลบ | SELECT ของตัวเอง ไม่มี INSERT |
+| referral_codes | รหัสของผู้ใช้ และ `referred_by` ห้ามชี้ตัวเอง | SELECT ของตัวเอง |
+| referral_rewards | หนึ่งรางวัลต่อ `source_transaction_id` | SELECT ถ้าเป็นผู้แนะนำหรือผู้ถูกแนะนำ |
+| comments / comment_likes | ความเห็นและไลก์รายตอน ผู้เขียนคอมเมนต์ต้องอ่านตอนนั้นได้ | INSERT ความเห็นของตัวเอง, ไลก์ของตัวเอง |
+| work_ratings | ดาว 1–5 ต่อผู้ใช้ต่อเรื่อง แก้ดาวได้ ไม่ใช่บัญชีเงิน | INSERT/UPDATE ของตัวเอง |
+
+### กฎ ledger (append-only, ทุก txn sum = 0, client ไม่เขียน)
+หน่วยยังเป็นเหรียญจำนวนเต็มฝั่ง wallet นักเขียนยังเป็นทศนิยม 2 ตำแหน่งตามบัญชีเดิม
+- เติมที่มียอดจ่าย `paid` และโบนัส `bonus`: `clearing -paid`, `promo_clearing -bonus` (ข้ามได้ถ้า bonus=0), `wallet +(paid+bonus)` ให้ผู้เติม kind `mock_topup` โบนัสไม่นับเป็นยอดจ่าย
+- ปลดล็อกด้วยเหรียญ: เหมือนเดิม wallet −ราคา, writer_payable ส่วนแบ่ง, platform_revenue ที่เหลือ kind `chapter_unlock` ราคาต้องตรง `coin_price` หลังหักช่วงตอนฟรี
+- เช็คอิน: `promo_clearing -coins`, `wallet +coins` kind `check_in` พร้อมแถว `check_ins` และถ้าได้ตั๋วให้แถว `ticket_ledger` amount เป็นบวก ใน transaction เดียว วันที่ซ้ำไม่ลงรายการซ้ำ
+- แนะนำเพื่อน: `reward = floor(paid_coins * referral_bps / 10000)` จากยอดจ่ายของผู้ถูกแนะนำ **ไม่รวม bonus** แล้ว `promo_clearing -reward`, `wallet +reward` ของผู้แนะนำ kind `referral_reward` เหรียญนี้ใช้ในระบบได้ แต่ไม่ถอนเป็นเงิน
+- ทิป: `wallet -T` ของผู้อ่าน, `writer_payable +share`, `platform_revenue +(T-share)` kind `tip` share ใช้ `writer_share_bps` เดียวกับยอดขาย และเป็น placeholder
+- ใช้ตั๋ว: ไม่แตะ `coin_ledger` ใส่ `ticket_ledger` amount −1 reason `unlock` พร้อมแถว unlock ใน transaction เดียว ตั๋วไม่พอต้อง rollback ทั้งก้อน
+- ปิดบัญชี: ไม่ลบ ledger เหรียญและตั๋วที่เหลือใช้ต่อไม่ได้และไม่คืน ตามนโยบายเหรียญ
+
+ตัวกันที่มีแล้วใน 0001 ยังครอบ `coin_ledger`: UPDATE/DELETE/TRUNCATE ถูกปฏิเสธ, wallet ห้ามติดลบ, txn ที่ commit แล้วเติมแถวไม่ได้
+0004 ใส่ตัวกันแบบเดียวกันให้ `check_ins`, `ticket_ledger`, `referral_rewards` และกันยอดตั๋วติดลบตอน INSERT
+
 ## การทดสอบก่อนเปิดจริง (ยังไม่ได้ทำ)
 หลาย session: topup key ซ้ำพร้อมกัน 20 ครั้ง, 2 unlock เมื่อยอดพอแค่หนึ่ง, chapter/full-work พร้อมกัน, payout request/settlement พร้อมกัน; JWT หมดอายุ/ปลอม; signed URL expiry; storage path สลับผู้ใช้; Deno integration; native Supabase RLS/role/default grants; audit attribution บน admin HTTP

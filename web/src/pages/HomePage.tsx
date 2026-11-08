@@ -1,123 +1,173 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/supabase';
-import type { Work } from '../lib/types';
-import { Topbar } from '../components/Topbar';
-import { Cover, CoverRailItem } from '../components/CoverCard';
-import { Badge } from '../components/Badge';
-import { PRODUCT_NAME } from '../lib/brand';
-
-const CATS = ['ทั้งหมด', 'นิยาย', 'มังงะ', 'โรแมนติก', 'แฟนตาซี', 'สยองขวัญ'];
+import type { SeriesUpdate, Work } from '../lib/types';
+import { SeriesCard, UpdateCard } from '../components/SeriesCard';
+import { Cover } from '../components/CoverCard';
+import { GENRES } from '../lib/mock/seed';
+import { formatCount, kindLabel, relativeTime } from '../lib/format';
+import { useApp } from '../context/AppContext';
 
 export function HomePage() {
-  const [featured, setFeatured] = useState<Work | null>(null);
-  const [popular, setPopular] = useState<Work[]>([]);
-  const [mangaNew, setMangaNew] = useState<Work[]>([]);
-  const [cat, setCat] = useState('ทั้งหมด');
+  const { user } = useApp();
+  const [works, setWorks] = useState<Work[]>([]);
+  const [updates, setUpdates] = useState<SeriesUpdate[]>([]);
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const [f, pop, neu] = await Promise.all([
-        api.listWorks({ featured: true }),
-        api.listWorks({ popular: true }),
-        api.listWorks({ kind: 'manga', isNew: true }),
-      ]);
-      setFeatured(f[0] ?? null);
-      setPopular(pop);
-      setMangaNew(neu.length ? neu : await api.listWorks({ kind: 'manga' }));
-    })();
+    Promise.all([api.listWorks(), api.listRecentUpdates(8)]).then(([all, recent]) => {
+      setWorks(all);
+      setUpdates(recent);
+    }).catch(() => undefined);
   }, []);
 
+  const banners = works.filter((w) => w.featured).slice(0, 3);
+  const ranking = [...works].sort((a, b) => b.rank_daily - a.rank_daily).slice(0, 5);
+
   useEffect(() => {
-    (async () => {
-      if (cat === 'ทั้งหมด') {
-        setPopular(await api.listWorks({ popular: true }));
-        return;
-      }
-      if (cat === 'นิยาย') setPopular(await api.listWorks({ kind: 'novel' }));
-      else if (cat === 'มังงะ') setPopular(await api.listWorks({ kind: 'manga' }));
-      else setPopular(await api.listWorks({ category: cat }));
-    })();
-  }, [cat]);
+    if (banners.length < 2) return undefined;
+    const t = window.setInterval(() => setSlide((n) => (n + 1) % banners.length), 5000);
+    return () => window.clearInterval(t);
+  }, [banners.length]);
+
+  const hero = banners[slide] ?? banners[0];
 
   return (
-    <>
-      <div className="home-hero" style={{ background: 'linear-gradient(160deg,var(--hero-start),var(--hero-end))', color: 'var(--on-hero)', borderRadius: '0 0 20px 20px', paddingBottom: 16 }}>
-        <Topbar
-          title={PRODUCT_NAME}
-          transparent
-          showCoin
-        />
-        <div style={{ padding: '8px 16px 0' }}>
-          <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 4 }}>มาใหม่สัปดาห์นี้</div>
-          <h1 style={{ fontSize: 22, marginBottom: 12, color: 'var(--on-hero)' }}>เรื่องเด่นวันนี้</h1>
-          {featured && (
-            <Link to={`/works/${featured.slug}`} className="row" style={{ background: 'rgba(255,255,255,.1)', borderRadius: 14, padding: 12, gap: 12 }}>
-              <div style={{ width: 64, flexShrink: 0 }}>
-                <Cover work={featured} />
+    <div className="home">
+      {hero && (
+        <section className="hero" aria-roledescription="carousel" aria-label="เรื่องเด่น">
+          <Link to={`/works/${hero.slug}`} className={`hero-slide tone-${hero.cover_tone}`}>
+            <div className="hero-copy">
+              <div className="hero-kicker">{hero.is_new ? 'มาใหม่' : 'เรื่องเด่น'} · {kindLabel(hero.kind)}</div>
+              <h1>{hero.title}</h1>
+              <p>{hero.synopsis}</p>
+              <div className="hero-meta">
+                <span>★ {hero.score.toFixed(1)}</span>
+                <span>👁 {formatCount(hero.views)}</span>
+                <span>{hero.author_name}</span>
               </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600, fontSize: 15 }}>{featured.title}</div>
-                <div style={{ fontSize: 12, opacity: 0.75, margin: '4px 0' }}>โดย {featured.author_name} · {featured.category}</div>
-                <Badge kind="ex">ตัวอย่าง</Badge>
-              </div>
-            </Link>
-          )}
+              <span className="btn btn-coin btn-sm">อ่านเลย</span>
+            </div>
+            <div className="hero-cover"><Cover work={hero} /></div>
+          </Link>
+          <div className="hero-dots">
+            {banners.map((b, i) => (
+              <button key={b.id} type="button" className={i === slide ? 'on' : undefined} aria-label={b.title} onClick={() => setSlide(i)} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="promo-row">
+        <Link to="/check-in" className="promo-card checkin">
+          <span className="promo-ic" aria-hidden>📅</span>
+          <span>
+            <strong>เช็คอินรายวัน</strong>
+            <small>รับเหรียญและตั๋วอ่านฟรี · รางวัลใหญ่ท้ายเดือน</small>
+          </span>
+        </Link>
+        <Link to="/referral" className="promo-card refer">
+          <span className="promo-ic" aria-hidden>🎁</span>
+          <span>
+            <strong>ชวนเพื่อน รับเหรียญ 7%</strong>
+            <small>จากยอดเติมที่เพื่อนจ่าย ไม่รวมโบนัส · ถอนเป็นเงินไม่ได้</small>
+          </span>
+        </Link>
+      </div>
+
+      <section>
+        <div className="sec">
+          <h2>อัปเดตล่าสุด</h2>
+          <Link to="/discover?sort=updated">ดูทั้งหมด</Link>
         </div>
-      </div>
+        <div className="rail update-rail">
+          {updates.map((u) => (
+            <UpdateCard
+              key={u.work.id}
+              work={u.work}
+              episodes={u.episodes.map((ep) => ({ ...ep, when: relativeTime(ep.published_at) }))}
+            />
+          ))}
+        </div>
+      </section>
 
-      <Link to="/search" className="searchbar">⌕ ค้นหาเรื่อง นักเขียน หมวด…</Link>
+      <section>
+        <div className="sec">
+          <h2>อันดับยอดนิยมวันนี้</h2>
+          <Link to="/ranking">ดูอันดับ</Link>
+        </div>
+        <ol className="rank-preview">
+          {ranking.map((w, i) => (
+            <li key={w.id}>
+              <Link to={`/works/${w.slug}`}>
+                <span className={`rank-no ${i < 3 ? 'top' : ''}`}>{i + 1}</span>
+                <span className="rank-cover"><Cover work={w} /></span>
+                <span className="rank-copy">
+                  <strong>{w.title}</strong>
+                  <small>{w.author_name} · {w.category} · ★ {w.score.toFixed(1)}</small>
+                </span>
+                <span className="rank-views">👁 {formatCount(w.views)}</span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-      <div className="chips">
-        {CATS.map((c) => (
-          <button key={c} type="button" className={cat === c ? 'on' : undefined} onClick={() => setCat(c)}>
-            {c}
-          </button>
-        ))}
-      </div>
+      {GENRES.map((genre) => {
+        const novels = works.filter((w) => w.category === genre && w.kind === 'novel');
+        const manga = works.filter((w) => w.category === genre && w.kind === 'manga');
+        if (!novels.length && !manga.length) return null;
+        return (
+          <section key={genre}>
+            {novels.length > 0 && (
+              <>
+                <div className="sec">
+                  <h2>{genre} · นิยาย</h2>
+                  <Link to={`/discover?kind=novel&category=${encodeURIComponent(genre)}`}>ดูทั้งหมด</Link>
+                </div>
+                <div className="rail card-rail">
+                  {novels.map((w) => <SeriesCard key={w.id} work={w} />)}
+                </div>
+              </>
+            )}
+            {manga.length > 0 && (
+              <>
+                <div className="sec">
+                  <h2>{genre} · มังงะ</h2>
+                  <Link to={`/discover?kind=manga&category=${encodeURIComponent(genre)}`}>ดูทั้งหมด</Link>
+                </div>
+                <div className="rail card-rail">
+                  {manga.map((w) => <SeriesCard key={w.id} work={w} />)}
+                </div>
+              </>
+            )}
+          </section>
+        );
+      })}
 
-      <div className="sec">
-        <h2>ยอดนิยม</h2>
-        <Link to="/search" className="link">ดูทั้งหมด</Link>
-      </div>
-      <div className="rail">
-        {popular.map((w) => (
-          <CoverRailItem
-            key={w.id}
-            work={w}
-            badge={w.kind === 'novel' && w.id === 'w-ngj' ? <Badge kind="free">ฟรี</Badge> : undefined}
-          />
-        ))}
-      </div>
+      {!user && (
+        <div className="pad">
+          <div className="card row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
+            <div>
+              <strong>บัญชีตัวอย่าง</strong>
+              <div className="muted" style={{ fontSize: 13 }}>demo@example.com · writer@example.com · รหัส demo1234</div>
+            </div>
+            <Link to="/auth/login" className="btn btn-primary btn-sm">เข้าสู่ระบบ</Link>
+          </div>
+        </div>
+      )}
 
-      <div className="sec">
-        <h2>มังงะมาใหม่</h2>
-        <Link to="/search?kind=manga" className="link">ดูทั้งหมด</Link>
-      </div>
-      <div className="rail">
-        {mangaNew.map((w) => (
-          <CoverRailItem key={w.id} work={w} />
-        ))}
-      </div>
-      <footer
-        className="pad"
-        style={{
-          paddingTop: 8,
-          paddingBottom: 28,
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '8px 14px',
-          justifyContent: 'center',
-          fontSize: 12,
-          color: 'var(--text-muted)',
-        }}
-      >
-        <Link to="/help" style={{ color: 'var(--text-muted)' }}>ช่วยเหลือ</Link>
-        <Link to="/legal/tos" style={{ color: 'var(--text-muted)' }}>ข้อกำหนด</Link>
-        <Link to="/legal/privacy" style={{ color: 'var(--text-muted)' }}>ความเป็นส่วนตัว</Link>
-        <Link to="/legal/coins" style={{ color: 'var(--text-muted)' }}>นโยบายเหรียญ</Link>
-        <Link to="/legal/takedown" style={{ color: 'var(--text-muted)' }}>แจ้งละเมิด</Link>
+      <footer className="site-footer">
+        <p>Twilight Blue · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
+        <div>
+          <Link to="/help">ช่วยเหลือ</Link>
+          <Link to="/legal/tos">ข้อกำหนด</Link>
+          <Link to="/legal/privacy">ความเป็นส่วนตัว</Link>
+          <Link to="/legal/coins">นโยบายเหรียญ</Link>
+          <Link to="/legal/takedown">แจ้งละเมิด</Link>
+          <Link to="/writer">เปิดรับนักเขียน</Link>
+        </div>
       </footer>
-    </>
+    </div>
   );
 }

@@ -14,6 +14,7 @@ export function WriterWorkForm() {
   const [kind, setKind] = useState<'novel' | 'manga'>('novel');
   const [category, setCategory] = useState('โรแมนติก');
   const [status, setStatus] = useState<WorkAdminStatus>('draft');
+  const [freeCount, setFreeCount] = useState(2);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export function WriterWorkForm() {
         setKind(w.kind);
         setCategory(w.category);
         setStatus(w.status === 'takedown' ? 'suspended' : w.status);
+        setFreeCount(w.free_episode_count ?? 0);
       }
     }
   }, [isNew, workId]);
@@ -43,6 +45,7 @@ export function WriterWorkForm() {
         kind,
         category,
         status,
+        free_episode_count: Math.max(0, freeCount),
       });
       nav(`/writer/works`);
       void saved;
@@ -64,6 +67,10 @@ export function WriterWorkForm() {
           </select>
         </div>
         <div className="field"><label>หมวด</label><input value={category} onChange={(e) => setCategory(e.target.value)} /></div>
+        <div className="field"><label>จำนวนตอนฟรีช่วงต้น</label>
+          <input type="number" min={0} value={freeCount} onChange={(e) => setFreeCount(Number(e.target.value))} />
+          <div className="hint">ตอนที่ 1 ถึงเลขนี้เปิดให้อ่านฟรี แม้ตอนนั้นจะตั้งราคาเหรียญไว้</div>
+        </div>
         <div className="field"><label>สถานะ</label>
           <select value={status} onChange={(e) => setStatus(e.target.value as WorkAdminStatus)}>
             <option value="draft">draft</option>

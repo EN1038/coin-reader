@@ -2,62 +2,87 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/supabase';
 import type { Work } from '../lib/types';
-import { Topbar } from '../components/Topbar';
-import { WorkListCard } from '../components/CoverCard';
-
-const CATS = ['ทั้งหมด', 'นิยาย', 'มังงะ', 'โรแมนติก', 'แฟนตาซี', 'สยองขวัญ', 'ไซไฟ'];
+import { SeriesCard } from '../components/SeriesCard';
+import { GENRES } from '../lib/mock/seed';
 
 export function SearchPage() {
   const [sp, setSp] = useSearchParams();
-  const [q, setQ] = useState(sp.get('q') ?? '');
-  const [cat, setCat] = useState(sp.get('kind') === 'manga' ? 'มังงะ' : 'ทั้งหมด');
   const [works, setWorks] = useState<Work[]>([]);
+  const q = sp.get('q') ?? '';
+  const kind = sp.get('kind') === 'manga' || sp.get('kind') === 'novel' ? sp.get('kind')! : '';
+  const category = sp.get('category') ?? '';
+  const status = sp.get('status') === 'completed' || sp.get('status') === 'published' ? sp.get('status')! : '';
+  const sort = (sp.get('sort') as 'updated' | 'views' | 'rating' | 'new' | null) ?? 'updated';
+
+  function set(next: Record<string, string>) {
+    const params = new URLSearchParams(sp);
+    Object.entries(next).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+      else params.delete(k);
+    });
+    setSp(params, { replace: true });
+  }
 
   useEffect(() => {
-    const t = setTimeout(async () => {
-      const params: Parameters<typeof api.listWorks>[0] = { q: q || undefined };
-      if (cat === 'นิยาย') params!.kind = 'novel';
-      else if (cat === 'มังงะ') params!.kind = 'manga';
-      else if (cat !== 'ทั้งหมด') params!.category = cat;
-      setWorks(await api.listWorks(params));
-    }, 150);
-    return () => clearTimeout(t);
-  }, [q, cat]);
+    const t = window.setTimeout(() => {
+      api.listWorks({
+        q: q || undefined,
+        kind: kind === 'novel' || kind === 'manga' ? kind : undefined,
+        category: category || undefined,
+        status: status === 'published' || status === 'completed' ? status : undefined,
+        sort,
+      }).then(setWorks).catch(() => setWorks([]));
+    }, 120);
+    return () => window.clearTimeout(t);
+  }, [q, kind, category, status, sort]);
 
   return (
-    <>
-      <Topbar title="ค้นหา" />
-      <div className="searchbar">
-        <span>⌕</span>
-        <input
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setSp(e.target.value ? { q: e.target.value } : {});
-          }}
-          placeholder="เรื่อง นักเขียน หมวด…"
-          aria-label="ค้นหา"
-        />
+    <div className="discover">
+      <div className="page-head">
+        <h1>ค้นพบ</h1>
+        <p className="muted">กรองตามประเภท หมวด สถานะ แล้วเรียงใหม่</p>
       </div>
-      <div className="chips">
-        {CATS.map((c) => (
-          <button key={c} type="button" className={cat === c ? 'on' : undefined} onClick={() => setCat(c)}>
-            {c}
-          </button>
-        ))}
-      </div>
-      <div className="sec" style={{ paddingBottom: 4 }}>
-        <h2>ผลการค้นหา</h2>
-        <span className="ex">{works.length} เรื่อง · ตัวอย่าง</span>
-      </div>
-      {works.length === 0 && <p className="center muted p-4">ไม่พบเรื่องที่ตรงเงื่อนไข</p>}
-      {works.length > 0 && (
-        <div className="work-grid work-list">
-          {works.map((w) => (
-            <WorkListCard key={w.id} work={w} />
-          ))}
+      <form className="filter-bar" onSubmit={(e) => e.preventDefault()}>
+        <label>ค้นหา
+          <input value={q} onChange={(e) => set({ q: e.target.value })} placeholder="ชื่อเรื่องหรือนักเขียน" aria-label="คำค้น" />
+        </label>
+        <label>ประเภท
+          <select value={kind} onChange={(e) => set({ kind: e.target.value })}>
+            <option value="">ทั้งหมด</option>
+            <option value="novel">นิยาย</option>
+            <option value="manga">มังงะ</option>
+          </select>
+        </label>
+        <label>หมวด
+          <select value={category} onChange={(e) => set({ category: e.target.value })}>
+            <option value="">ทั้งหมด</option>
+            {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
+          </select>
+        </label>
+        <label>สถานะ
+          <select value={status} onChange={(e) => set({ status: e.target.value })}>
+            <option value="">ทั้งหมด</option>
+            <option value="published">กำลังดำเนินเรื่อง</option>
+            <option value="completed">จบ</option>
+          </select>
+        </label>
+        <label>เรียง
+          <select value={sort} onChange={(e) => set({ sort: e.target.value })}>
+            <option value="updated">อัปเดตล่าสุด</option>
+            <option value="views">ยอดวิว</option>
+            <option value="rating">คะแนน</option>
+            <option value="new">มาใหม่</option>
+          </select>
+        </label>
+      </form>
+      <p className="result-count">{works.length} เรื่อง</p>
+      {works.length === 0 ? (
+        <p className="pad muted">ไม่พบเรื่องที่ตรงกับตัวกรอง</p>
+      ) : (
+        <div className="card-grid">
+          {works.map((w) => <SeriesCard key={w.id} work={w} />)}
         </div>
       )}
-    </>
+    </div>
   );
 }

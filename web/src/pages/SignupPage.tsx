@@ -13,6 +13,7 @@ export function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [refCode, setRefCode] = useState(sp.get('ref') ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,7 +22,7 @@ export function SignupPage() {
     setBusy(true);
     setError('');
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, refCode.trim() || undefined);
       nav(next);
     } catch (err) {
       setError(errMessage(err));
@@ -45,6 +46,10 @@ export function SignupPage() {
           <div className="field">
             <label htmlFor="email">อีเมล</label>
             <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="ref">รหัสชวนเพื่อน (ไม่บังคับ)</label>
+            <input id="ref" value={refCode} onChange={(e) => setRefCode(e.target.value)} placeholder="เช่น TB7DEMO" autoCapitalize="characters" />
           </div>
           <div className="field">
             <label htmlFor="password">รหัสผ่าน (อย่างน้อย 6 ตัว)</label>

@@ -12,7 +12,8 @@ export function WriterChapterForm() {
   const work = workId ? mockDb.getWriterWork(workId) : undefined;
   const [title, setTitle] = useState('');
   const [pricing, setPricing] = useState<'free' | 'coin'>('free');
-  const [coinPrice, setCoinPrice] = useState(5);
+  const [coinPrice, setCoinPrice] = useState(1);
+  const [followFree, setFollowFree] = useState(false);
   const [body, setBody] = useState('');
   const [pageCount, setPageCount] = useState(3);
   const [error, setError] = useState('');
@@ -23,7 +24,8 @@ export function WriterChapterForm() {
       if (c) {
         setTitle(c.title);
         setPricing(c.pricing);
-        setCoinPrice(c.coin_price || 5);
+        setCoinPrice(c.coin_price || 1);
+        setFollowFree(!!c.follow_free);
         setBody(c.body);
         setPageCount(c.page_count || 3);
       }
@@ -45,6 +47,7 @@ export function WriterChapterForm() {
         title,
         pricing,
         coin_price: pricing === 'coin' ? coinPrice : 0,
+        follow_free: pricing === 'coin' && followFree,
         body: work!.kind === 'novel' ? body : '',
         page_count: work!.kind === 'manga' ? pageCount : 0,
         status: 'published',
@@ -68,9 +71,16 @@ export function WriterChapterForm() {
           </select>
         </div>
         {pricing === 'coin' && (
-          <div className="field"><label>ราคาเหรียญ</label>
-            <input type="number" min={1} value={coinPrice} onChange={(e) => setCoinPrice(Number(e.target.value))} />
-          </div>
+          <>
+            <div className="field"><label>ราคาเหรียญของตอนนี้</label>
+              <input type="number" min={1} step={1} value={coinPrice} onChange={(e) => setCoinPrice(Number(e.target.value))} />
+              <div className="hint">ตั้งได้ไม่เท่ากันทุกตอน เช่น 1, 2 หรือ 3 เหรียญ</div>
+            </div>
+            <label className="row" style={{ gap: 8, marginBottom: 12, fontSize: 14 }}>
+              <input type="checkbox" checked={followFree} onChange={(e) => setFollowFree(e.target.checked)} />
+              ติดตามแล้วอ่านตอนนี้ฟรี (ยังจ่ายเหรียญได้ถ้าไม่ติดตาม)
+            </label>
+          </>
         )}
         {work.kind === 'novel' ? (
           <div className="field"><label>เนื้อหา (นิยาย)</label>

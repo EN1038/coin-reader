@@ -1,41 +1,73 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, newIdempotencyKey } from '../lib/supabase';
 import type { CoinPack } from '../lib/types';
-import { Topbar } from '../components/Topbar';
 import { MockBanner } from '../components/MockBanner';
-import { Badge } from '../components/Badge';
 import { useApp, errMessage } from '../context/AppContext';
+
+function fakeQr(seed: string): string {
+  const cells = 21;
+  const bits: boolean[] = [];
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) h = (h * 33 + seed.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < cells * cells; i += 1) {
+    h = (h * 1664525 + 1013904223) >>> 0;
+    const edge = i < cells || i >= cells * (cells - 1) || i % cells === 0 || i % cells === cells - 1;
+    const finder = (i % cells < 6 && Math.floor(i / cells) < 6)
+      || (i % cells > cells - 7 && Math.floor(i / cells) < 6)
+      || (i % cells < 6 && Math.floor(i / cells) > cells - 7);
+    bits.push(edge || finder || h % 3 === 0);
+  }
+  const rects = bits.map((on, i) => {
+    if (!on) return '';
+    const x = i % cells;
+    const y = Math.floor(i / cells);
+    return `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  }).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cells} ${cells}" shape-rendering="crispEdges"><rect width="${cells}" height="${cells}" fill="#fff"/>${rects.replaceAll('<rect', '<rect fill="#101827"')}</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
 
 export function TopupPage() {
   const { user, balance, setBalance, isMock } = useApp();
   const nav = useNavigate();
   const [packs, setPacks] = useState<CoinPack[]>([]);
-  const [selected, setSelected] = useState<string>('');
-  const [payMethod, setPayMethod] = useState<'pp' | 'card'>('pp');
+  const [selected, setSelected] = useState('');
+  const [slipName, setSlipName] = useState('');
+  const [slipUrl, setSlipUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [ref] = useState(() => `TB${Date.now().toString().slice(-8)}`);
 
   useEffect(() => {
     if (!user) { nav('/auth/login?next=/wallet/topup'); return; }
     api.listPacks().then((list) => {
       setPacks(list);
-      setSelected(list.find((p) => p.coins === 100)?.id ?? list[0]?.id ?? '');
-    });
+      setSelected(list.find((p) => p.coins === 300)?.id ?? list[0]?.id ?? '');
+    }).catch(() => setPacks([]));
   }, [user, nav]);
 
   const pack = packs.find((p) => p.id === selected);
+  const qr = useMemo(() => (pack ? fakeQr(`${ref}-${pack.amount_thb}`) : ''), [pack, ref]);
+
+  function onSlip(file: File | undefined) {
+    setSlipName(file?.name ?? '');
+    if (slipUrl) URL.revokeObjectURL(slipUrl);
+    setSlipUrl(file ? URL.createObjectURL(file) : '');
+  }
 
   async function pay() {
     if (!pack) return;
+    if (!slipName) {
+      setError('อัปโหลดสลิปจำลองก่อนยืนยัน');
+      return;
+    }
     setBusy(true);
     setError('');
     nav('/wallet/pay/pending');
     try {
-      // brief pending UX
-      await new Promise((r) => setTimeout(r, 600));
-      const key = newIdempotencyKey();
-      const result = await api.mockTopup(pack.id, key);
+      await new Promise((r) => setTimeout(r, 500));
+      const result = await api.mockTopup(pack.id, newIdempotencyKey());
       setBalance(result.balance);
       nav('/wallet/pay/success', { state: { coins: result.coins_added, balance: result.balance, replayed: result.replayed } });
     } catch (e) {
@@ -47,81 +79,51 @@ export function TopupPage() {
   }
 
   return (
-    <>
-      <Topbar title="เติมเหรียญ" back />
-      <div className="px-4 py-2"><MockBanner /></div>
-      <div style={{ margin: '12px 16px', padding: 14, borderRadius: 16, background: 'linear-gradient(145deg,#1C1828,#3D2E6B)', color: '#fff' }}>
-        <div style={{ fontSize: 13, opacity: 0.75 }}>ยอดคงเหลือ {isMock ? '(ตัวอย่าง)' : ''}</div>
-        <div style={{ fontSize: 32, fontFamily: 'var(--font-head)', fontWeight: 700, margin: '6px 0' }}>🪙 {balance}</div>
-        <div style={{ fontSize: 13, opacity: 0.75 }}>1 เหรียญ ≈ 1 บาท (มาตรฐานตลาด · ยังไม่ล็อกราคาผลิตภัณฑ์)</div>
+    <div className="topup-page">
+      <div className="page-head">
+        <h1>เติมเหรียญ</h1>
+        <p className="muted">ยอดตอนนี้ {balance.toLocaleString('th-TH')} · {isMock ? 'ไม่มีการเรียกเก็บเงินจริง' : ''}</p>
       </div>
-
-      <div className="sec" style={{ paddingTop: 8, paddingBottom: 4 }}>
-        <h2>เลือกแพ็ก</h2>
-        <span className="ex">ราคาตัวอย่างจาก seed</span>
-      </div>
-      <div className="pack-grid px-4">
+      <div className="pad"><MockBanner>PromptPay และสลิปเป็นการจำลองในเบราว์เซอร์ ไฟล์ไม่ถูกส่งออกไปไหน</MockBanner></div>
+      <div className="pack-grid">
         {packs.map((pk) => (
-          <button
-            key={pk.id}
-            type="button"
-            className={`pack${selected === pk.id ? ' on' : ''}`}
-            onClick={() => setSelected(pk.id)}
-          >
-            <div>
-              <div className="amt">🪙 {pk.coins}</div>
-              <div className="baht">{pk.amount_thb} บาท</div>
-            </div>
-            <Badge kind={pk.coins === 100 ? 'note' : undefined}>
-              {pk.coins === 50 ? 'แพ็กเล็ก' : pk.coins === 100 ? 'แนะนำ' : 'แพ็กกลาง'}
-            </Badge>
+          <button key={pk.id} type="button" className={`pack${selected === pk.id ? ' on' : ''}`} onClick={() => setSelected(pk.id)}>
+            <div className="amt">🪙 {pk.coins.toLocaleString('th-TH')}</div>
+            {pk.bonus_coins > 0 && <div className="bonus">+โบนัส {pk.bonus_coins}</div>}
+            <div className="baht">{pk.amount_thb.toLocaleString('th-TH')} บาท</div>
           </button>
         ))}
       </div>
+      <p className="fine-print">อัตราบาทต่อเหรียญและโบนัสเป็นตัวเลขตัวอย่างสำหรับเดโม ยังไม่ใช่ราคาผลิตภัณฑ์</p>
 
-      <div className="sec" style={{ paddingTop: 8, paddingBottom: 4 }}><h2>ช่องทางชำระ (mock)</h2></div>
-      <div className="stack px-4">
-        {([
-          ['pp', 'PromptPay QR', 'จำลองเท่านั้น · ไม่สร้าง QR จริง'],
-          ['card', 'บัตรเครดิต/เดบิต', 'จำลองเท่านั้น'],
-        ] as const).map(([id, title, sub]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setPayMethod(id)}
-            className="row"
-            style={{
-              padding: 14, borderRadius: 14, border: `1.5px solid ${payMethod === id ? 'var(--primary)' : 'var(--line)'}`,
-              background: payMethod === id ? 'var(--locked-bg)' : 'var(--surface)', width: '100%', textAlign: 'left',
-            }}
-          >
-            <span style={{
-              width: 20, height: 20, borderRadius: '50%', border: `2px solid ${payMethod === id ? 'var(--primary)' : 'var(--line)'}`,
-              background: payMethod === id ? 'var(--primary)' : 'transparent',
-              boxShadow: payMethod === id ? 'inset 0 0 0 3px #fff' : undefined,
-            }} />
-            <div style={{ flex: 1 }}>
-              <b style={{ fontFamily: 'var(--font-head)' }}>{title}</b>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{sub}</div>
-            </div>
-          </button>
-        ))}
+      {pack && (
+        <section className="qr-card">
+          <h2>QR PromptPay จำลอง</h2>
+          <img src={qr} alt="คิวอาร์โค้ดจำลอง ไม่ใช่พร้อมเพย์จริง" width={180} height={180} />
+          <p>จำนวน <strong>{pack.amount_thb.toLocaleString('th-TH')} บาท</strong></p>
+          <p className="muted">รหัสอ้างอิง {ref}</p>
+          <p>ได้ {pack.coins} เหรียญ{pack.bonus_coins ? ` + โบนัส ${pack.bonus_coins}` : ''} · โบนัสไม่ถูกนับใน 7% ของการชวนเพื่อน</p>
+          <label className="slip-drop">
+            <span>{slipName ? `สลิป: ${slipName}` : 'อัปโหลดสลิป (ไฟล์รูปจำลอง)'}</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => onSlip(e.target.files?.[0])}
+            />
+          </label>
+          {slipUrl && <img className="slip-preview" src={slipUrl} alt="ตัวอย่างสลิปที่เลือก" />}
+        </section>
+      )}
+
+      <div className="notice">
+        เหรียญที่เติมแล้วคืนไม่ได้ ไม่โอน และหายเมื่อปิดบัญชี · <Link to="/legal/coins">อ่านนโยบาย</Link>
       </div>
-
-      <div className="px-4 mt-3 mb-4">
-        <div className="card" style={{ background: 'var(--note-bg)', borderColor: 'color-mix(in srgb, var(--accent-coin) 45%, var(--line))', fontSize: 12, color: 'var(--note)', lineHeight: 1.55 }}>
-          <strong>เหรียญคืนไม่ได้</strong> — เมื่อเติมแล้วไม่สามารถแลกคืนเป็นเงินสดหรือโอนให้ผู้อื่นได้ ดู{' '}
-          <Link to="/legal/coins"><u>นโยบายเหรียญ</u></Link>
-        </div>
-      </div>
-
-      {error && <p className="center" style={{ color: 'var(--danger)' }}>{error}</p>}
-
-      <div style={{ padding: 16, borderTop: '1px solid var(--line)', background: 'var(--surface)', position: 'sticky', bottom: 0 }}>
+      {error && <p className="form-error pad">{error}</p>}
+      <div className="pay-bar">
         <button type="button" className="btn btn-coin btn-block" disabled={!pack || busy} onClick={pay}>
-          {pack ? `จำลองชำระ ${pack.amount_thb} บาท → ได้ ${pack.coins} เหรียญ` : 'เลือกแพ็ก'}
+          {pack ? `ยืนยันการโอนจำลอง ${pack.amount_thb} บาท` : 'เลือกแพ็ก'}
         </button>
       </div>
-    </>
+    </div>
   );
 }

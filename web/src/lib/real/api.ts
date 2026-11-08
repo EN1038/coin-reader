@@ -63,7 +63,7 @@ export const realApi: CoinReaderApi = {
     return u;
   },
 
-  async signup(email, password, displayName) {
+  async signup(email, password, displayName, _referralCode?: string) {
     const { error } = await sb().auth.signUp({
       email,
       password,
@@ -227,4 +227,17 @@ export const realApi: CoinReaderApi = {
     const { data } = await sb().from('unlocks').select('chapter_id').eq('user_id', u.id).eq('chapter_id', chapterId).maybeSingle();
     return !!data;
   },
+
+  async listRecentUpdates() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async checkInCalendar() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async claimCheckIn() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async ticketBalance() { return 0; },
+  async unlockWithTicket() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async referralInfo() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async listComments() { return []; },
+  async addComment() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async toggleCommentLike() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async rateWork() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async myRating() { return null; },
+  async tipWriter() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
 };

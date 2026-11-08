@@ -8,13 +8,15 @@ import { ApiError } from '../lib/types';
 interface AppCtx {
   user: SessionUser | null;
   balance: number;
+  tickets: number;
   loading: boolean;
   isMock: boolean;
   refresh: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, referralCode?: string) => Promise<void>;
   logout: () => Promise<void>;
   setBalance: (n: number) => void;
+  setTickets: (n: number) => void;
 }
 
 const Ctx = createContext<AppCtx | null>(null);
@@ -22,6 +24,7 @@ const Ctx = createContext<AppCtx | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [balance, setBalance] = useState(0);
+  const [tickets, setTickets] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
@@ -34,8 +37,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } catch {
         setBalance(0);
       }
+      try {
+        setTickets(await api.ticketBalance());
+      } catch {
+        setTickets(0);
+      }
     } else {
       setBalance(0);
+      setTickets(0);
     }
   }, []);
 
@@ -48,26 +57,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUser(u);
     const w = await api.myWallet();
     setBalance(w.balance);
+    setTickets(await api.ticketBalance());
   }, []);
 
-  const signup = useCallback(async (email: string, password: string, name: string) => {
-    const u = await api.signup(email, password, name);
+  const signup = useCallback(async (email: string, password: string, name: string, referralCode?: string) => {
+    const u = await api.signup(email, password, name, referralCode);
     setUser(u);
     const w = await api.myWallet();
     setBalance(w.balance);
+    setTickets(await api.ticketBalance());
   }, []);
 
   const logout = useCallback(async () => {
     await api.logout();
     setUser(null);
     setBalance(0);
+    setTickets(0);
   }, []);
 
   const value = useMemo(
     () => ({
-      user, balance, loading, isMock: isMockMode, refresh, login, signup, logout, setBalance,
+      user, balance, tickets, loading, isMock: isMockMode, refresh, login, signup, logout, setBalance, setTickets,
     }),
-    [user, balance, loading, refresh, login, signup, logout],
+    [user, balance, tickets, loading, refresh, login, signup, logout],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

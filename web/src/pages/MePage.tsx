@@ -1,11 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Topbar } from '../components/Topbar';
 import { useApp } from '../context/AppContext';
 import { Badge } from '../components/Badge';
 import { ThemeToggle } from '../components/ThemeToggle';
 
 export function MePage() {
-  const { user, balance, logout, isMock } = useApp();
+  const { user, balance, tickets, logout, isMock } = useApp();
   const nav = useNavigate();
 
   async function onLogout() {
@@ -15,7 +14,7 @@ export function MePage() {
 
   return (
     <>
-      <Topbar title="บัญชีของฉัน" showCoin />
+      <div className="page-head"><h1>ฉัน</h1></div>
       <div className="pad form-narrow">
         {user ? (
           <div className="card mb-3">
@@ -23,6 +22,7 @@ export function MePage() {
             <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{user.email}</div>
             <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Badge kind="note">🪙 {balance}</Badge>
+              <Badge>ตั๋ว {tickets}</Badge>
               {isMock && <Badge kind="ex">mock</Badge>}
             </div>
           </div>
@@ -39,10 +39,12 @@ export function MePage() {
         <nav className="stack">
           {user && <Link to="/me/settings" className="card row-between">ตั้งค่าบัญชี <span>→</span></Link>}
           <Link to="/help" className="card row-between">ศูนย์ช่วยเหลือ <span>→</span></Link>
+          <Link to="/check-in" className="card row-between">เช็คอินรายวัน <span>→</span></Link>
+          <Link to="/referral" className="card row-between">ชวนเพื่อน รับ 7% <span>→</span></Link>
           <Link to="/wallet" className="card row-between">กระเป๋าเหรียญ <span>→</span></Link>
           <Link to="/wallet/topup" className="card row-between">เติมเหรียญ (mock) <span>→</span></Link>
           <Link to="/library" className="card row-between">ชั้นหนังสือ <span>→</span></Link>
-          <Link to="/history" className="card row-between">ประวัติการอ่าน <span>→</span></Link>
+          <Link to="/ranking" className="card row-between">อันดับ <span>→</span></Link>
           <Link to="/legal/tos" className="card row-between">ข้อกำหนดการใช้ <span>→</span></Link>
           <Link to="/legal/privacy" className="card row-between">ความเป็นส่วนตัว <span>→</span></Link>
           <Link to="/legal/coins" className="card row-between">นโยบายเหรียญ <span>→</span></Link>
