@@ -8,8 +8,42 @@ import {
 } from './seed';
 import { COVER_DEFAULT } from '../brand';
 import { bangkokToday, checkInReward, isoDay, bangkokParts, daysInMonth } from '../format';
+import {
+  evaluateWriterTierDrop,
+  feeBpsForWriterTier,
+  monthKeyBangkok,
+  readerTierForLifetime,
+  writerTierForSales,
+  WRITER_TIERS,
+  type ReaderTierId,
+  type WriterTierId,
+} from '../economy/achievements';
 
-const LS_KEY = 'stock-manga-mock-v2';
+const LS_KEY = 'stock-manga-mock-v4';
+
+export type AgeRating = 'all' | '13' | '15' | '18';
+export type SeriesStatus = 'ongoing' | 'completed';
+export type ContentLanguage = 'th' | 'en';
+
+export function ageRatingLabel(r: AgeRating): string {
+  if (r === '13') return '13+';
+  if (r === '15') return '15+';
+  if (r === '18') return '18+';
+  return 'ทั่วไป';
+}
+
+function slugify(raw: string, fallback: string) {
+  return raw.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u0e00-\u0e7f-]/gi, '') || fallback;
+}
+
+function resolveCategoryMeta(cats: Category[], ids: string[] | undefined, fallbackName: string) {
+  const picked = (ids ?? [])
+    .map((id) => cats.find((c) => c.id === id))
+    .filter(Boolean) as Category[];
+  const names = picked.map((c) => c.name);
+  const primary = names[0] ?? fallbackName ?? 'ทั่วไป';
+  return { category: primary, category_ids: picked.map((c) => c.id), tags: names.length ? names : [primary] };
+}
 
 export interface HelpReport {
   id: string;
@@ -48,6 +82,44 @@ export type AuthorStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type PayoutStatus = 'pending' | 'approved' | 'rejected' | 'paid';
 export type WorkAdminStatus = 'draft' | 'published' | 'suspended' | 'takedown';
 
+export type ActivityAction =
+  | 'work_create'
+  | 'work_update'
+  | 'chapter_create'
+  | 'chapter_update'
+  | 'work_status'
+  | 'category_upsert'
+  | 'category_delete'
+  | 'author_review'
+  | 'takedown_review';
+
+export type ActivityTargetType = 'work' | 'chapter' | 'category' | 'author' | 'takedown';
+
+export interface ActivityLogEntry {
+  id: string;
+  at: string;
+  actor_id: string;
+  actor_name: string;
+  action: ActivityAction;
+  target_type: ActivityTargetType;
+  target_id: string;
+  work_id?: string;
+  work_title?: string;
+  summary: string;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  kind: 'admin_chapter' | 'system' | 'payout' | 'author';
+  title: string;
+  body: string;
+  work_id?: string;
+  chapter_id?: string;
+  created_at: string;
+  read: boolean;
+}
+
 export interface AuthorRecord {
   id: string;
   user_id: string;
@@ -64,9 +136,19 @@ export interface WriterWork {
   author_id: string;
   slug: string;
   title: string;
+  /** ชื่อต้นฉบับ / ชื่ออื่นสำหรับค้นหา */
+  original_title: string;
+  /** รายละเอียดแบบย่อ ≤140 */
+  short_synopsis: string;
   synopsis: string;
   kind: 'novel' | 'manga';
+  /** ชื่อหมวดหลัก (ตัวแรก) สำหรับ sync แคตตาล็อก */
   category: string;
+  category_ids: string[];
+  age_rating: AgeRating;
+  language: ContentLanguage;
+  /** สถานะเรื่อง: ยังไม่จบ / จบ */
+  series_status: SeriesStatus;
   status: WorkAdminStatus;
   price_full_work: number | null;
   free_episode_count: number;
@@ -88,6 +170,10 @@ export interface WriterChapter {
   status: 'draft' | 'published';
   body: string;
   page_count: number;
+  /** ชื่อไฟล์รูปที่อัปโหลด (mock) */
+  image_names: string[];
+  /** ชื่อ ZIP สำหรับโหมดหลายตอน (mock) */
+  zip_name?: string | null;
   updated_at: string;
   is_example_data: true;
 }
@@ -133,11 +219,27 @@ export interface ReferralEvent {
   transaction_id: string;
 }
 
+export interface ReaderEconomyRow {
+  lifetime_topup: number;
+  tier_id: ReaderTierId;
+  last_bonus_tier: ReaderTierId;
+}
+
+export interface WriterEconomyRow {
+  lifetime_sales: number;
+  month_key: string;
+  month_sales: number;
+  tier_id: WriterTierId;
+}
+
 export interface MockState {
   user: SessionUser | null;
   /** email -> { password, user } */
   accounts: Record<string, { password: string; user: SessionUser; deleted?: boolean }>;
+  /** Gold balances (reader spendable) — legacy field name kept for seed compatibility */
   balances: Record<string, number>;
+  /** Diamond balances (translator earnings) keyed by user id */
+  diamondBalances: Record<string, number>;
   unlocks: UnlockRecord[];
   workPurchases: { user_id: string; work_id: string; transaction_id: string }[];
   bookshelf: BookshelfItem[];
@@ -161,6 +263,10 @@ export interface MockState {
   referrals: Record<string, ReferralProfile>;
   referralEvents: ReferralEvent[];
   categories: Category[];
+  readerEconomy: Record<string, ReaderEconomyRow>;
+  writerEconomy: Record<string, WriterEconomyRow>;
+  notifications: AppNotification[];
+  activityLog: ActivityLogEntry[];
 }
 
 function uid(prefix: string): string {
@@ -182,31 +288,106 @@ function demoBookshelfSeed(): BookshelfItem[] {
   }));
 }
 
+function authorNameOf(authorId: string, registry: AuthorRecord[]): string {
+  return (
+    registry.find((a) => a.id === authorId)?.display_name
+    ?? seedAuthors.find((a) => a.id === authorId)?.display_name
+    ?? 'นักแปล'
+  );
+}
+
+function seedActivityFromCatalog(
+  works: WriterWork[],
+  chapters: WriterChapter[],
+  registry: AuthorRecord[],
+): ActivityLogEntry[] {
+  const entries: ActivityLogEntry[] = [];
+  const recentChapters = [...chapters]
+    .sort((a, b) => b.number - a.number)
+    .slice(0, 12);
+  recentChapters.forEach((c, i) => {
+    const work = works.find((w) => w.id === c.work_id);
+    if (!work) return;
+    const name = authorNameOf(work.author_id, registry);
+    const author = registry.find((a) => a.id === work.author_id);
+    entries.push({
+      id: `act-seed-ch-${c.id}`,
+      at: new Date(Date.now() - (i + 1) * 2.5 * 3600_000).toISOString(),
+      actor_id: author?.user_id ?? work.author_id,
+      actor_name: name,
+      action: 'chapter_update',
+      target_type: 'chapter',
+      target_id: c.id,
+      work_id: work.id,
+      work_title: work.title,
+      summary: `อัปเดตตอนที่ ${c.number} · ${work.title}`,
+    });
+  });
+  const recentWorks = [...works]
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    .slice(0, 8);
+  recentWorks.forEach((w, i) => {
+    const name = authorNameOf(w.author_id, registry);
+    const author = registry.find((a) => a.id === w.author_id);
+    entries.push({
+      id: `act-seed-w-${w.id}`,
+      at: new Date(Date.now() - (i + 1) * 5 * 3600_000).toISOString(),
+      actor_id: author?.user_id ?? w.author_id,
+      actor_name: name,
+      action: 'work_update',
+      target_type: 'work',
+      target_id: w.id,
+      work_id: w.id,
+      work_title: w.title,
+      summary: `อัปเดตเรื่อง · ${w.title}`,
+    });
+  });
+  return entries.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20);
+}
+
 function seedWriterCatalog(): { works: WriterWork[]; chapters: WriterChapter[] } {
   const now = nowIso();
   const works: WriterWork[] = seedWorks
     .filter((w) => w.author_id === 'a-001')
-    .map((w) => ({
-      id: w.id,
-      author_id: w.author_id,
-      slug: w.slug,
-      title: w.title,
-      synopsis: w.synopsis,
-      kind: w.kind,
-      category: w.category,
-      status: 'published',
-      price_full_work: w.price_full_work,
-      free_episode_count: w.free_episode_count,
-      cover_tone: w.cover_tone,
-      cover_url: w.cover_url ?? COVER_DEFAULT,
-      created_at: now,
-      updated_at: now,
-      is_example_data: true,
-    }));
+    .map((w) => {
+      const legacy: Record<string, string> = {
+        โรแมนติก: 'romance', สยองขวัญ: 'horror', ดราม่า: 'drama', แฟนตาซี: 'fantasy',
+        ไซไฟ: 'sci-fi', แอ็กชัน: 'action', ลึกลับ: 'mystery',
+      };
+      const want = legacy[w.category] ?? w.category.toLowerCase();
+      const match = seedCategories.find(
+        (c) => c.slug === want || c.name.includes(w.category) || c.name === w.category,
+      );
+      const cat = match ?? seedCategories.find((c) => c.slug === 'romance') ?? seedCategories[0];
+      return {
+        id: w.id,
+        author_id: w.author_id,
+        slug: w.slug,
+        title: w.title,
+        original_title: w.title,
+        short_synopsis: w.synopsis.slice(0, 140),
+        synopsis: w.synopsis,
+        kind: w.kind,
+        category: cat?.name ?? w.category,
+        category_ids: cat ? [cat.id] : [],
+        age_rating: (w.rating === '18+' ? '18' : 'all') as AgeRating,
+        language: 'th' as ContentLanguage,
+        series_status: (w.status === 'completed' ? 'completed' : 'ongoing') as SeriesStatus,
+        status: 'published' as WorkAdminStatus,
+        price_full_work: w.price_full_work,
+        free_episode_count: w.free_episode_count,
+        cover_tone: w.cover_tone,
+        cover_url: w.cover_url ?? COVER_DEFAULT,
+        created_at: now,
+        updated_at: now,
+        is_example_data: true as const,
+      };
+    });
   const chapters: WriterChapter[] = seedChapters
     .filter((c) => works.some((w) => w.id === c.work_id))
     .map((c) => {
       const content = seedContents.find((x) => x.chapter_id === c.id);
+      const pages = c.work_id.startsWith('w-') && seedWorks.find((w) => w.id === c.work_id)?.kind === 'manga' ? 3 : 0;
       return {
         id: c.id,
         work_id: c.work_id,
@@ -215,19 +396,21 @@ function seedWriterCatalog(): { works: WriterWork[]; chapters: WriterChapter[] }
         pricing: c.pricing,
         coin_price: c.coin_price,
         follow_free: !!c.follow_free,
-        status: 'published',
+        status: 'published' as const,
         body: content?.body ?? '',
-        page_count: c.work_id.startsWith('w-') && seedWorks.find((w) => w.id === c.work_id)?.kind === 'manga' ? 3 : 0,
+        page_count: pages,
+        image_names: pages > 0 ? Array.from({ length: pages }, (_, i) => `${i + 1}.jpg`) : [],
+        zip_name: null,
         updated_at: now,
-        is_example_data: true,
+        is_example_data: true as const,
       };
     });
   return { works, chapters };
 }
 
-function earningsOf(sales: number, tips: number, pending = 0): WriterEarningsFixture {
+function earningsOf(sales: number, tips: number, pending = 0, feeBps = 1000): WriterEarningsFixture {
   const gross = sales + tips;
-  const fee = Math.floor(gross * 3000 / 10000);
+  const fee = Math.floor((gross * feeBps) / 10000);
   const net = gross - fee;
   return {
     pending,
@@ -300,6 +483,7 @@ function defaultState(): MockState {
       [friendUser.email]: { password: DEMO_PASSWORD, user: friendUser },
     },
     balances: { [demoUser.id]: demoBalance, [writerUser.id]: 40, [friendUser.id]: 80 },
+    diamondBalances: { [writerUser.id]: 520, [demoUser.id]: 0, [friendUser.id]: 0 },
     unlocks: [
       {
         user_id: DEMO_USER_ID,
@@ -471,6 +655,40 @@ function defaultState(): MockState {
       },
     ],
     categories: seedCategories.map((c) => ({ ...c })),
+    readerEconomy: {
+      [demoUser.id]: { lifetime_topup: topupCoins, tier_id: 'none', last_bonus_tier: 'none' },
+      [friendUser.id]: { lifetime_topup: 0, tier_id: 'none', last_bonus_tier: 'none' },
+      [writerUser.id]: { lifetime_topup: 0, tier_id: 'none', last_bonus_tier: 'none' },
+    },
+    writerEconomy: {
+      [writerUser.id]: {
+        lifetime_sales: 5500,
+        month_key: monthKeyBangkok(),
+        month_sales: 800,
+        tier_id: 'plus',
+      },
+    },
+    notifications: [],
+    activityLog: seedActivityFromCatalog(catalog.works, catalog.chapters, [
+      {
+        id: 'a-001',
+        user_id: writerUser.id,
+        display_name: 'นามปากกาตัวอย่าง',
+        bio: '',
+        status: 'approved',
+        created_at: now,
+        approved_at: now,
+      },
+      {
+        id: 'a-002',
+        user_id: 'user-author-002',
+        display_name: 'นักเขียนสมมติ',
+        bio: '',
+        status: 'approved',
+        created_at: now,
+        approved_at: now,
+      },
+    ]),
   };
 }
 
@@ -496,6 +714,9 @@ function normalize(parsed: Partial<MockState>): MockState {
     passwordResetRequests: parsed.passwordResetRequests ?? [],
     accounts: { ...base.accounts, ...(parsed.accounts ?? {}) },
     balances: { ...base.balances, ...(parsed.balances ?? {}) },
+    diamondBalances: { ...base.diamondBalances, ...(parsed.diamondBalances ?? {}) },
+    readerEconomy: { ...base.readerEconomy, ...(parsed.readerEconomy ?? {}) },
+    writerEconomy: { ...base.writerEconomy, ...(parsed.writerEconomy ?? {}) },
     authorsRegistry: parsed.authorsRegistry?.length ? parsed.authorsRegistry : base.authorsRegistry,
     writerWorks: parsed.writerWorks?.length ? parsed.writerWorks : base.writerWorks,
     writerChapters: parsed.writerChapters?.length ? parsed.writerChapters : base.writerChapters,
@@ -509,6 +730,14 @@ function normalize(parsed: Partial<MockState>): MockState {
     referrals: { ...base.referrals, ...(parsed.referrals ?? {}) },
     referralEvents: parsed.referralEvents ?? base.referralEvents,
     categories: parsed.categories?.length ? parsed.categories : base.categories,
+    notifications: parsed.notifications ?? [],
+    activityLog: parsed.activityLog?.length
+      ? parsed.activityLog
+      : seedActivityFromCatalog(
+          parsed.writerWorks?.length ? parsed.writerWorks : base.writerWorks,
+          parsed.writerChapters?.length ? parsed.writerChapters : base.writerChapters,
+          parsed.authorsRegistry?.length ? parsed.authorsRegistry : base.authorsRegistry,
+        ),
   };
   for (const [id, row] of Object.entries(merged.writerEarnings)) {
     merged.writerEarnings[id] = {
@@ -561,6 +790,47 @@ export const mockDb = {
       .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, 'th'));
   },
 
+  pushActivityLog(
+    input: Omit<ActivityLogEntry, 'id' | 'at'> & { id?: string; at?: string },
+  ): ActivityLogEntry {
+    const row: ActivityLogEntry = {
+      id: input.id ?? uid('act'),
+      at: input.at ?? nowIso(),
+      actor_id: input.actor_id,
+      actor_name: input.actor_name,
+      action: input.action,
+      target_type: input.target_type,
+      target_id: input.target_id,
+      work_id: input.work_id,
+      work_title: input.work_title,
+      summary: input.summary,
+    };
+    state.activityLog = [row, ...state.activityLog].slice(0, 500);
+    return row;
+  },
+
+  listActivityLog(params?: {
+    q?: string;
+    action?: ActivityAction | 'all';
+    limit?: number;
+  }): ActivityLogEntry[] {
+    const q = params?.q?.trim().toLowerCase() ?? '';
+    const action = params?.action && params.action !== 'all' ? params.action : null;
+    const limit = params?.limit ?? 200;
+    return state.activityLog
+      .filter((e) => (action ? e.action === action : true))
+      .filter((e) => {
+        if (!q) return true;
+        return (
+          e.summary.toLowerCase().includes(q)
+          || e.actor_name.toLowerCase().includes(q)
+          || (e.work_title ?? '').toLowerCase().includes(q)
+          || e.action.toLowerCase().includes(q)
+        );
+      })
+      .slice(0, limit);
+  },
+
   upsertCategory(input: {
     id?: string;
     name: string;
@@ -576,6 +846,9 @@ export const mockDb = {
       (c) => c.id !== input.id && (c.name === name || c.slug === slug),
     );
     if (dup) throw new Error('CONFLICT');
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
     if (input.id) {
       const idx = state.categories.findIndex((c) => c.id === input.id);
       if (idx < 0) throw new Error('NOT_FOUND');
@@ -588,6 +861,14 @@ export const mockDb = {
         active: input.active,
       };
       state.categories[idx] = next;
+      mockDb.pushActivityLog({
+        actor_id: actor.id,
+        actor_name: actor.name,
+        action: 'category_upsert',
+        target_type: 'category',
+        target_id: next.id,
+        summary: `แก้ไขหมวด · ${next.name}`,
+      });
       save(state);
       return next;
     }
@@ -600,14 +881,34 @@ export const mockDb = {
       active: input.active,
     };
     state.categories.push(created);
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'category_upsert',
+      target_type: 'category',
+      target_id: created.id,
+      summary: `สร้างหมวด · ${created.name}`,
+    });
     save(state);
     return created;
   },
 
   deleteCategory(id: string) {
+    const cat = state.categories.find((c) => c.id === id);
     const before = state.categories.length;
     state.categories = state.categories.filter((c) => c.id !== id);
     if (state.categories.length === before) throw new Error('NOT_FOUND');
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'category_delete',
+      target_type: 'category',
+      target_id: id,
+      summary: `ลบหมวด · ${cat?.name ?? id}`,
+    });
     save(state);
   },
 
@@ -627,9 +928,28 @@ export const mockDb = {
     return state.balances[userId] ?? 0;
   },
 
+  goldOf(userId: string): number {
+    return mockDb.balanceOf(userId);
+  },
+
+  diamondOf(userId: string): number {
+    return state.diamondBalances[userId] ?? 0;
+  },
+
   setBalance(userId: string, n: number) {
     state.balances[userId] = n;
     save(state);
+  },
+
+  setDiamond(userId: string, n: number) {
+    state.diamondBalances[userId] = n;
+    save(state);
+  },
+
+  walletOf(userId: string) {
+    const gold = mockDb.goldOf(userId);
+    const diamond = mockDb.diamondOf(userId);
+    return { gold, diamond, balance: gold };
   },
 
   addLedger(entry: Omit<LedgerEntry, 'id' | 'created_at'> & { id?: string; created_at?: string }) {
@@ -640,6 +960,7 @@ export const mockDb = {
       kind: entry.kind,
       amount: entry.amount,
       coins: entry.coins,
+      currency: entry.currency ?? (entry.kind.startsWith('diamond') ? 'diamond' : 'gold'),
       label: entry.label,
       transaction_id: entry.transaction_id,
     };
@@ -668,7 +989,11 @@ export const mockDb = {
     }
     state.accounts[key] = { password, user };
     if (state.balances[user.id] == null) state.balances[user.id] = 0;
+    if (state.diamondBalances[user.id] == null) state.diamondBalances[user.id] = 0;
     if (state.tickets[user.id] == null) state.tickets[user.id] = 0;
+    if (!state.readerEconomy[user.id]) {
+      state.readerEconomy[user.id] = { lifetime_topup: 0, tier_id: 'none', last_bonus_tier: 'none' };
+    }
     state.referrals[user.id] = {
       code: `SM${user.id.replace(/\W/g, '').slice(-6).toUpperCase()}`,
       referred_by: referredBy,
@@ -839,9 +1164,12 @@ export const mockDb = {
 
   // —— Writer / Admin studio (mock) ——
   WRITER_POLICY: {
-    writer_share_bps: 7000,
+    /** writer keeps 90% at base tier (platform 10%) */
+    writer_share_bps: 9000,
+    platform_fee_bps: 1000,
     hold_days: 14,
-    minimum_payout: 100,
+    minimum_payout: 500,
+    diamond_to_gold_rate: 1,
     placeholder: true as const,
   },
   BANK_DOC_FIXTURE: 'bank-doc-a001-verified',
@@ -887,6 +1215,17 @@ export const mockDb = {
       approved_at: decision === 'approved' ? nowIso() : undefined,
       reject_reason: decision === 'rejected' ? (reason || 'ไม่อนุมัติ') : undefined,
     };
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'author_review',
+      target_type: 'author',
+      target_id: authorId,
+      summary: `${decision === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}นักแปล · ${row.display_name}`,
+    });
     save(state);
     return state.authorsRegistry[i];
   },
@@ -930,34 +1269,66 @@ export const mockDb = {
 
   saveWriterWork(input: Partial<WriterWork> & { author_id: string; title: string; kind: 'novel' | 'manga' }): WriterWork {
     const now = nowIso();
+    const author = state.authorsRegistry.find((a) => a.id === input.author_id);
+    const actorName = authorNameOf(input.author_id, state.authorsRegistry);
+    const actorId = author?.user_id ?? input.author_id;
     if (input.id) {
       const i = state.writerWorks.findIndex((w) => w.id === input.id);
       if (i < 0) throw new Error('NOT_FOUND');
       const prev = state.writerWorks[i];
+      const catMeta = resolveCategoryMeta(
+        state.categories,
+        input.category_ids ?? prev.category_ids,
+        input.category ?? prev.category,
+      );
       const next: WriterWork = {
         ...prev,
         ...input,
         title: input.title.trim(),
+        original_title: (input.original_title ?? prev.original_title ?? input.title).trim(),
+        short_synopsis: (input.short_synopsis ?? prev.short_synopsis ?? '').trim().slice(0, 140),
         synopsis: (input.synopsis ?? prev.synopsis).trim(),
-        slug: input.slug?.trim() || prev.slug,
+        slug: slugify(input.slug ?? prev.slug, prev.id),
+        category: catMeta.category,
+        category_ids: catMeta.category_ids,
+        age_rating: input.age_rating ?? prev.age_rating ?? 'all',
+        language: input.language ?? prev.language ?? 'th',
+        series_status: input.series_status ?? prev.series_status ?? 'ongoing',
         updated_at: now,
         is_example_data: true,
       };
       state.writerWorks[i] = next;
+      mockDb.pushActivityLog({
+        actor_id: actorId,
+        actor_name: actorName,
+        action: 'work_update',
+        target_type: 'work',
+        target_id: next.id,
+        work_id: next.id,
+        work_title: next.title,
+        summary: `อัปเดตเรื่อง · ${next.title}`,
+      });
       save(state);
       mockDb.syncReaderCatalog();
       return next;
     }
     const id = uid('ww');
-    const slug = (input.slug || input.title).trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\u0e00-\u0e7f-]/gi, '') || id;
+    const slug = slugify(input.slug || input.title, id);
+    const catMeta = resolveCategoryMeta(state.categories, input.category_ids, input.category ?? 'ทั่วไป');
     const row: WriterWork = {
       id,
       author_id: input.author_id,
       slug,
       title: input.title.trim(),
+      original_title: (input.original_title ?? input.title).trim(),
+      short_synopsis: (input.short_synopsis ?? '').trim().slice(0, 140),
       synopsis: (input.synopsis ?? '').trim(),
       kind: input.kind,
-      category: input.category ?? 'ทั่วไป',
+      category: catMeta.category,
+      category_ids: catMeta.category_ids,
+      age_rating: input.age_rating ?? 'all',
+      language: input.language ?? 'th',
+      series_status: input.series_status ?? 'ongoing',
       status: input.status ?? 'draft',
       price_full_work: input.price_full_work ?? null,
       free_episode_count: input.free_episode_count ?? 0,
@@ -968,6 +1339,16 @@ export const mockDb = {
       is_example_data: true,
     };
     state.writerWorks = [row, ...state.writerWorks];
+    mockDb.pushActivityLog({
+      actor_id: actorId,
+      actor_name: actorName,
+      action: 'work_create',
+      target_type: 'work',
+      target_id: row.id,
+      work_id: row.id,
+      work_title: row.title,
+      summary: `สร้างเรื่อง · ${row.title}`,
+    });
     save(state);
     mockDb.syncReaderCatalog();
     return row;
@@ -981,8 +1362,16 @@ export const mockDb = {
     return state.writerChapters.find((c) => c.id === chapterId);
   },
 
-  saveWriterChapter(input: Partial<WriterChapter> & { work_id: string; title: string }): WriterChapter {
+  saveWriterChapter(input: Partial<WriterChapter> & { work_id: string; title?: string }): WriterChapter {
     const now = nowIso();
+    const coinPrice = Math.max(0, Math.floor(input.coin_price ?? 0));
+    const pricing: 'free' | 'coin' = input.pricing ?? (coinPrice > 0 ? 'coin' : 'free');
+    const resolvedPrice = pricing === 'coin' ? (coinPrice || input.coin_price || 1) : 0;
+    const work = state.writerWorks.find((w) => w.id === input.work_id);
+    const authorId = work?.author_id ?? '';
+    const author = state.authorsRegistry.find((a) => a.id === authorId);
+    const actorName = authorNameOf(authorId, state.authorsRegistry);
+    const actorId = author?.user_id ?? (authorId || 'writer');
     if (input.id) {
       const i = state.writerChapters.findIndex((c) => c.id === input.id);
       if (i < 0) throw new Error('NOT_FOUND');
@@ -990,12 +1379,29 @@ export const mockDb = {
       const next: WriterChapter = {
         ...prev,
         ...input,
-        title: input.title.trim(),
+        title: (input.title ?? prev.title ?? '').trim() || `ตอนที่ ${input.number ?? prev.number}`,
+        number: input.number ?? prev.number,
+        pricing,
+        coin_price: resolvedPrice,
+        follow_free: pricing === 'coin' && !!(input.follow_free ?? prev.follow_free),
         body: input.body ?? prev.body,
+        page_count: input.page_count ?? prev.page_count,
+        image_names: input.image_names ?? prev.image_names ?? [],
+        zip_name: input.zip_name !== undefined ? input.zip_name : prev.zip_name,
         updated_at: now,
         is_example_data: true,
       };
       state.writerChapters[i] = next;
+      mockDb.pushActivityLog({
+        actor_id: actorId,
+        actor_name: actorName,
+        action: 'chapter_update',
+        target_type: 'chapter',
+        target_id: next.id,
+        work_id: next.work_id,
+        work_title: work?.title,
+        summary: `อัปเดตตอนที่ ${next.number} · ${work?.title ?? next.work_id}`,
+      });
       save(state);
       mockDb.syncReaderCatalog();
       return next;
@@ -1006,19 +1412,31 @@ export const mockDb = {
       id: uid('wch'),
       work_id: input.work_id,
       number,
-      title: input.title.trim(),
-      pricing: input.pricing ?? 'free',
-      coin_price: input.pricing === 'coin' ? (input.coin_price ?? 5) : 0,
-      follow_free: input.pricing === 'coin' && !!input.follow_free,
+      title: (input.title ?? '').trim() || `ตอนที่ ${number}`,
+      pricing,
+      coin_price: resolvedPrice,
+      follow_free: pricing === 'coin' && !!input.follow_free,
       status: input.status ?? 'draft',
       body: input.body ?? '',
-      page_count: input.page_count ?? 0,
+      page_count: input.page_count ?? (input.image_names?.length ?? 0),
+      image_names: input.image_names ?? [],
+      zip_name: input.zip_name ?? null,
       updated_at: now,
       is_example_data: true,
     };
     state.writerChapters = [...state.writerChapters, row];
     const wi = state.writerWorks.findIndex((w) => w.id === input.work_id);
     if (wi >= 0) state.writerWorks[wi] = { ...state.writerWorks[wi], updated_at: now };
+    mockDb.pushActivityLog({
+      actor_id: actorId,
+      actor_name: actorName,
+      action: 'chapter_create',
+      target_type: 'chapter',
+      target_id: row.id,
+      work_id: row.work_id,
+      work_title: work?.title,
+      summary: `สร้างตอนที่ ${row.number} · ${work?.title ?? row.work_id}`,
+    });
     save(state);
     mockDb.syncReaderCatalog();
     return row;
@@ -1030,6 +1448,9 @@ export const mockDb = {
     if (amount < mockDb.WRITER_POLICY.minimum_payout) throw new Error('BELOW_MINIMUM');
     const earnings = state.writerEarnings[authorId];
     if (!earnings || amount > earnings.available) throw new Error('INSUFFICIENT_AVAILABLE');
+    const diamond = mockDb.diamondOf(author.user_id);
+    if (diamond < amount) throw new Error('INSUFFICIENT_DIAMOND');
+    const tx = mockDb.newTxId();
     const row: PayoutRequest = {
       id: uid('po'),
       author_id: authorId,
@@ -1037,10 +1458,21 @@ export const mockDb = {
       bank_document_id: bankDocumentId,
       status: 'pending',
       created_at: nowIso(),
+      transaction_id: tx,
     };
     state.payoutRequests = [row, ...state.payoutRequests];
     earnings.available -= amount;
     earnings.reserved += amount;
+    mockDb.setDiamond(author.user_id, diamond - amount);
+    mockDb.addLedger({
+      user_id: author.user_id,
+      kind: 'diamond_payout',
+      amount: -amount,
+      coins: amount,
+      currency: 'diamond',
+      label: `ขอถอน ${amount} Diamond (ขั้นต่ำ ${mockDb.WRITER_POLICY.minimum_payout})`,
+      transaction_id: tx,
+    });
     save(state);
     return row;
   },
@@ -1059,6 +1491,10 @@ export const mockDb = {
     if (decision === 'rejected' && earnings) {
       earnings.reserved = Math.max(0, earnings.reserved - row.amount);
       earnings.available += row.amount;
+      const author = state.authorsRegistry.find((a) => a.id === row.author_id);
+      if (author) {
+        mockDb.setDiamond(author.user_id, mockDb.diamondOf(author.user_id) + row.amount);
+      }
     }
     state.payoutRequests[i] = {
       ...row,
@@ -1117,18 +1553,54 @@ export const mockDb = {
       status: decision,
       admin_notes: notes,
     };
+    let workTitle: string | undefined;
     if (decision === 'resolved' && row.work_id) {
       const wi = state.writerWorks.findIndex((w) => w.id === row.work_id);
-      if (wi >= 0) state.writerWorks[wi] = { ...state.writerWorks[wi], status: 'takedown', updated_at: nowIso() };
+      if (wi >= 0) {
+        state.writerWorks[wi] = { ...state.writerWorks[wi], status: 'takedown', updated_at: nowIso() };
+        workTitle = state.writerWorks[wi].title;
+      }
     }
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'takedown_review',
+      target_type: 'takedown',
+      target_id: id,
+      work_id: row.work_id,
+      work_title: workTitle,
+      summary: `Takedown ${decision}${workTitle ? ` · ${workTitle}` : ''}`,
+    });
     save(state);
     return state.takedownRequests[i];
   },
 
-  setWriterWorkStatus(workId: string, status: WorkAdminStatus) {
+  setWriterWorkStatus(
+    workId: string,
+    status: WorkAdminStatus,
+    actor?: { id: string; name: string },
+  ) {
     const i = state.writerWorks.findIndex((w) => w.id === workId);
     if (i < 0) throw new Error('NOT_FOUND');
-    state.writerWorks[i] = { ...state.writerWorks[i], status, updated_at: nowIso() };
+    const prev = state.writerWorks[i];
+    state.writerWorks[i] = { ...prev, status, updated_at: nowIso() };
+    const who = actor
+      ?? (state.user
+        ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+        : { id: 'admin', name: 'แอดมิน' });
+    mockDb.pushActivityLog({
+      actor_id: who.id,
+      actor_name: who.name,
+      action: 'work_status',
+      target_type: 'work',
+      target_id: workId,
+      work_id: workId,
+      work_title: prev.title,
+      summary: `เปลี่ยนสถานะเป็น ${status} · ${prev.title}`,
+    });
     save(state);
     return state.writerWorks[i];
   },
@@ -1136,16 +1608,25 @@ export const mockDb = {
   syncReaderCatalog() {
     for (const w of state.writerWorks) {
       if (w.status !== 'published') continue;
+      const catMeta = resolveCategoryMeta(state.categories, w.category_ids, w.category);
+      const synopsis = [w.short_synopsis, w.synopsis].filter(Boolean).join('\n\n') || w.synopsis;
+      const rating = ageRatingLabel(w.age_rating ?? 'all');
+      const seriesStatus = w.series_status === 'completed' ? 'completed' : 'published';
       const idx = mockDb.works.findIndex((x) => x.id === w.id);
       if (idx >= 0) {
         mockDb.works[idx] = {
           ...mockDb.works[idx],
           title: w.title,
-          synopsis: w.synopsis,
-          category: w.category,
+          synopsis,
+          slug: w.slug,
+          category: catMeta.category,
+          tags: catMeta.tags,
+          rating,
+          status: seriesStatus,
           kind: w.kind,
           free_episode_count: w.free_episode_count ?? mockDb.works[idx].free_episode_count,
           price_full_work: w.price_full_work,
+          cover_url: w.cover_url ?? mockDb.works[idx].cover_url ?? COVER_DEFAULT,
           author_id: w.author_id,
         };
       } else {
@@ -1154,12 +1635,12 @@ export const mockDb = {
           id: w.id,
           slug: w.slug,
           title: w.title,
-          synopsis: w.synopsis,
+          synopsis,
           kind: w.kind,
-          category: w.category,
-          tags: [w.category],
-          rating: 'ทั่วไป',
-          status: 'published',
+          category: catMeta.category,
+          tags: catMeta.tags,
+          rating,
+          status: seriesStatus,
           cover_tone: w.cover_tone,
           cover_url: w.cover_url ?? COVER_DEFAULT,
           author_id: w.author_id,
@@ -1403,7 +1884,8 @@ export const mockDb = {
   addComment(userId: string, chapterId: string, body: string): ReaderComment {
     const text = body.trim();
     if (text.length < 1 || text.length > 1000) throw new Error('VALIDATION');
-    if (!mockDb.canRead(userId, chapterId)) throw new Error('UNAUTHORIZED');
+    const isWorkThread = chapterId.startsWith('work:');
+    if (!isWorkThread && !mockDb.canRead(userId, chapterId)) throw new Error('UNAUTHORIZED');
     const acc = Object.values(state.accounts).find((a) => a.user.id === userId);
     const row: ReaderComment = {
       id: uid('cmt'),
@@ -1418,6 +1900,99 @@ export const mockDb = {
     state.comments = [row, ...state.comments];
     save(state);
     return row;
+  },
+
+  /** คอมเมนต์โซนหน้า detail เรื่อง + คอมเมนต์รายตอนของเรื่องนั้น */
+  listWorkComments(workId: string, userId?: string): ReaderComment[] {
+    const chapterIds = new Set([
+      `work:${workId}`,
+      ...mockDb.chapters.filter((c) => c.work_id === workId).map((c) => c.id),
+      ...state.writerChapters.filter((c) => c.work_id === workId).map((c) => c.id),
+    ]);
+    return state.comments
+      .filter((c) => chapterIds.has(c.chapter_id))
+      .map((c) => ({
+        ...c,
+        like_count: state.commentLikes.filter((l) => l.comment_id === c.id).length,
+        liked_by_me: !!userId && state.commentLikes.some((l) => l.comment_id === c.id && l.user_id === userId),
+      }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+
+  addWorkComment(userId: string, workId: string, body: string): ReaderComment {
+    return mockDb.addComment(userId, `work:${workId}`, body);
+  },
+
+  listNotifications(userId: string): AppNotification[] {
+    return state.notifications
+      .filter((n) => n.user_id === userId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+
+  unreadNotificationCount(userId: string): number {
+    return state.notifications.filter((n) => n.user_id === userId && !n.read).length;
+  },
+
+  markNotificationsRead(userId: string) {
+    let changed = false;
+    state.notifications = state.notifications.map((n) => {
+      if (n.user_id === userId && !n.read) {
+        changed = true;
+        return { ...n, read: true };
+      }
+      return n;
+    });
+    if (changed) save(state);
+  },
+
+  notifyUser(input: {
+    user_id: string;
+    kind: AppNotification['kind'];
+    title: string;
+    body: string;
+    work_id?: string;
+    chapter_id?: string;
+  }): AppNotification {
+    const row: AppNotification = {
+      id: uid('ntf'),
+      user_id: input.user_id,
+      kind: input.kind,
+      title: input.title.trim(),
+      body: input.body.trim(),
+      work_id: input.work_id,
+      chapter_id: input.chapter_id,
+      created_at: nowIso(),
+      read: false,
+    };
+    state.notifications = [row, ...state.notifications];
+    save(state);
+    return row;
+  },
+
+  /** แอดมินแจ้งนักแปลว่าตอนมีปัญหา */
+  notifyWriterChapterIssue(input: {
+    author_id: string;
+    work_id: string;
+    chapter_id?: string;
+    message: string;
+  }): AppNotification {
+    const author = state.authorsRegistry.find((a) => a.id === input.author_id);
+    if (!author) throw new Error('NOT_FOUND');
+    const work = state.writerWorks.find((w) => w.id === input.work_id) ?? mockDb.works.find((w) => w.id === input.work_id);
+    const chapter = input.chapter_id
+      ? state.writerChapters.find((c) => c.id === input.chapter_id) ?? mockDb.chapters.find((c) => c.id === input.chapter_id)
+      : undefined;
+    const title = chapter
+      ? `แจ้งปัญหาตอน · ${work?.title ?? 'เรื่อง'} ตอนที่ ${(chapter as { number?: number }).number ?? '?'}`
+      : `แจ้งปัญหาเรื่อง · ${work?.title ?? 'เรื่อง'}`;
+    return mockDb.notifyUser({
+      user_id: author.user_id,
+      kind: 'admin_chapter',
+      title,
+      body: input.message.trim() || 'แอดมินแจ้งว่ามีปัญหา กรุณาตรวจสอบ',
+      work_id: input.work_id,
+      chapter_id: input.chapter_id,
+    });
   },
 
   toggleCommentLike(userId: string, commentId: string): ReaderComment {
@@ -1455,6 +2030,214 @@ export const mockDb = {
     return { score: work.score, rating_count: work.rating_count, mine: stars };
   },
 
+  ensureWriterEconomy(userId: string): WriterEconomyRow {
+    const mk = monthKeyBangkok();
+    const row = state.writerEconomy[userId];
+    if (!row) {
+      const created: WriterEconomyRow = {
+        lifetime_sales: 0,
+        month_key: mk,
+        month_sales: 0,
+        tier_id: 'base',
+      };
+      state.writerEconomy[userId] = created;
+      return created;
+    }
+    if (row.month_key !== mk) {
+      row.tier_id = evaluateWriterTierDrop(row.tier_id, row.month_sales);
+      row.month_key = mk;
+      row.month_sales = 0;
+    }
+    return row;
+  },
+
+  ensureReaderEconomy(userId: string): ReaderEconomyRow {
+    if (!state.readerEconomy[userId]) {
+      state.readerEconomy[userId] = { lifetime_topup: 0, tier_id: 'none', last_bonus_tier: 'none' };
+    }
+    return state.readerEconomy[userId];
+  },
+
+  /**
+   * Credit translator Diamond from a Gold spend (unlock/tip).
+   * Fee follows writer achievement tier (base 10%).
+   */
+  creditWriterSale(opts: {
+    authorId: string;
+    goldSpent: number;
+    kind: 'sales' | 'tip';
+    tx: string;
+    label: string;
+  }) {
+    const author = state.authorsRegistry.find((a) => a.id === opts.authorId);
+    const writerUserId = author?.user_id;
+    const eco = writerUserId
+      ? mockDb.ensureWriterEconomy(writerUserId)
+      : ({ lifetime_sales: 0, month_key: monthKeyBangkok(), month_sales: 0, tier_id: 'base' } as WriterEconomyRow);
+
+    if (writerUserId) {
+      eco.lifetime_sales += opts.goldSpent;
+      eco.month_sales += opts.goldSpent;
+      const bySales = writerTierForSales(eco.lifetime_sales);
+      const tierOrder = ['base', 'plus', 'pro', 'elite'] as WriterTierId[];
+      if (tierOrder.indexOf(bySales.id) > tierOrder.indexOf(eco.tier_id)) {
+        eco.tier_id = bySales.id;
+      }
+      state.writerEconomy[writerUserId] = eco;
+    }
+
+    const feeBps = feeBpsForWriterTier(eco.tier_id);
+    const fee = Math.floor((opts.goldSpent * feeBps) / 10000);
+    const net = opts.goldSpent - fee;
+
+    const earnings = state.writerEarnings[opts.authorId] ?? {
+      pending: 0, available: 0, reserved: 0, paid: 0, unlock_count: 0, views_label: '0',
+      sales_coins: 0, tip_coins: 0, platform_fee_coins: 0, net_coins: 0,
+    };
+    const alreadyDrawn = Math.max(0, earnings.net_coins - earnings.available - earnings.reserved);
+    if (opts.kind === 'tip') earnings.tip_coins += opts.goldSpent;
+    else {
+      earnings.sales_coins += opts.goldSpent;
+      earnings.unlock_count += 1;
+    }
+    const gross = earnings.sales_coins + earnings.tip_coins;
+    earnings.platform_fee_coins = Math.floor((gross * feeBps) / 10000);
+    earnings.net_coins = gross - earnings.platform_fee_coins;
+    earnings.available = Math.max(0, earnings.net_coins - earnings.reserved - alreadyDrawn);
+    state.writerEarnings[opts.authorId] = earnings;
+
+    if (writerUserId && net > 0) {
+      const nextDiamond = mockDb.diamondOf(writerUserId) + net;
+      mockDb.setDiamond(writerUserId, nextDiamond);
+      mockDb.addLedger({
+        user_id: writerUserId,
+        kind: 'diamond_earn',
+        amount: net,
+        coins: net,
+        currency: 'diamond',
+        label: opts.label,
+        transaction_id: opts.tx,
+      });
+    }
+    save(state);
+    return { fee, net, feeBps };
+  },
+
+  /** Apply paid top-up Gold + lifetime achievement bonus when crossing tiers */
+  applyGoldTopup(userId: string, paidCoins: number, bonusCoins: number, tx: string) {
+    const totalPack = paidCoins + bonusCoins;
+    const eco = mockDb.ensureReaderEconomy(userId);
+    const before = eco.lifetime_topup;
+    eco.lifetime_topup += paidCoins;
+    const tier = readerTierForLifetime(eco.lifetime_topup);
+    eco.tier_id = tier.id;
+
+    let achievementBonus = 0;
+    const crossed = readerTierForLifetime(before).id !== tier.id && tier.bonusPercent > 0
+      && eco.last_bonus_tier !== tier.id;
+    // Bonus is % of cumulative lifetime when first reaching a new tier (team note: 1000 → +1% = 10)
+    if (crossed || (tier.bonusPercent > 0 && eco.last_bonus_tier !== tier.id && before < tier.minLifetime && eco.lifetime_topup >= tier.minLifetime)) {
+      achievementBonus = Math.floor((eco.lifetime_topup * tier.bonusPercent) / 100);
+      eco.last_bonus_tier = tier.id;
+    }
+
+    const credit = totalPack + achievementBonus;
+    const next = mockDb.goldOf(userId) + credit;
+    mockDb.setBalance(userId, next);
+    mockDb.addLedger({
+      user_id: userId,
+      kind: 'topup',
+      amount: totalPack,
+      coins: totalPack,
+      currency: 'gold',
+      label: bonusCoins > 0
+        ? `เติม ${paidCoins} Gold + โบนัสแพ็ก ${bonusCoins} (mock)`
+        : `เติม ${paidCoins} Gold (mock)`,
+      transaction_id: tx,
+    });
+    if (achievementBonus > 0) {
+      mockDb.addLedger({
+        user_id: userId,
+        kind: 'topup_bonus',
+        amount: achievementBonus,
+        coins: achievementBonus,
+        currency: 'gold',
+        label: `โบนัสระดับ ${tier.label} +${tier.bonusPercent}% (${achievementBonus} Gold)`,
+        transaction_id: tx,
+      });
+    }
+    state.readerEconomy[userId] = eco;
+    save(state);
+    return { credit, achievementBonus, gold: next, tier };
+  },
+
+  convertDiamondToGold(userId: string, amount: number) {
+    if (!Number.isInteger(amount) || amount < 1) throw new Error('VALIDATION');
+    const diamond = mockDb.diamondOf(userId);
+    if (diamond < amount) throw new Error('INSUFFICIENT_DIAMOND');
+    const tx = mockDb.newTxId();
+    mockDb.setDiamond(userId, diamond - amount);
+    mockDb.setBalance(userId, mockDb.goldOf(userId) + amount);
+    mockDb.addLedger({
+      user_id: userId,
+      kind: 'diamond_to_gold',
+      amount: -amount,
+      coins: amount,
+      currency: 'diamond',
+      label: `แลก ${amount} Diamond → Gold (1:1)`,
+      transaction_id: tx,
+    });
+    mockDb.addLedger({
+      user_id: userId,
+      kind: 'diamond_to_gold',
+      amount: amount,
+      coins: amount,
+      currency: 'gold',
+      label: `ได้รับ ${amount} Gold จากแลก Diamond`,
+      transaction_id: tx,
+    });
+    const author = state.authorsRegistry.find((a) => a.user_id === userId);
+    if (author) {
+      const earnings = state.writerEarnings[author.id];
+      if (earnings) {
+        const take = Math.min(amount, earnings.available);
+        earnings.available -= take;
+        earnings.net_coins = Math.max(0, earnings.net_coins - take);
+      }
+    }
+    save(state);
+    return mockDb.walletOf(userId);
+  },
+
+  readerAchievement(userId: string) {
+    const eco = mockDb.ensureReaderEconomy(userId);
+    const tier = readerTierForLifetime(eco.lifetime_topup);
+    const tiers = [500, 1000, 3000, 10000];
+    const next = tiers.find((n) => n > eco.lifetime_topup) ?? null;
+    return {
+      lifetime_topup: eco.lifetime_topup,
+      tier_id: tier.id,
+      tier_label: tier.label,
+      bonus_percent: tier.bonusPercent,
+      next_tier_at: next,
+    };
+  },
+
+  writerAchievement(userId: string) {
+    const eco = mockDb.ensureWriterEconomy(userId);
+    const active = WRITER_TIERS.find((t) => t.id === eco.tier_id) ?? WRITER_TIERS[0];
+    const maintain = active.minSales > 0 ? Math.ceil(active.minSales * 0.25) : 0;
+    return {
+      lifetime_sales: eco.lifetime_sales,
+      month_sales: eco.month_sales,
+      month_key: eco.month_key,
+      tier_id: eco.tier_id,
+      tier_label: active.label,
+      fee_bps: feeBpsForWriterTier(eco.tier_id),
+      maintain_need: maintain,
+    };
+  },
+
   tipWriter(userId: string, workId: string, coins: number) {
     if (!Number.isInteger(coins) || coins < 1) throw new Error('VALIDATION');
     const work = mockDb.findWork(workId);
@@ -1469,34 +2252,65 @@ export const mockDb = {
       kind: 'tip',
       amount: -coins,
       coins,
+      currency: 'gold',
       label: `สนับสนุนนักเขียน · ${work.title}`,
       transaction_id: tx,
     });
-    const earnings = state.writerEarnings[work.author_id] ?? {
-      pending: 0, available: 0, reserved: 0, paid: 0, unlock_count: 0, views_label: '0',
-      sales_coins: 0, tip_coins: 0, platform_fee_coins: 0, net_coins: 0,
-    };
-    const alreadyDrawn = Math.max(0, earnings.net_coins - earnings.available - earnings.reserved);
-    earnings.tip_coins += coins;
-    const gross = earnings.sales_coins + earnings.tip_coins;
-    earnings.platform_fee_coins = Math.floor(gross * 3000 / 10000);
-    earnings.net_coins = gross - earnings.platform_fee_coins;
-    earnings.available = Math.max(0, earnings.net_coins - earnings.reserved - alreadyDrawn);
-    state.writerEarnings[work.author_id] = earnings;
+    mockDb.creditWriterSale({
+      authorId: work.author_id,
+      goldSpent: coins,
+      kind: 'tip',
+      tx,
+      label: `ทิปจากผู้อ่าน · ${work.title}`,
+    });
     save(state);
-    return { balance: next, transaction_id: tx };
+    return { balance: next, gold: next, diamond: mockDb.diamondOf(userId), transaction_id: tx };
   },
 
   adminSummary() {
+    const today = bangkokToday();
+    const goldLiability = Object.values(state.balances).reduce((s, n) => s + (n || 0), 0);
+    const diamondOutstanding = Object.values(state.diamondBalances).reduce((s, n) => s + (n || 0), 0);
+
+    let topupToday = 0;
+    let gmvToday = 0;
+    for (const e of state.ledger) {
+      const day = bangkokToday(new Date(e.created_at));
+      if (day !== today) continue;
+      if (e.kind === 'topup' || e.kind === 'topup_bonus') topupToday += Math.abs(e.coins || e.amount || 0);
+      if (e.kind === 'unlock' || e.kind === 'unlock_work' || e.kind === 'tip') {
+        gmvToday += Math.abs(e.coins || e.amount || 0);
+      }
+    }
+
+    const publishedWorks = state.writerWorks.filter((w) => w.status === 'published');
+    const publishedChapters = state.writerChapters.filter((c) => c.status === 'published');
+    const viewsTotal = mockDb.works.reduce((s, w) => s + (w.views || 0), 0);
+
+    const authors_pending = state.authorsRegistry.filter((a) => a.status === 'pending').length;
+    const reports_open = state.helpReports.filter((r) => r.status === 'open').length;
+    const takedowns_open = state.takedownRequests.filter((r) => r.status === 'received' || r.status === 'reviewing').length;
+    const payouts_pending = state.payoutRequests.filter((p) => p.status === 'pending').length;
+
     return {
-      topup_today_label: '—',
-      liability_label: '—',
-      authors_pending: state.authorsRegistry.filter((a) => a.status === 'pending').length,
-      reports_open: state.helpReports.filter((r) => r.status === 'open').length,
-      takedowns_open: state.takedownRequests.filter((r) => r.status === 'received' || r.status === 'reviewing').length,
-      payouts_pending: state.payoutRequests.filter((p) => p.status === 'pending').length,
-      works_count: state.writerWorks.length,
+      gold_liability: goldLiability,
+      diamond_outstanding: diamondOutstanding,
+      topup_today: topupToday,
+      gmv_today: gmvToday,
+      works_published: publishedWorks.length,
+      works_total: state.writerWorks.length,
+      chapters_published: publishedChapters.length,
+      views_total: viewsTotal,
+      authors_pending,
+      reports_open,
+      takedowns_open,
+      payouts_pending,
+      categories_active: state.categories.filter((c) => c.active).length,
       ledger_count: state.ledger.length,
+      // legacy labels for any old callers
+      topup_today_label: topupToday.toLocaleString('th-TH'),
+      liability_label: goldLiability.toLocaleString('th-TH'),
+      works_count: state.writerWorks.length,
     };
   },
 };

@@ -13,6 +13,60 @@ function withCover(work: Work): Work {
   return { ...work, cover_url: work.cover_url?.trim() || COVER_DEFAULT };
 }
 
+/** Map Supabase works row → frontend Work (mock-compatible) */
+function mapWork(row: Record<string, unknown>): Work {
+  const tags = Array.isArray(row.tags) ? (row.tags as string[]) : [];
+  const dbRating = String(row.rating ?? 'general');
+  const rating = dbRating === '18+' || tags.includes('18+') ? '18+' : 'ทั่วไป';
+  const completed = Boolean(row.completed) || row.status === 'completed';
+  return withCover({
+    id: String(row.id),
+    slug: String(row.slug ?? ''),
+    title: String(row.title ?? ''),
+    synopsis: String(row.synopsis ?? ''),
+    kind: (row.kind === 'manga' ? 'manga' : 'novel'),
+    category: String(row.category ?? ''),
+    tags,
+    rating,
+    status: completed ? 'completed' : 'published',
+    cover_tone: (['default', 'warm', 'teal', 'rose', 'blue'].includes(String(row.cover_tone))
+      ? String(row.cover_tone)
+      : 'default') as Work['cover_tone'],
+    cover_url: (row.cover_url as string | null | undefined) ?? (row.cover_path as string | null | undefined),
+    author_id: String(row.author_id ?? ''),
+    author_name: String(row.author_name ?? ''),
+    price_full_work: row.price_full_work == null ? null : Number(row.price_full_work),
+    chapter_count: Number(row.chapter_count ?? 0),
+    free_episode_count: Number(row.free_episode_count ?? 0),
+    views: Number(row.views ?? 0),
+    score: Number(row.score ?? 0),
+    rating_count: Number(row.rating_count ?? 0),
+    rank_daily: Number(row.rank_daily ?? 0),
+    rank_weekly: Number(row.rank_weekly ?? 0),
+    rank_monthly: Number(row.rank_monthly ?? 0),
+    latest_at: String(row.latest_at ?? row.published_at ?? new Date().toISOString()),
+    is_example_data: true,
+    featured: Boolean(row.featured),
+    popular: Boolean(row.popular),
+    is_new: Boolean(row.is_new),
+  });
+}
+
+function mapChapter(row: Record<string, unknown>): Chapter {
+  return {
+    id: String(row.id),
+    work_id: String(row.work_id),
+    number: Number(row.number),
+    title: String(row.title ?? ''),
+    pricing: row.pricing === 'coin' ? 'coin' : 'free',
+    coin_price: Number(row.coin_price ?? 0),
+    follow_free: Boolean(row.follow_to_read ?? row.follow_free),
+    published_at: String(row.publish_at ?? row.published_at ?? new Date().toISOString()),
+    status: 'published',
+    is_example_data: true,
+  };
+}
+
 function filterSeedWorks(params?: ListWorksParams): Work[] {
   let list = seedWorks.map(withCover);
   if (params?.kind) list = list.filter((w) => w.kind === params.kind);
@@ -122,9 +176,35 @@ export const realApi: CoinReaderApi = {
       if (params?.kind) q = q.eq('kind', params.kind);
       if (params?.category && params.category !== 'ทั้งหมด') q = q.eq('category', params.category);
       if (params?.q) q = q.ilike('title', `%${params.q}%`);
+      if (params?.featured) q = q.eq('featured', true);
+      if (params?.popular) q = q.eq('popular', true);
+      if (params?.isNew) q = q.eq('is_new', true);
       const { data, error } = await q;
       if (error || !data?.length) return filterSeedWorks(params);
-      return (data as Work[]).map(withCover);
+      let list = (data as Record<string, unknown>[]).map(mapWork);
+      if (params?.status) list = list.filter((w) => w.status === params.status);
+      switch (params?.sort) {
+        case 'views':
+        case 'daily':
+          list = list.sort((a, b) => b.rank_daily - a.rank_daily);
+          break;
+        case 'weekly':
+          list = list.sort((a, b) => b.rank_weekly - a.rank_weekly);
+          break;
+        case 'monthly':
+          list = list.sort((a, b) => b.rank_monthly - a.rank_monthly);
+          break;
+        case 'rating':
+          list = list.sort((a, b) => b.score - a.score);
+          break;
+        case 'new':
+          list = list.sort((a, b) => +new Date(b.latest_at) - +new Date(a.latest_at));
+          break;
+        case 'updated':
+        default:
+          list = list.sort((a, b) => +new Date(b.latest_at) - +new Date(a.latest_at));
+      }
+      return list;
     } catch {
       return filterSeedWorks(params);
     }
@@ -134,7 +214,7 @@ export const realApi: CoinReaderApi = {
     try {
       const { data, error } = await sb().from('works').select('*').or(`slug.eq.${slug},id.eq.${slug}`).maybeSingle();
       if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-      if (data) return withCover(data as Work);
+      if (data) return mapWork(data as Record<string, unknown>);
     } catch {
       /* fall through to seed */
     }
@@ -147,7 +227,7 @@ export const realApi: CoinReaderApi = {
     try {
       const { data, error } = await sb().from('works').select('*').eq('id', id).maybeSingle();
       if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-      if (data) return withCover(data as Work);
+      if (data) return mapWork(data as Record<string, unknown>);
     } catch {
       /* fall through to seed */
     }
@@ -165,7 +245,7 @@ export const realApi: CoinReaderApi = {
         .eq('status', 'published')
         .order('number');
       if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-      if (data?.length) return data as Chapter[];
+      if (data?.length) return (data as Record<string, unknown>[]).map(mapChapter);
     } catch {
       /* fall through to seed */
     }
@@ -176,10 +256,12 @@ export const realApi: CoinReaderApi = {
     const { data, error } = await sb().from('chapters').select('*').eq('id', chapterId).maybeSingle();
     if (error) throw new ApiError(500, 'UNKNOWN', error.message);
     if (!data) throw new ApiError(404, 'NOT_FOUND');
-    return data as Chapter;
+    return mapChapter(data as Record<string, unknown>);
   },
 
   async getChapterContent(chapterId) {
+    const allowed = await this.isChapterUnlocked(chapterId);
+    if (!allowed) throw new ApiError(403, 'UNAUTHORIZED', 'ยังไม่ได้ปลดล็อกตอนนี้');
     const { data, error } = await sb().from('chapter_contents').select('*').eq('chapter_id', chapterId).maybeSingle();
     if (error) throw new ApiError(403, 'UNAUTHORIZED', error.message);
     if (!data) throw new ApiError(404, 'NOT_FOUND');
@@ -196,7 +278,7 @@ export const realApi: CoinReaderApi = {
     const { data, error } = await sb().rpc('my_wallet');
     if (error) throw new ApiError(500, 'UNKNOWN', error.message);
     const balance = typeof data === 'number' ? data : (data as { balance?: number })?.balance ?? 0;
-    return { balance };
+    return { gold: balance, diamond: 0, balance };
   },
 
   async listLedger() {
@@ -223,6 +305,8 @@ export const realApi: CoinReaderApi = {
   },
 
   async getMangaPageUrl(chapterId, pageNumber) {
+    const allowed = await this.isChapterUnlocked(chapterId);
+    if (!allowed) throw new ApiError(403, 'UNAUTHORIZED', 'ยังไม่ได้ปลดล็อกตอนนี้');
     return edge<MangaPageUrl>('get-manga-page-url', { chapter_id: chapterId, page_number: pageNumber });
   },
 
@@ -279,18 +363,47 @@ export const realApi: CoinReaderApi = {
 
   async isChapterUnlocked(chapterId) {
     const chapter = await this.getChapter(chapterId);
+    let work: Work | null = null;
+    try {
+      work = await this.getWork(chapter.work_id);
+    } catch {
+      work = null;
+    }
     if (chapter.pricing === 'free') return true;
+    if (work && chapter.number <= (work.free_episode_count ?? 0)) return true;
+
     const u = await mapUser();
     if (!u) return false;
-    const { data } = await sb().from('unlocks').select('chapter_id').eq('user_id', u.id).eq('chapter_id', chapterId).maybeSingle();
-    return !!data;
+
+    const { data: unlock } = await sb()
+      .from('unlocks')
+      .select('chapter_id')
+      .eq('user_id', u.id)
+      .eq('chapter_id', chapterId)
+      .maybeSingle();
+    if (unlock) return true;
+
+    const { data: purchase } = await sb()
+      .from('work_purchases')
+      .select('work_id')
+      .eq('user_id', u.id)
+      .eq('work_id', chapter.work_id)
+      .maybeSingle();
+    if (purchase) return true;
+
+    if (chapter.follow_free && work) {
+      const following = await this.inBookshelf(work.id);
+      if (following) return true;
+    }
+    return false;
   },
 
   async listRecentUpdates(limit = 8) {
-    const works = filterSeedWorks({ sort: 'updated' }).slice(0, limit);
-    return works.map((work) => {
-      const episodes = seedChapters
-        .filter((c) => c.work_id === work.id)
+    const works = (await this.listWorks({ sort: 'updated' })).slice(0, limit);
+    const out = [];
+    for (const work of works) {
+      const chapters = await this.listChapters(work.id);
+      const episodes = [...chapters]
         .sort((a, b) => b.number - a.number)
         .slice(0, 2)
         .map((c) => ({
@@ -299,8 +412,9 @@ export const realApi: CoinReaderApi = {
           title: c.title,
           published_at: c.published_at,
         }));
-      return { work, episodes };
-    });
+      out.push({ work, episodes });
+    }
+    return out;
   },
   async checkInCalendar() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async claimCheckIn() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
@@ -309,6 +423,8 @@ export const realApi: CoinReaderApi = {
   async referralInfo() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async listComments() { return []; },
   async addComment() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async listWorkComments() { return []; },
+  async addWorkComment() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async toggleCommentLike() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async rateWork() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async myRating() { return null; },

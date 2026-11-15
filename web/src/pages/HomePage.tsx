@@ -4,11 +4,20 @@ import { api } from '../lib/supabase';
 import type { Category, ReadingProgress, SeriesUpdate, Work } from '../lib/types';
 import { CoverBadges } from '../components/SeriesCard';
 import { Cover } from '../components/CoverCard';
-import { formatCount, relativeTime } from '../lib/format';
+import { relativeTime } from '../lib/format';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
 import { BRAND_HERO, PRODUCT_NAME } from '../lib/brand';
-import { CategoryIcon, IconEye, IconStar } from '../components/icons';
+import {
+  CategoryIcon,
+  IconBook,
+  IconChevronRight,
+  IconClock,
+  IconCrown,
+  IconFolder,
+  IconStar,
+  IconThumbsUp,
+} from '../components/icons';
 
 type RankPeriod = 'weekly' | 'monthly' | 'all';
 
@@ -90,8 +99,8 @@ export function HomePage() {
 
       <section className="cm-section" aria-label="หมวดหมู่ยอดนิยม">
         <div className="sec">
-          <h2>หมวดหมู่ยอดนิยม</h2>
-          <Link to="/discover">ดูทั้งหมด</Link>
+          <h2><IconFolder size={20} className="sec-ic" />หมวดหมู่ยอดนิยม</h2>
+          <Link to="/discover" className="sec-more">ดูทั้งหมด<IconChevronRight size={16} className="sec-more-ic" /></Link>
         </div>
         <div className="cm-chips">
           {categories.map((cat) => (
@@ -111,8 +120,8 @@ export function HomePage() {
         <div className="cm-main">
           <section className="cm-section">
             <div className="sec">
-              <h2>การ์ตูนแนะนำวันนี้</h2>
-              <Link to="/discover?sort=score">ดูทั้งหมด</Link>
+              <h2><IconThumbsUp size={20} className="sec-ic" />การ์ตูนแนะนำวันนี้</h2>
+              <Link to="/discover?sort=score" className="sec-more">ดูทั้งหมด<IconChevronRight size={16} className="sec-more-ic" /></Link>
             </div>
             {loading ? (
               <div className="cm-grid">
@@ -131,8 +140,8 @@ export function HomePage() {
 
           <section className="cm-section">
             <div className="sec">
-              <h2>อัปเดตตอนล่าสุด</h2>
-              <Link to="/discover?sort=updated">ดูทั้งหมด</Link>
+              <h2><IconClock size={20} className="sec-ic" />อัปเดตตอนล่าสุด</h2>
+              <Link to="/discover?sort=updated" className="sec-more">ดูทั้งหมด<IconChevronRight size={16} className="sec-more-ic" /></Link>
             </div>
             <div className="cm-grid">
               {(updates.length ? updates.map((u) => u.work) : latestGrid).slice(0, 8).map((w) => (
@@ -163,10 +172,10 @@ export function HomePage() {
         </div>
 
         <aside className="cm-side">
-          <section className="cm-panel">
+          <section className="cm-panel cm-rank-panel">
             <div className="cm-panel-head">
-              <h2>อันดับยอดนิยม</h2>
-              <Link to="/ranking">ทั้งหมด</Link>
+              <h2><IconCrown size={18} className="sec-ic" />อันดับยอดนิยม</h2>
+              <Link to="/ranking" className="sec-more">ทั้งหมด<IconChevronRight size={16} className="sec-more-ic" /></Link>
             </div>
             <div className="cm-rank-tabs" role="tablist" aria-label="ช่วงอันดับ">
               {(
@@ -189,30 +198,34 @@ export function HomePage() {
               ))}
             </div>
             <ol className="cm-rank-list">
-              {ranking.map((w, i) => (
-                <li key={w.id}>
-                  <Link to={`/works/${w.slug}`}>
-                    <span className={`cm-rank-no ${i < 3 ? 'top' : ''}`}>{i + 1}</span>
-                    <span className="cm-rank-thumb"><Cover work={w} /></span>
-                    <span className="cm-rank-copy">
-                      <strong>{w.title}</strong>
-                      <small className="meta-inline">
-                        <IconStar size={12} className="ic-star" /> {w.score.toFixed(1)} · {w.chapter_count} ตอน
-                      </small>
-                      <small className="meta-inline">
-                        <IconEye size={12} /> {formatCount(w.views)}
-                      </small>
-                    </span>
-                  </Link>
-                </li>
-              ))}
+              {ranking.map((w, i) => {
+                const rank = i + 1;
+                const medal =
+                  rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : 'plain';
+                return (
+                  <li key={w.id}>
+                    <Link to={`/works/${w.slug}`}>
+                      <span className={`cm-rank-coin ${medal}`} aria-label={`อันดับ ${rank}`}>
+                        {rank}
+                      </span>
+                      <span className="cm-rank-thumb"><Cover work={w} /></span>
+                      <span className="cm-rank-copy">
+                        <strong>{w.title}</strong>
+                        <small className="meta-inline">
+                          <IconStar size={12} className="ic-star" /> {w.score.toFixed(1)} · {w.chapter_count} ตอน
+                        </small>
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
           <section className="cm-panel">
             <div className="cm-panel-head">
-              <h2>อ่านต่อจากที่ค้างไว้</h2>
-              {user && <Link to="/library?tab=history">ทั้งหมด</Link>}
+              <h2><IconBook size={18} className="sec-ic" />อ่านต่อจากที่ค้างไว้</h2>
+              {user && <Link to="/library?tab=history" className="sec-more">ทั้งหมด<IconChevronRight size={16} className="sec-more-ic" /></Link>}
             </div>
             {!user ? (
               <div className="cm-empty">
@@ -254,7 +267,7 @@ export function HomePage() {
 
       <footer className="site-footer">
         <BrandMascot size="sm" className="footer-mascot" />
-        <p>{PRODUCT_NAME} · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
+        <p>{PRODUCT_NAME} · Gold (นักอ่าน) คืนเงินสดไม่ได้ · Diamond (นักแปล) ถอนได้ตามเงื่อนไข · เดโม mock</p>
         <div>
           <Link to="/help">ช่วยเหลือ</Link>
           <Link to="/legal/tos">ข้อกำหนด</Link>
@@ -268,7 +281,7 @@ export function HomePage() {
   );
 }
 
-function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boolean }) {
+export function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boolean }) {
   return (
     <Link to={`/works/${work.slug}`} className="cm-poster">
       <div className="cm-poster-cover">
@@ -279,10 +292,12 @@ function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boolean }) {
           )}
         />
       </div>
-      <div className="cm-poster-title">{work.title}</div>
-      <div className="cm-poster-meta">
-        <span className="cm-star meta-inline"><IconStar size={12} className="ic-star" /> {work.score.toFixed(1)}</span>
-        <span>{work.chapter_count} ตอน</span>
+      <div className="cm-poster-body">
+        <div className="cm-poster-title">{work.title}</div>
+        <div className="cm-poster-meta">
+          <span className="cm-star meta-inline"><IconStar size={12} className="ic-star" /> {work.score.toFixed(1)}</span>
+          <span>{work.chapter_count} ตอน</span>
+        </div>
       </div>
     </Link>
   );

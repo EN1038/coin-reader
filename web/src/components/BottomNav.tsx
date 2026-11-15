@@ -6,7 +6,7 @@ const items = [
   { to: '/discover', label: 'หมวดหมู่', icon: 'search', match: ['/discover', '/search'] },
   { to: '/ranking', label: 'อันดับ', icon: 'rank' },
   { to: '/library', label: 'คลังของฉัน', icon: 'shelf', match: ['/library', '/history'] },
-  { to: '/me', label: 'โปรไฟล์', icon: 'me', match: ['/me'] },
+  { to: '/me', label: 'โปรไฟล์', icon: 'me', match: ['/me', '/u'] },
 ] as const;
 
 function NavIcon({ name }: { name: string }) {

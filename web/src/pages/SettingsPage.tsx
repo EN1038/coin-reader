@@ -7,6 +7,7 @@ import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { mockDb } from '../lib/mock/store';
 import { isMockMode } from '../lib/supabase';
+import { profilePathFor } from '../lib/profileSlug';
 
 function initials(name: string): string {
   const t = name.trim();
@@ -37,6 +38,8 @@ export function SettingsPage() {
     );
   }
 
+  const backTo = profilePathFor(user);
+
   async function saveName(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -50,6 +53,8 @@ export function SettingsPage() {
       await refresh();
       setMsg('บันทึกแล้ว');
       setEditing(false);
+      const next = mockDb.getState().user;
+      if (next) nav(profilePathFor(next), { replace: true });
     } catch {
       setError('บันทึกไม่สำเร็จ');
     }
@@ -62,7 +67,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <Topbar title="ตั้งค่าบัญชี" back="/me" showCoin={false} />
+      <Topbar title="ตั้งค่าบัญชี" back={backTo} showCoin={false} />
       {isMock && (
         <div className="pad" style={{ paddingBottom: 0 }}>
           <MockBanner>ตั้งค่าบน mock / localStorage</MockBanner>

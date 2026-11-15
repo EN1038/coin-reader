@@ -5,6 +5,7 @@ import type { ReadingProgress, Work } from '../lib/types';
 import { SeriesCard } from '../components/SeriesCard';
 import { useApp } from '../context/AppContext';
 import { relativeTime } from '../lib/format';
+import { readPathFor } from '../lib/access';
 
 export function LibraryPage() {
   const { user } = useApp();
@@ -63,10 +64,19 @@ export function LibraryPage() {
         ) : (
           <div className="stack pad-x">
             {history.map((row) => row.work && (
-              <Link key={row.progress.work_id} to={`/works/${row.work.slug}`} className="card history-row">
+              <Link
+                key={row.progress.work_id}
+                to={readPathFor(row.work, row.progress.chapter_id)}
+                className="card history-row"
+              >
                 <div>
                   <strong>{row.work.title}</strong>
-                  <div className="muted" style={{ fontSize: 13 }}>{row.chapterLabel}</div>
+                  <div className="muted" style={{ fontSize: 13 }}>
+                    {row.chapterLabel}
+                    {row.progress.position > 0 && (
+                      <> · {Math.round(Math.min(0.99, row.progress.position) * 100)}%</>
+                    )}
+                  </div>
                 </div>
                 <span className="muted">{relativeTime(row.progress.updated_at)}</span>
               </Link>

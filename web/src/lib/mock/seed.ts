@@ -31,13 +31,21 @@ export const seedAuthors: Author[] = [
 ];
 
 export const seedCategories: Category[] = [
-  { id: 'cat-romance', name: 'โรแมนติก', slug: 'romance', icon_key: 'heart', sort_order: 1, active: true },
-  { id: 'cat-fantasy', name: 'แฟนตาซี', slug: 'fantasy', icon_key: 'sparkles', sort_order: 2, active: true },
-  { id: 'cat-horror', name: 'สยองขวัญ', slug: 'horror', icon_key: 'ghost', sort_order: 3, active: true },
-  { id: 'cat-drama', name: 'ดราม่า', slug: 'drama', icon_key: 'masks', sort_order: 4, active: true },
-  { id: 'cat-action', name: 'แอ็กชัน', slug: 'action', icon_key: 'zap', sort_order: 5, active: true },
-  { id: 'cat-scifi', name: 'ไซไฟ', slug: 'sci-fi', icon_key: 'rocket', sort_order: 6, active: true },
-  { id: 'cat-mystery', name: 'ลึกลับ', slug: 'mystery', icon_key: 'search', sort_order: 7, active: true },
+  { id: 'cat-manhwa', name: 'Manhwa มังงะเกาหลี', slug: 'manhwa', icon_key: 'book', sort_order: 1, active: true },
+  { id: 'cat-featured', name: 'มังงะแนะนำ', slug: 'featured', icon_key: 'sparkles', sort_order: 2, active: true },
+  { id: 'cat-romance', name: 'Romance โรแมนติก', slug: 'romance', icon_key: 'heart', sort_order: 3, active: true },
+  { id: 'cat-adult', name: 'Adult ผู้ใหญ่', slug: 'adult', icon_key: 'ghost', sort_order: 4, active: true },
+  { id: 'cat-fantasy', name: 'Fantasy แฟนตาซี', slug: 'fantasy', icon_key: 'sparkles', sort_order: 5, active: true },
+  { id: 'cat-drama', name: 'Drama ดราม่า', slug: 'drama', icon_key: 'masks', sort_order: 6, active: true },
+  { id: 'cat-yaoi', name: 'Yaoi มังงะวาย', slug: 'yaoi', icon_key: 'heart', sort_order: 7, active: true },
+  { id: 'cat-ecchi', name: 'Ecchi ลามก', slug: 'ecchi', icon_key: 'ghost', sort_order: 8, active: true },
+  { id: 'cat-action', name: 'Action แอ็คชั่น', slug: 'action', icon_key: 'zap', sort_order: 9, active: true },
+  { id: 'cat-comedy', name: 'Comedy ตลก', slug: 'comedy', icon_key: 'masks', sort_order: 10, active: true },
+  { id: 'cat-manga', name: 'Manga มังงะญี่ปุ่น', slug: 'manga', icon_key: 'book', sort_order: 11, active: true },
+  { id: 'cat-doujin', name: 'Doujin โดจิน', slug: 'doujin', icon_key: 'book', sort_order: 12, active: true },
+  { id: 'cat-horror', name: 'Horror สยองขวัญ', slug: 'horror', icon_key: 'ghost', sort_order: 13, active: true },
+  { id: 'cat-scifi', name: 'Sci-Fi ไซไฟ', slug: 'sci-fi', icon_key: 'rocket', sort_order: 14, active: true },
+  { id: 'cat-mystery', name: 'Mystery ลึกลับ', slug: 'mystery', icon_key: 'search', sort_order: 15, active: true },
 ];
 
 /** @deprecated ใช้ seedCategories / api.listCategories() — คงไว้เพื่อความเข้ากันของข้อมูล seed */

@@ -8,3 +8,6 @@ export const BRAND_MASCOT = '/brand/mascot.png';
 export const BRAND_HERO = '/brand/hero-banner.png';
 /** ปกเรื่องเริ่มต้นเมื่อยังไม่มีรูป / โหลดรูปไม่ได้ */
 export const COVER_DEFAULT = '/brand/cover-default.png';
+/** ไอคอนสกุลเงินในระบบ */
+export const CURRENCY_GOLD = '/brand/currency-gold.png';
+export const CURRENCY_DIAMOND = '/brand/currency-diamond.png';

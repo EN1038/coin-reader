@@ -52,6 +52,8 @@ export interface CoinReaderApi {
   referralInfo(): Promise<ReferralInfo>;
   listComments(chapterId: string): Promise<ReaderComment[]>;
   addComment(chapterId: string, body: string): Promise<ReaderComment>;
+  listWorkComments(workId: string): Promise<ReaderComment[]>;
+  addWorkComment(workId: string, body: string): Promise<ReaderComment>;
   toggleCommentLike(commentId: string): Promise<ReaderComment>;
   rateWork(workId: string, stars: number): Promise<RatingResult>;
   myRating(workId: string): Promise<number | null>;

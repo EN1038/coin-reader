@@ -107,7 +107,19 @@ export interface SessionUser {
   watermark_id: string;
 }
 
-export type LedgerKind = 'topup' | 'unlock' | 'unlock_work' | 'checkin' | 'referral' | 'tip';
+export type CoinCurrency = 'gold' | 'diamond';
+
+export type LedgerKind =
+  | 'topup'
+  | 'topup_bonus'
+  | 'unlock'
+  | 'unlock_work'
+  | 'checkin'
+  | 'referral'
+  | 'tip'
+  | 'diamond_earn'
+  | 'diamond_payout'
+  | 'diamond_to_gold';
 
 export interface LedgerEntry {
   id: string;
@@ -115,6 +127,8 @@ export interface LedgerEntry {
   kind: LedgerKind;
   amount: number; // signed for wallet view: +credit, -spend
   coins: number;
+  /** gold = reader spendable; diamond = translator earnings */
+  currency?: CoinCurrency;
   label: string;
   created_at: string;
   transaction_id: string;
@@ -143,6 +157,11 @@ export interface ReadingProgress {
 }
 
 export interface WalletInfo {
+  /** Reader spendable currency (เติม/ซื้อตอน) */
+  gold: number;
+  /** Translator earnings currency */
+  diamond: number;
+  /** Alias of gold — kept for older call sites */
   balance: number;
 }
 
@@ -181,6 +200,8 @@ export interface UnlockResult {
   already?: boolean;
   transaction_id?: string;
   balance: number;
+  gold?: number;
+  diamond?: number;
   chapter_id?: string;
   work_id?: string;
 }
@@ -188,8 +209,28 @@ export interface UnlockResult {
 export interface TopupResult {
   transaction_id: string;
   balance: number;
+  gold?: number;
   coins_added: number;
+  bonus_added?: number;
   replayed: boolean;
+}
+
+export interface ReaderAchievementInfo {
+  lifetime_topup: number;
+  tier_id: string;
+  tier_label: string;
+  bonus_percent: number;
+  next_tier_at: number | null;
+}
+
+export interface WriterAchievementInfo {
+  lifetime_sales: number;
+  month_sales: number;
+  month_key: string;
+  tier_id: string;
+  tier_label: string;
+  fee_bps: number;
+  maintain_need: number;
 }
 
 export interface MangaPageUrl {

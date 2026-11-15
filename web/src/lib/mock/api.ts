@@ -187,7 +187,7 @@ export const mockApi: CoinReaderApi = {
 
   async myWallet() {
     const u = requireUser();
-    return { balance: mockDb.balanceOf(u.id) };
+    return mockDb.walletOf(u.id);
   },
 
   async listLedger() {
@@ -207,9 +207,11 @@ export const mockApi: CoinReaderApi = {
     const prev = mockDb.getState().topupKeys[key];
     if (prev) {
       if (prev.pack_id !== packId) throw new ApiError(409, 'IDEMPOTENCY_CONFLICT');
+      const w = mockDb.walletOf(u.id);
       return {
         transaction_id: prev.transaction_id,
-        balance: mockDb.balanceOf(u.id),
+        balance: w.gold,
+        gold: w.gold,
         coins_added: prev.coins,
         replayed: true,
       };
@@ -217,21 +219,22 @@ export const mockApi: CoinReaderApi = {
 
     const tx = mockDb.newTxId();
     const bonus = pack.bonus_coins ?? 0;
-    const total = pack.coins + bonus;
-    const bal = mockDb.balanceOf(u.id) + total;
-    mockDb.setBalance(u.id, bal);
-    mockDb.getState().topupKeys[key] = { pack_id: packId, transaction_id: tx, coins: total };
-    mockDb.addLedger({
-      user_id: u.id,
-      kind: 'topup',
-      amount: total,
-      coins: total,
-      label: bonus > 0 ? `เติม ${pack.coins} เหรียญ + โบนัส ${bonus} (mock)` : `เติม ${pack.coins} เหรียญ (mock)`,
+    const result = mockDb.applyGoldTopup(u.id, pack.coins, bonus, tx);
+    mockDb.getState().topupKeys[key] = {
+      pack_id: packId,
       transaction_id: tx,
-    });
+      coins: result.credit,
+    };
     mockDb.creditReferral(u.id, pack.coins, tx);
     mockDb.persist();
-    return { transaction_id: tx, balance: mockDb.balanceOf(u.id), coins_added: total, replayed: false };
+    return {
+      transaction_id: tx,
+      balance: result.gold,
+      gold: result.gold,
+      coins_added: result.credit,
+      bonus_added: result.achievementBonus,
+      replayed: false,
+    };
   },
 
   async unlockChapter(input) {
@@ -272,10 +275,18 @@ export const mockApi: CoinReaderApi = {
         kind: 'unlock_work',
         amount: -work.price_full_work,
         coins: work.price_full_work,
+        currency: 'gold',
         label: `ซื้อทั้งเล่ม · ${work.title}`,
         transaction_id: tx,
       });
-      return { transaction_id: tx, balance: next, work_id: work.id };
+      mockDb.creditWriterSale({
+        authorId: work.author_id,
+        goldSpent: work.price_full_work,
+        kind: 'sales',
+        tx,
+        label: `ขายทั้งเล่ม · ${work.title}`,
+      });
+      return { transaction_id: tx, balance: next, gold: next, work_id: work.id };
     }
 
     const chapter = mockDb.chapters.find((c) => c.id === input.chapter_id);
@@ -313,10 +324,20 @@ export const mockApi: CoinReaderApi = {
       kind: 'unlock',
       amount: -chapter.coin_price,
       coins: chapter.coin_price,
+      currency: 'gold',
       label: `ปลดล็อกตอนที่ ${chapter.number} · ${work?.title ?? ''}`,
       transaction_id: tx,
     });
-    return { transaction_id: tx, balance: next, chapter_id: chapter.id };
+    if (work) {
+      mockDb.creditWriterSale({
+        authorId: work.author_id,
+        goldSpent: chapter.coin_price,
+        kind: 'sales',
+        tx,
+        label: `ขายตอนที่ ${chapter.number} · ${work.title}`,
+      });
+    }
+    return { transaction_id: tx, balance: next, gold: next, chapter_id: chapter.id };
   },
 
   async getMangaPageUrl(chapterId, pageNumber) {
@@ -362,7 +383,8 @@ export const mockApi: CoinReaderApi = {
   },
 
   async saveProgress(workId, chapterId, position) {
-    const u = requireUser();
+    const u = mockDb.getState().user;
+    if (!u) return;
     mockDb.setProgress(u.id, workId, chapterId, position);
   },
 
@@ -423,6 +445,20 @@ export const mockApi: CoinReaderApi = {
 
   async listComments(chapterId) {
     return mockDb.listComments(chapterId, mockDb.getState().user?.id);
+  },
+
+  async listWorkComments(workId) {
+    return mockDb.listWorkComments(workId, mockDb.getState().user?.id);
+  },
+
+  async addWorkComment(workId, body) {
+    const u = requireUser();
+    try {
+      return mockDb.addWorkComment(u.id, workId, body);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'VALIDATION') throw new ApiError(400, 'VALIDATION', 'ความเห็นว่างหรือยาวเกินไป');
+      throw e;
+    }
   },
 
   async addComment(chapterId, body) {

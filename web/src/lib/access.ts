@@ -26,3 +26,14 @@ export function canReadEpisode(
   const state = episodeState(work, chapter, opts);
   return state === 'free' || state === 'unlocked';
 }
+
+/** Path ไปหน้าอ่าน — ใช้จากประวัติ / continue / reader nav */
+export function readPathFor(work: Pick<Work, 'id' | 'kind'>, chapterId: string): string {
+  return work.kind === 'manga'
+    ? `/read/manga/${work.id}/${chapterId}`
+    : `/read/novel/${work.id}/${chapterId}`;
+}
+
+export function seriesPathFor(work: Pick<Work, 'slug'>): string {
+  return `/works/${work.slug}`;
+}

@@ -31,29 +31,29 @@ export function UnlockSheet({
         <div className="handle" />
         {insufficient ? (
           <>
-            <h2 style={{ fontSize: 18, marginBottom: 4 }}>เหรียญไม่พอ</h2>
+            <h2 style={{ fontSize: 18, marginBottom: 4 }}>Gold ไม่พอ</h2>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
               {title} · <Badge kind="ex">ตัวอย่าง</Badge>
             </p>
             <div className="card" style={{ marginBottom: 12 }}>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>ราคา</span>
-                <CoinAmount value={price} className="head-amt" />
+                <CoinAmount value={price} currency="gold" className="head-amt" />
               </div>
               <div className="row-between" style={{ marginBottom: 10 }}>
-                <span>ยอดปัจจุบัน</span>
+                <span>ยอด Gold</span>
                 <span>{balance}</span>
               </div>
               <div className="row-between" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
                 <span style={{ fontWeight: 600 }}>ขาดอีก</span>
-                <CoinAmount value={Math.max(0, price - balance)} className="head-amt danger" />
+                <CoinAmount value={Math.max(0, price - balance)} currency="gold" className="head-amt danger" />
               </div>
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
-              เหรียญคืนไม่ได้ · ดูนโยบายเหรียญก่อนเติม
+              Gold คืนเงินสดไม่ได้ · ดูนโยบายเหรียญก่อนเติม
             </p>
             <Link to="/wallet/topup" className="btn btn-coin btn-block" onClick={onClose}>
-              ไปเติมเหรียญ
+              ไปเติม Gold
             </Link>
             <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} onClick={onClose}>
               ยกเลิก
@@ -68,22 +68,22 @@ export function UnlockSheet({
             <div className="card" style={{ marginBottom: 12 }}>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>{mode === 'work' ? 'ราคาทั้งเล่ม' : 'ราคาตอน'}</span>
-                <CoinAmount value={price} className="head-amt" />
+                <CoinAmount value={price} currency="gold" className="head-amt" />
               </div>
               <div className="row-between" style={{ marginBottom: 10 }}>
-                <span>ยอดปัจจุบัน</span>
+                <span>ยอด Gold</span>
                 <span>{balance}</span>
               </div>
               <div className="row-between" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
                 <span style={{ fontWeight: 600 }}>ยอดหลังหัก</span>
-                <CoinAmount value={balance - price} className="head-amt primary" />
+                <CoinAmount value={balance - price} currency="gold" className="head-amt primary" />
               </div>
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
-              ปลดล็อกแล้วอ่านได้ถาวรในบัญชีนี้ · เหรียญที่ใช้ไปคืนไม่ได้
+              ปลดล็อกแล้วอ่านได้ถาวรในบัญชีนี้ · Gold ที่ใช้ไปคืนไม่ได้
             </p>
             <button type="button" className="btn btn-coin btn-block" disabled={busy} onClick={onConfirm}>
-              {busy ? 'กำลังปลดล็อก…' : `ยืนยันใช้ ${price} เหรียญ`}
+              {busy ? 'กำลังปลดล็อก…' : `ยืนยันใช้ ${price} Gold`}
             </button>
             {mode === 'chapter' && onUseTicket && tickets > 0 && (
               <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} disabled={busy} onClick={onUseTicket}>

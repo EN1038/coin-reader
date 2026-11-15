@@ -31,6 +31,41 @@ export function IconBack({ size = 20, className }: IconProps) {
   );
 }
 
+export function IconChevronRight({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="m9 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+export function IconChevronDown({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function IconTrophy({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M8 4h8v5.5a4 4 0 0 1-8 0V4z" />
+      <path d="M8 5.5H5.5A2.5 2.5 0 0 0 5.5 10.5H8M16 5.5h2.5a2.5 2.5 0 0 1 0 5H16" />
+      <path d="M12 13.5v2.5M9.5 20h5M10.5 16h3a1 1 0 0 1 1 1v1.5h-5V17a1 1 0 0 1 1-1z" />
+    </svg>
+  );
+}
+
+export function IconCrown({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4 16.5 6.2 8.5 10 12l2-6.5L14 12l3.8-3.5L20 16.5H4z" />
+      <path d="M5 19h14" />
+    </svg>
+  );
+}
+
 export function IconUser({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
@@ -99,6 +134,15 @@ export function IconCoin({ size = 16, className }: IconProps) {
   );
 }
 
+export function IconDiamond({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3.5 9.5 7.5 4.5h9l4 5-7.5 10.5L3.5 9.5z" />
+      <path d="M3.5 9.5h17M8 4.5 10.5 9.5 12 4.5 13.5 9.5 16 4.5" />
+    </svg>
+  );
+}
+
 export function IconSun({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
@@ -159,6 +203,32 @@ export function IconBook({ size = 18, className }: IconProps) {
   );
 }
 
+export function IconFolder({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3.5 8.5V7a2 2 0 0 1 2-2h4.2l1.8 2H18.5a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-7.5z" />
+    </svg>
+  );
+}
+
+export function IconThumbsUp({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M7.5 11v9.5H5.2A1.7 1.7 0 0 1 3.5 18.8v-6.1c0-.9.7-1.7 1.7-1.7H7.5z" />
+      <path d="M7.5 11.5 10.2 4.8c.3-.8 1.2-1.2 2-1 .7.2 1.1.9 1 1.6l-.4 2.6h5.1c1.4 0 2.4 1.3 2.1 2.6l-1.2 6.2c-.3 1.3-1.4 2.2-2.7 2.2H7.5" />
+    </svg>
+  );
+}
+
+export function IconClock({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="8.25" />
+      <path d="M12 8v4.5l3 2" />
+    </svg>
+  );
+}
+
 export function IconZap({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
@@ -170,8 +240,8 @@ export function IconZap({ size = 18, className }: IconProps) {
 export function IconSparkles({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
-      <path d="M12 3.5 13.4 8.6 18.5 10 13.4 11.4 12 16.5 10.6 11.4 5.5 10l5.1-1.4z" />
-      <path d="M18.5 14.5 19.2 16.8 21.5 17.5 19.2 18.2 18.5 20.5 17.8 18.2 15.5 17.5l2.3-.7z" />
+      <path d="M12 5 13.15 8.85 17 10 13.15 11.15 12 15 10.85 11.15 7 10l3.85-1.15z" />
+      <path d="M17.5 15.2 18.05 16.85 19.7 17.4 18.05 17.95 17.5 19.6 16.95 17.95 15.3 17.4l1.65-.55z" />
     </svg>
   );
 }

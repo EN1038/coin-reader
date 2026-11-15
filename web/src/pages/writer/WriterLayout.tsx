@@ -4,6 +4,7 @@ import { MockBanner } from '../../components/MockBanner';
 import { mockDb } from '../../lib/mock/store';
 import { PRODUCT_NAME } from '../../lib/brand';
 import { BrandLogo } from '../../components/BrandAssets';
+import { profilePathFor } from '../../lib/profileSlug';
 
 const NAV = [
   { to: '/writer', end: true, label: 'แดชบอร์ด' },
@@ -30,6 +31,7 @@ export function WriterLayout() {
   }
 
   const author = mockDb.authorForUser(user.id);
+  const mePath = profilePathFor(user);
 
   return (
     <div className="desk-wrap writer-shell">
@@ -41,7 +43,7 @@ export function WriterLayout() {
           </div>
           <div className="muted" style={{ fontSize: 12 }}>{user.display_name} · {author ? `สถานะ ${author.status}` : 'ยังไม่ใช่นักเขียน'}</div>
         </div>
-        <Link to="/me" className="btn btn-ghost" style={{ minHeight: 40 }}>ออกจากโซนนักเขียน</Link>
+        <Link to={mePath} className="btn btn-ghost" style={{ minHeight: 40 }}>ออกจากโซนนักเขียน</Link>
       </header>
       {isMock && (
         <div style={{ padding: '8px 16px 0' }}>

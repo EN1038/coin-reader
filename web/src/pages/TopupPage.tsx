@@ -81,20 +81,20 @@ export function TopupPage() {
   return (
     <div className="topup-page">
       <div className="page-head">
-        <h1>เติมเหรียญ</h1>
-        <p className="muted">ยอดตอนนี้ {balance.toLocaleString('th-TH')} · {isMock ? 'ไม่มีการเรียกเก็บเงินจริง' : ''}</p>
+        <h1>เติม Gold</h1>
+        <p className="muted">ยอด Gold ตอนนี้ {balance.toLocaleString('th-TH')} · {isMock ? 'ไม่มีการเรียกเก็บเงินจริง' : ''}</p>
       </div>
       <div className="pad"><MockBanner>PromptPay และสลิปเป็นการจำลองในเบราว์เซอร์ ไฟล์ไม่ถูกส่งออกไปไหน</MockBanner></div>
       <div className="pack-grid">
         {packs.map((pk) => (
           <button key={pk.id} type="button" className={`pack${selected === pk.id ? ' on' : ''}`} onClick={() => setSelected(pk.id)}>
-            <div className="amt">{pk.coins.toLocaleString('th-TH')} เหรียญ</div>
+            <div className="amt">{pk.coins.toLocaleString('th-TH')} Gold</div>
             {pk.bonus_coins > 0 && <div className="bonus">+โบนัส {pk.bonus_coins}</div>}
             <div className="baht">{pk.amount_thb.toLocaleString('th-TH')} บาท</div>
           </button>
         ))}
       </div>
-      <p className="fine-print">อัตราบาทต่อเหรียญและโบนัสเป็นตัวเลขตัวอย่างสำหรับเดโม ยังไม่ใช่ราคาผลิตภัณฑ์</p>
+      <p className="fine-print">อัตราบาทต่อ Gold และโบนัสเป็นตัวเลขตัวอย่างสำหรับเดโม ยังไม่ใช่ราคาผลิตภัณฑ์</p>
 
       {pack && (
         <section className="qr-card">
@@ -102,7 +102,7 @@ export function TopupPage() {
           <img src={qr} alt="คิวอาร์โค้ดจำลอง ไม่ใช่พร้อมเพย์จริง" width={180} height={180} />
           <p>จำนวน <strong>{pack.amount_thb.toLocaleString('th-TH')} บาท</strong></p>
           <p className="muted">รหัสอ้างอิง {ref}</p>
-          <p>ได้ {pack.coins} เหรียญ{pack.bonus_coins ? ` + โบนัส ${pack.bonus_coins}` : ''} · โบนัสไม่ถูกนับใน 7% ของการชวนเพื่อน</p>
+          <p>ได้ {pack.coins} Gold{pack.bonus_coins ? ` + โบนัส ${pack.bonus_coins}` : ''} · โบนัสแพ็กไม่ถูกนับใน 7% ของการชวนเพื่อน</p>
           <label className="slip-drop">
             <span>{slipName ? `สลิป: ${slipName}` : 'อัปโหลดสลิป (ไฟล์รูปจำลอง)'}</span>
             <input
@@ -116,7 +116,7 @@ export function TopupPage() {
       )}
 
       <div className="notice">
-        เหรียญที่เติมแล้วคืนไม่ได้ ไม่โอน และหายเมื่อปิดบัญชี · <Link to="/legal/coins">อ่านนโยบาย</Link>
+        Gold ที่เติมแล้วคืนเงินสดไม่ได้ ไม่โอน และหายเมื่อปิดบัญชี · <Link to="/legal/coins">อ่านนโยบาย</Link>
       </div>
       {error && <p className="form-error pad">{error}</p>}
       <div className="pay-bar">

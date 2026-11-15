@@ -18,6 +18,7 @@ import { RankingPage } from './pages/RankingPage';
 import { CheckInPage } from './pages/CheckInPage';
 import { ReferralPage } from './pages/ReferralPage';
 import { MePage } from './pages/MePage';
+import { ProfilePage } from './pages/ProfilePage';
 import { LegalTosPage } from './pages/LegalTosPage';
 import { LegalPrivacyPage } from './pages/LegalPrivacyPage';
 import { LegalCoinsPage } from './pages/LegalCoinsPage';
@@ -45,6 +46,8 @@ import { AdminLedgerPage } from './pages/admin/AdminLedgerPage';
 import { AdminPayoutsPage } from './pages/admin/AdminPayoutsPage';
 import { AdminRefundsPage } from './pages/admin/AdminRefundsPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminAuthorDetailPage } from './pages/admin/AdminAuthorDetailPage';
+import { AdminActivityPage } from './pages/admin/AdminActivityPage';
 
 export default function App() {
   return (
@@ -71,6 +74,7 @@ export default function App() {
             <Route path="library" element={<LibraryPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="me" element={<MePage />} />
+            <Route path="u/:slug" element={<ProfilePage />} />
             <Route path="me/settings" element={<SettingsPage />} />
             <Route path="me/settings/delete" element={<DeleteAccountPage />} />
             <Route path="help" element={<HelpPage />} />
@@ -94,7 +98,9 @@ export default function App() {
 
             <Route path="admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="activity" element={<AdminActivityPage />} />
               <Route path="authors" element={<AdminAuthorsPage />} />
+              <Route path="authors/:authorId" element={<AdminAuthorDetailPage />} />
               <Route path="works" element={<AdminWorksPage />} />
               <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
