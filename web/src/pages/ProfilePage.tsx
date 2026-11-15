@@ -1,7 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { Badge } from '../components/Badge';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { CoinAmount } from '../components/CoinAmount';
 import { mockDb } from '../lib/mock/store';
@@ -12,6 +11,19 @@ import {
   slugsMatch,
 } from '../lib/profileSlug';
 import type { SessionUser } from '../lib/types';
+import {
+  IconBook,
+  IconCalendar,
+  IconChevronRight,
+  IconClock,
+  IconCoin,
+  IconGift,
+  IconSearch,
+  IconShelf,
+  IconTrophy,
+  IconUser,
+} from '../components/icons';
+import type { ReactNode } from 'react';
 
 function initials(name: string): string {
   const t = name.trim();
@@ -28,10 +40,33 @@ function findAccountUserBySlug(slug: string): SessionUser | null {
   return null;
 }
 
+function ProfileLink({
+  to,
+  icon,
+  label,
+  hint,
+}: {
+  to: string;
+  icon: ReactNode;
+  label: string;
+  hint?: string;
+}) {
+  return (
+    <Link to={to} className="profile-link">
+      <span className="profile-link-ic" aria-hidden>{icon}</span>
+      <span className="profile-link-copy">
+        <strong>{label}</strong>
+        {hint && <small>{hint}</small>}
+      </span>
+      <IconChevronRight size={18} className="profile-link-chev" />
+    </Link>
+  );
+}
+
 export function ProfilePage() {
   const { slug: rawSlug } = useParams();
   const slug = decodeProfileSlug(rawSlug ?? '');
-  const { user, gold, diamond, tickets, logout, isMock, loading } = useApp();
+  const { user, gold, diamond, tickets, logout, loading } = useApp();
   const nav = useNavigate();
 
   const viewed = useMemo(() => {
@@ -67,87 +102,110 @@ export function ProfilePage() {
   return (
     <div className="profile-page">
       <header className="profile-hero">
-        <div className="profile-av" aria-hidden>{initials(viewed.display_name)}</div>
-        <h1 className="profile-name">{viewed.display_name}</h1>
-        <p className="profile-handle">/{handle}</p>
-        {author?.status === 'approved' && (
-          <Link to={`/authors/${author.id}`} className="profile-role-chip">
-            นักแปล · {author.display_name}
-          </Link>
-        )}
-        {isMock && isOwn && <Badge kind="ex">mock</Badge>}
-
-        {isOwn && (
-          <div className="profile-stats" aria-label="ยอดคงเหลือ">
-            <div className="profile-stat">
-              <span className="profile-stat-label">Gold</span>
-              <CoinAmount value={gold} currency="gold" />
-            </div>
-            <div className="profile-stat">
-              <span className="profile-stat-label">Diamond</span>
-              <CoinAmount value={diamond} currency="diamond" />
-            </div>
-            <div className="profile-stat">
-              <span className="profile-stat-label">ตั๋ว</span>
-              <strong>{tickets}</strong>
+        <div className="profile-hero-inner">
+          <div className="profile-id">
+            <div className="profile-av" aria-hidden>{initials(viewed.display_name)}</div>
+            <div className="profile-id-copy">
+              <h1 className="profile-name">{viewed.display_name}</h1>
+              <p className="profile-handle">/{handle}</p>
+              {author?.status === 'approved' && (
+                <Link to={`/authors/${author.id}`} className="profile-role-chip">
+                  นักแปล
+                </Link>
+              )}
             </div>
           </div>
-        )}
+
+          {isOwn && (
+            <div className="profile-stats" aria-label="ยอดคงเหลือ">
+              <div className="profile-stat">
+                <span className="profile-stat-label">Gold</span>
+                <CoinAmount value={gold} currency="gold" />
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat-label">Diamond</span>
+                <CoinAmount value={diamond} currency="diamond" />
+              </div>
+              <div className="profile-stat">
+                <span className="profile-stat-label">ตั๋ว</span>
+                <strong>{tickets}</strong>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
-      <div className="pad profile-body">
+      <div className="profile-sheet">
         {isOwn ? (
           <>
-            <div className="profile-theme-row"><ThemeToggle /></div>
+            <div className="profile-sheet-top">
+              <ThemeToggle />
+            </div>
+
+            <nav className="profile-quick" aria-label="ทางลัด">
+              <Link to="/library" className="profile-quick-item">
+                <IconShelf size={20} />
+                <span>ชั้นหนังสือ</span>
+              </Link>
+              <Link to="/library?tab=history" className="profile-quick-item">
+                <IconClock size={20} />
+                <span>ประวัติอ่าน</span>
+              </Link>
+              <Link to="/wallet/topup" className="profile-quick-item">
+                <IconCoin size={20} />
+                <span>เติม Gold</span>
+              </Link>
+              <Link to="/check-in" className="profile-quick-item">
+                <IconCalendar size={20} />
+                <span>เช็คอิน</span>
+              </Link>
+            </nav>
 
             <section className="profile-section">
               <h2 className="profile-section-title">บัญชี</h2>
               <nav className="profile-links">
-                <Link to="/me/settings">ตั้งค่าบัญชี</Link>
-                <Link to="/wallet">กระเป๋า Gold / Diamond</Link>
-                <Link to="/wallet/topup">เติม Gold</Link>
-                <Link to="/library">ชั้นหนังสือ</Link>
+                <ProfileLink to="/me/settings" icon={<IconUser size={18} />} label="ตั้งค่าบัญชี" hint="ชื่อ · ความปลอดภัย" />
+                <ProfileLink to="/wallet" icon={<IconCoin size={18} />} label="กระเป๋า Gold / Diamond" hint="ยอดคงเหลือและประวัติ" />
+                <ProfileLink to="/library" icon={<IconShelf size={18} />} label="ชั้นหนังสือ" hint="เรื่องที่ติดตาม" />
+                <ProfileLink to="/library?tab=history" icon={<IconClock size={18} />} label="ประวัติการอ่าน" hint="ตอนที่ค้างไว้ · อ่านต่อ" />
               </nav>
             </section>
 
             <section className="profile-section">
               <h2 className="profile-section-title">กิจกรรม</h2>
               <nav className="profile-links">
-                <Link to="/check-in">เช็คอินรายวัน</Link>
-                <Link to="/referral">ชวนเพื่อน รับ 7%</Link>
-                <Link to="/ranking">อันดับ</Link>
-                <Link to="/help">ศูนย์ช่วยเหลือ</Link>
+                <ProfileLink to="/check-in" icon={<IconCalendar size={18} />} label="เช็คอินรายวัน" />
+                <ProfileLink to="/referral" icon={<IconGift size={18} />} label="ชวนเพื่อน" hint="รับ 7%" />
+                <ProfileLink to="/ranking" icon={<IconTrophy size={18} />} label="อันดับ" />
+                <ProfileLink to="/help" icon={<IconSearch size={18} />} label="ศูนย์ช่วยเหลือ" />
               </nav>
             </section>
 
             <section className="profile-section">
               <h2 className="profile-section-title">โซนทำงาน</h2>
               <nav className="profile-links">
-                <Link to="/writer">นักเขียน</Link>
-                <Link to="/admin">แอดมิน</Link>
+                <ProfileLink to="/writer" icon={<IconBook size={18} />} label="นักเขียน" hint="ผลงาน · ตอน · ถอน Diamond" />
+                <ProfileLink to="/admin" icon={<IconUser size={18} />} label="แอดมิน" hint="CMS · คิวอนุมัติ" />
               </nav>
             </section>
 
-            <section className="profile-section">
+            <section className="profile-section profile-legal">
               <h2 className="profile-section-title">กฎหมาย</h2>
-              <nav className="profile-links">
-                <Link to="/legal/tos">ข้อกำหนดการใช้</Link>
+              <div className="profile-legal-links">
+                <Link to="/legal/tos">ข้อกำหนด</Link>
                 <Link to="/legal/privacy">ความเป็นส่วนตัว</Link>
                 <Link to="/legal/coins">นโยบายเหรียญ</Link>
-                <Link to="/legal/takedown">แจ้งละเมิดลิขสิทธิ์</Link>
-              </nav>
+                <Link to="/legal/takedown">แจ้งละเมิด</Link>
+              </div>
             </section>
 
-            <button type="button" className="btn btn-danger btn-block profile-logout" onClick={onLogout}>
+            <button type="button" className="profile-logout" onClick={onLogout}>
               ออกจากระบบ
             </button>
           </>
         ) : (
-          <section className="profile-section">
+          <section className="profile-section" style={{ marginTop: 0 }}>
             <h2 className="profile-section-title">โปรไฟล์สาธารณะ</h2>
-            <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
-              {viewed.email.replace(/(.{2}).+(@.+)/, '$1***$2')}
-            </p>
             {author?.status === 'approved' ? (
               <Link className="btn btn-primary btn-block" to={`/authors/${author.id}`}>
                 ดูผลงานนักแปล
