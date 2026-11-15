@@ -8,12 +8,12 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
     return (
       <button
         type="button"
-        className="icon-btn"
+        className="icon-btn header-tool-btn"
         aria-label={theme === 'dark' ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
         title={theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'}
         onClick={toggleTheme}
       >
-        {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+        {theme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
       </button>
     );
   }

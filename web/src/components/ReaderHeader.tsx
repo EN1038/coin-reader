@@ -66,7 +66,7 @@ export function ReaderHeader() {
           <div className="notify-wrap">
             <button
               type="button"
-              className="icon-btn"
+              className="icon-btn header-tool-btn"
               aria-label="การแจ้งเตือน"
               aria-expanded={notifyOpen}
               onClick={() => setNotifyOpen((v) => !v)}

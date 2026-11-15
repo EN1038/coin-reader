@@ -257,7 +257,15 @@ button{cursor:pointer}
 .series-tabs button{flex:1;min-height:var(--tap);padding:14px 8px;border:none;background:none;font-family:var(--font-head);font-weight:600;font-size:14px;color:var(--text-muted);border-bottom:2px solid transparent}
 .series-tabs button.on{color:var(--primary);border-bottom-color:var(--primary)}
 .topbar .title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.icon-btn{width:var(--tap);height:var(--tap);min-width:var(--tap);min-height:var(--tap)}
+.icon-btn{
+  width:40px;height:40px;min-width:40px;min-height:40px;padding:0;margin:0;
+  display:inline-grid;place-items:center;border-radius:999px;
+  border:0;background:transparent;color:var(--text-muted);
+  appearance:none;-webkit-appearance:none;box-shadow:none;
+  transition:color var(--dur-1) var(--ease),background var(--dur-1) var(--ease);
+}
+.icon-btn:hover{color:var(--text);background:var(--surface-2)}
+.icon-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 .topbar .icon-btn,.topbar-back{width:40px;height:40px;min-width:40px;min-height:40px}
 .chips{-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}
 .chips::-webkit-scrollbar{display:none}
@@ -450,11 +458,19 @@ button{cursor:pointer}
 .header-search-icon{color:var(--text-muted);flex-shrink:0}
 .header-search input{border:0;background:transparent;outline:none;width:100%;min-width:0;font-size:14px}
 .header-search input::placeholder{color:color-mix(in srgb, var(--text-muted) 75%, transparent)}
-.header-tools{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.header-search-btn{
-  display:grid;place-items:center;width:40px;height:40px;border-radius:999px;border:0;
-  color:var(--text);background:var(--surface-2);
+.header-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.header-tools .icon-btn{
+  width:36px;height:36px;min-width:36px;min-height:36px;
+  color:var(--text-muted);background:transparent;border:0;
 }
+.header-tools .icon-btn:hover{
+  color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);
+}
+.header-search-btn{
+  display:grid;place-items:center;width:36px;height:36px;min-width:36px;min-height:36px;
+  border-radius:999px;border:0;color:var(--text-muted);background:transparent;
+}
+.header-search-btn:hover{color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent)}
 .topup-link,.header-login{min-height:40px;padding:0 16px;border-radius:999px;font-weight:600}
 .avatar-btn{
   width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
