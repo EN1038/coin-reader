@@ -10,6 +10,7 @@ import {
   type WorkAdminStatus,
 } from '../../lib/mock/store';
 import { COVER_DEFAULT } from '../../lib/brand';
+import { IconChevronLeft, IconChevronRight } from '../../components/icons';
 import { requireApprovedAuthor } from './WriterLayout';
 
 const CAT_PAGE = 6;
@@ -249,8 +250,8 @@ export function WriterWorkForm() {
           <div className="wf-cat-foot">
             <span>เลือกแล้ว {categoryIds.length} หมวดหมู่</span>
             <div className="wf-pager">
-              <button type="button" className="btn btn-ghost" disabled={catPage <= 0} onClick={() => setCatPage((p) => p - 1)}>
-                ‹
+              <button type="button" className="btn btn-ghost" disabled={catPage <= 0} onClick={() => setCatPage((p) => p - 1)} aria-label="หมวดก่อนหน้า">
+                <IconChevronLeft size={18} />
               </button>
               <span>{catPage + 1}/{catPages}</span>
               <button
@@ -258,8 +259,9 @@ export function WriterWorkForm() {
                 className="btn btn-ghost"
                 disabled={catPage >= catPages - 1}
                 onClick={() => setCatPage((p) => p + 1)}
+                aria-label="หมวดถัดไป"
               >
-                ›
+                <IconChevronRight size={18} />
               </button>
             </div>
           </div>

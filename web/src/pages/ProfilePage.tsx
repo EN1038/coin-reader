@@ -14,7 +14,7 @@ import type { SessionUser } from '../lib/types';
 import {
   IconBook,
   IconCalendar,
-  IconChevronRight,
+  IconCaretRight,
   IconClock,
   IconCoin,
   IconGift,
@@ -52,7 +52,7 @@ function ProfileLink({
         <strong>{label}</strong>
         {hint && <small>{hint}</small>}
       </span>
-      <IconChevronRight size={18} className="profile-link-chev" />
+      <IconCaretRight size={12} className="profile-link-chev" />
     </Link>
   );
 }
