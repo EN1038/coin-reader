@@ -2,6 +2,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { MockBanner } from '../components/MockBanner';
 import { Badge } from '../components/Badge';
+import { BrandMascot } from '../components/BrandAssets';
 
 export function PayResultPage() {
   const { status } = useParams<{ status: string }>();
@@ -17,9 +18,13 @@ export function PayResultPage() {
       <div className="pad form-narrow">
         <MockBanner />
         <div className="card center mt-3" style={{ padding: 28 }}>
-          <div style={{ fontSize: 48, marginBottom: 8 }}>
-            {st === 'success' ? '✓' : st === 'fail' ? '✕' : '…'}
-          </div>
+          {st === 'success' ? (
+            <BrandMascot size="md" className="pay-mascot" />
+          ) : (
+            <div style={{ fontSize: 48, marginBottom: 8 }}>
+              {st === 'fail' ? '✕' : '…'}
+            </div>
+          )}
           <h1 style={{ fontSize: 22, color, marginBottom: 8 }}>{title}</h1>
           <Badge kind="ex">ผลจำลอง (mock)</Badge>
           {st === 'success' && (

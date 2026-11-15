@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { useApp, errMessage } from '../context/AppContext';
 import { MockBanner } from '../components/MockBanner';
-import { PRODUCT_NAME } from '../lib/brand';
+import { BrandLogo } from '../components/BrandAssets';
 
 export function LoginPage() {
   const { login, isMock } = useApp();
@@ -33,8 +33,10 @@ export function LoginPage() {
     <>
       <Topbar title="เข้าสู่ระบบ" back="/" showCoin={false} />
       <div className="pad form-narrow">
-        <p className="center head" style={{ fontSize: 22, marginBottom: 4 }}>{PRODUCT_NAME}</p>
-        <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>อ่านนิยายและมังงะ · ปลดล็อกด้วยเหรียญ</p>
+        <div className="auth-hero">
+          <BrandLogo size="xl" />
+          <p className="center muted" style={{ fontSize: 13 }}>อ่านนิยายและมังงะ · ปลดล็อกด้วยเหรียญ</p>
+        </div>
         {isMock && (
           <div className="mb-3">
             <MockBanner>ผู้อ่าน: demo@example.com / demo1234 · นักเขียน: writer@example.com / demo1234</MockBanner>

@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { MockBanner } from '../../components/MockBanner';
 import { PRODUCT_NAME } from '../../lib/brand';
+import { BrandLogo } from '../../components/BrandAssets';
 
 const NAV = [
   { to: '/admin', end: true, label: 'Dashboard' },
@@ -33,7 +34,10 @@ export function AdminLayout() {
   return (
     <div className="desk-wrap admin-shell">
       <aside className="admin-side">
-        <div className="admin-side-brand">ADMIN · {PRODUCT_NAME}</div>
+        <div className="admin-side-brand">
+          <BrandLogo size="sm" />
+          <span>ADMIN · {PRODUCT_NAME}</span>
+        </div>
         <nav>
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => (isActive ? 'on' : undefined)}>

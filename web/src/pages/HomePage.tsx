@@ -7,6 +7,8 @@ import { Cover } from '../components/CoverCard';
 import { GENRES } from '../lib/mock/seed';
 import { formatCount, kindLabel, relativeTime } from '../lib/format';
 import { useApp } from '../context/AppContext';
+import { BrandMascot } from '../components/BrandAssets';
+import { PRODUCT_NAME } from '../lib/brand';
 
 export function HomePage() {
   const { user } = useApp();
@@ -34,6 +36,20 @@ export function HomePage() {
 
   return (
     <div className="home">
+      {!user && (
+        <section className="brand-welcome" aria-label={PRODUCT_NAME}>
+          <BrandMascot size="xl" />
+          <div className="brand-welcome-copy">
+            <strong>{PRODUCT_NAME}</strong>
+            <p>อ่านนิยายและมังงะ · ปลดล็อกตอนด้วยเหรียญ</p>
+            <div className="brand-welcome-actions">
+              <Link to="/auth/signup" className="btn btn-primary btn-sm">สมัครฟรี</Link>
+              <Link to="/auth/login" className="btn btn-ghost btn-sm">เข้าสู่ระบบ</Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {hero && (
         <section className="hero" aria-roledescription="carousel" aria-label="เรื่องเด่น">
           <Link to={`/works/${hero.slug}`} className={`hero-slide tone-${hero.cover_tone}`}>
@@ -158,7 +174,8 @@ export function HomePage() {
       )}
 
       <footer className="site-footer">
-        <p>Stock Manga · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
+        <BrandMascot size="sm" className="footer-mascot" />
+        <p>{PRODUCT_NAME} · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
         <div>
           <Link to="/help">ช่วยเหลือ</Link>
           <Link to="/legal/tos">ข้อกำหนด</Link>

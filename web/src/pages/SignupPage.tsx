@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { useApp, errMessage } from '../context/AppContext';
 import { MockBanner } from '../components/MockBanner';
-import { PRODUCT_NAME } from '../lib/brand';
+import { BrandLogo } from '../components/BrandAssets';
 
 export function SignupPage() {
   const { signup, isMock } = useApp();
@@ -35,8 +35,10 @@ export function SignupPage() {
     <>
       <Topbar title="สมัครสมาชิก" back showCoin={false} />
       <div className="pad form-narrow">
-        <p className="center head" style={{ fontSize: 22, marginBottom: 4 }}>{PRODUCT_NAME}</p>
-        <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>สร้างบัญชีเพื่อปลดล็อกและเก็บชั้นหนังสือ</p>
+        <div className="auth-hero">
+          <BrandLogo size="xl" />
+          <p className="center muted" style={{ fontSize: 13 }}>สร้างบัญชีเพื่อปลดล็อกและเก็บชั้นหนังสือ</p>
+        </div>
         {isMock && <div className="mb-3"><MockBanner>สมัครใน mock เก็บในเครื่องคุณเท่านั้น</MockBanner></div>}
         <form onSubmit={onSubmit}>
           <div className="field">

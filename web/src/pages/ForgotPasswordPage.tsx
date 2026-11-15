@@ -5,6 +5,7 @@ import { Badge } from '../components/Badge';
 import { useApp } from '../context/AppContext';
 import { mockDb } from '../lib/mock/store';
 import { isMockMode } from '../lib/supabase';
+import { BrandMascot } from '../components/BrandAssets';
 
 export function ForgotPasswordPage() {
   const { isMock } = useApp();
@@ -60,7 +61,7 @@ export function ForgotPasswordPage() {
       ) : (
         <>
           <div className="auth-brand">
-            <div className="mark">☽</div>
+            <BrandMascot size="md" className="auth-brand-mascot" />
             <h1>รีเซ็ตรหัสผ่าน</h1>
             <p>
               กรอกอีเมลที่ใช้สมัคร เราจะส่งลิงก์รีเซ็ต

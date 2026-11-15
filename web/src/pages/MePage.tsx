@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Badge } from '../components/Badge';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { BrandMascot } from '../components/BrandAssets';
 
 export function MePage() {
   const { user, balance, tickets, logout, isMock } = useApp();
@@ -28,6 +29,7 @@ export function MePage() {
           </div>
         ) : (
           <div className="card mb-3 center">
+            <BrandMascot size="md" className="me-guest-mascot" />
             <p className="mb-3">ยังไม่ได้เข้าสู่ระบบ</p>
             <Link to="/auth/login" className="btn btn-primary btn-block">เข้าสู่ระบบ</Link>
             <Link to="/auth/signup" className="btn btn-ghost btn-block mt-2">สมัครสมาชิก</Link>

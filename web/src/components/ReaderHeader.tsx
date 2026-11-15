@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CoinPill } from './CoinPill';
 import { IconSearch, IconUser } from './icons';
-import { PRODUCT_MARK, PRODUCT_NAME } from '../lib/brand';
+import { PRODUCT_NAME } from '../lib/brand';
+import { BrandLogo } from './BrandAssets';
 import { useApp } from '../context/AppContext';
 
 const LINKS = [
@@ -28,8 +29,7 @@ export function ReaderHeader() {
     <header className="site-header">
       <div className="site-header-inner">
         <Link to="/" className="brand-mark" aria-label={PRODUCT_NAME}>
-          <span className="brand-glyph" aria-hidden>{PRODUCT_MARK}</span>
-          <span className="brand-name">{PRODUCT_NAME}</span>
+          <BrandLogo size="md" className="header-logo" />
         </Link>
 
         <nav className="desk-nav" aria-label="หลัก">
