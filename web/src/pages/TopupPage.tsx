@@ -24,7 +24,7 @@ function fakeQr(seed: string): string {
     const y = Math.floor(i / cells);
     return `<rect x="${x}" y="${y}" width="1" height="1"/>`;
   }).join('');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cells} ${cells}" shape-rendering="crispEdges"><rect width="${cells}" height="${cells}" fill="#fff"/>${rects.replaceAll('<rect', '<rect fill="#101827"')}</svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cells} ${cells}" shape-rendering="crispEdges"><rect width="${cells}" height="${cells}" fill="#fff"/>${rects.replaceAll('<rect', '<rect fill="#0A0A0A"')}</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
@@ -37,7 +37,7 @@ export function TopupPage() {
   const [slipUrl, setSlipUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [ref] = useState(() => `TB${Date.now().toString().slice(-8)}`);
+  const [ref] = useState(() => `SM${Date.now().toString().slice(-8)}`);
 
   useEffect(() => {
     if (!user) { nav('/auth/login?next=/wallet/topup'); return; }

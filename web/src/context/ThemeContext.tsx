@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 export type ThemeMode = 'light' | 'dark';
 
-const STORAGE_KEY = 'twilight-blue-theme';
+const STORAGE_KEY = 'stock-manga-theme';
 
 type ThemeCtx = {
   theme: ThemeMode;

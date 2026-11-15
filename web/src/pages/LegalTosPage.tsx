@@ -5,7 +5,7 @@ export function LegalTosPage() {
     <>
       <Topbar title="ข้อกำหนดการใช้" back showCoin={false} />
       <div className="legal">
-        <p className="ex" style={{ marginBottom: 12 }}>ฉบับร่างออกแบบ · 6 พ.ย. 2569 · Twilight Blue</p>
+        <p className="ex" style={{ marginBottom: 12 }}>ฉบับร่างออกแบบ · 6 พ.ย. 2569 · Stock Manga</p>
         <h2>1. บริการ</h2>
         <p>บริการนี้ให้บริการอ่านนิยายและมังงะดิจิทัล โดยบางตอนปลดล็อกด้วยเหรียญในระบบ เนื้อหาที่ติดป้าย “ตัวอย่าง” เป็นข้อมูลสมมติสำหรับทดสอบ</p>
         <h2>2. บัญชี</h2>

@@ -66,7 +66,7 @@ export function DeleteAccountPage() {
       <div className="pad">
         <h2 style={{ fontSize: 20, marginBottom: 8 }}>ยืนยันการลบบัญชี</h2>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          การดำเนินการนี้ปิดบัญชี Twilight Blue ของคุณ (ตัวอย่าง flow · ยังไม่ลบข้อมูลจริงในม็อก)
+          การดำเนินการนี้ปิดบัญชี Stock Manga ของคุณ (ตัวอย่าง flow · ยังไม่ลบข้อมูลจริงในม็อก)
         </p>
         <div
           style={{

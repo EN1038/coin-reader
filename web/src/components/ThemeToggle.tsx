@@ -22,7 +22,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       <div>
         <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600 }}>ธีม</div>
         <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-          {theme === 'dark' ? 'โหมดมืด · Twilight' : 'โหมดสว่าง'}
+          {theme === 'dark' ? 'โหมดมืด' : 'โหมดสว่าง'}
         </div>
       </div>
       <div className="theme-seg">

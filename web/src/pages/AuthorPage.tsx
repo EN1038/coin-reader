@@ -80,7 +80,7 @@ export function AuthorPage() {
           โปรไฟล์ตัวอย่าง
         </span>
         <p style={{ fontSize: 13, lineHeight: 1.6, opacity: 0.9, maxWidth: 320, margin: '10px auto 0' }}>
-          {BIOS[author.id] ?? 'นักเขียนบน Twilight Blue (ชีวประวัติสั้น — ตัวอย่าง)'}
+          {BIOS[author.id] ?? 'นักเขียนบน Stock Manga (ชีวประวัติสั้น — ตัวอย่าง)'}
         </p>
         <div className="author-stats">
           <div><b>{works.length}</b><span>เรื่อง</span></div>

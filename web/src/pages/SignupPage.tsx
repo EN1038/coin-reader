@@ -49,7 +49,7 @@ export function SignupPage() {
           </div>
           <div className="field">
             <label htmlFor="ref">รหัสชวนเพื่อน (ไม่บังคับ)</label>
-            <input id="ref" value={refCode} onChange={(e) => setRefCode(e.target.value)} placeholder="เช่น TB7DEMO" autoCapitalize="characters" />
+            <input id="ref" value={refCode} onChange={(e) => setRefCode(e.target.value)} placeholder="เช่น SM7DEMO" autoCapitalize="characters" />
           </div>
           <div className="field">
             <label htmlFor="password">รหัสผ่าน (อย่างน้อย 6 ตัว)</label>

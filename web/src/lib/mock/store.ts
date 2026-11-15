@@ -8,7 +8,7 @@ import {
 } from './seed';
 import { bangkokToday, checkInReward, isoDay, bangkokParts, daysInMonth } from '../format';
 
-const LS_KEY = 'twilight-blue-mock-v3';
+const LS_KEY = 'stock-manga-mock-v1';
 
 export interface HelpReport {
   id: string;
@@ -452,8 +452,8 @@ function defaultState(): MockState {
     ratings: [],
     referrals: {
       [demoUser.id]: { code: DEMO_REFERRAL_CODE },
-      [writerUser.id]: { code: 'TBWRITER' },
-      [friendUser.id]: { code: 'TBFRIEND', referred_by: demoUser.id },
+      [writerUser.id]: { code: 'SMWRITER' },
+      [friendUser.id]: { code: 'SMFRIEND', referred_by: demoUser.id },
     },
     referralEvents: [
       {
@@ -607,7 +607,7 @@ export const mockDb = {
     if (state.balances[user.id] == null) state.balances[user.id] = 0;
     if (state.tickets[user.id] == null) state.tickets[user.id] = 0;
     state.referrals[user.id] = {
-      code: `TB${user.id.replace(/\W/g, '').slice(-6).toUpperCase()}`,
+      code: `SM${user.id.replace(/\W/g, '').slice(-6).toUpperCase()}`,
       referred_by: referredBy,
     };
     state.user = user;
@@ -1300,7 +1300,7 @@ export const mockDb = {
   },
 
   referralView(userId: string) {
-    const profile = state.referrals[userId] ?? { code: `TB${userId.slice(-6).toUpperCase()}` };
+    const profile = state.referrals[userId] ?? { code: `SM${userId.slice(-6).toUpperCase()}` };
     if (!state.referrals[userId]) {
       state.referrals[userId] = profile;
       save(state);

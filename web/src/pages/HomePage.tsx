@@ -158,7 +158,7 @@ export function HomePage() {
       )}
 
       <footer className="site-footer">
-        <p>Twilight Blue · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
+        <p>Stock Manga · เหรียญเป็นตัวอย่าง mock คืนไม่ได้ โอนไม่ได้ และหายเมื่อปิดบัญชี</p>
         <div>
           <Link to="/help">ช่วยเหลือ</Link>
           <Link to="/legal/tos">ข้อกำหนด</Link>

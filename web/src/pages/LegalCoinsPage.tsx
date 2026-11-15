@@ -6,7 +6,7 @@ export function LegalCoinsPage() {
     <>
       <Topbar title="นโยบายเหรียญ" back showCoin={false} />
       <div className="legal">
-        <p className="ex" style={{ marginBottom: 12 }}>Twilight Blue · ตามการตัดสินใจ 6 พ.ย. 2569 · ฉบับร่างออกแบบ</p>
+        <p className="ex" style={{ marginBottom: 12 }}>Stock Manga · ตามการตัดสินใจ 6 พ.ย. 2569 · ฉบับร่างออกแบบ</p>
         <div className="callout">เหรียญคืนไม่ได้ ไม่แลกเป็นเงินสด ไม่โอนให้ผู้ใช้อื่น และเหรียญที่เหลือจะหายไปเมื่อปิดบัญชี</div>
         <h2>1. เหรียญคืออะไร</h2>
         <p>หน่วยในระบบสำหรับปลดล็อกตอนหรือซื้อทั้งเล่ม ใช้ได้เฉพาะในบริการนี้ ไม่ใช่เงินอิเล็กทรอนิกส์ที่ถอนได้</p>

@@ -385,4 +385,4 @@ export const seedComments: ReaderComment[] = [
 ];
 
 export const DEMO_PASSWORD = 'demo1234';
-export const DEMO_REFERRAL_CODE = 'TB7DEMO';
+export const DEMO_REFERRAL_CODE = 'SM7DEMO';

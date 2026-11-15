@@ -6,7 +6,7 @@ export function LegalPrivacyPage() {
     <>
       <Topbar title="ความเป็นส่วนตัว" back showCoin={false} />
       <div className="legal">
-        <p className="ex" style={{ marginBottom: 12 }}>Twilight Blue · สรุป PDPA ฉบับสั้น · ร่างออกแบบ · ยังต้องอนุมัติก่อนเปิดจริง</p>
+        <p className="ex" style={{ marginBottom: 12 }}>Stock Manga · สรุป PDPA ฉบับสั้น · ร่างออกแบบ · ยังต้องอนุมัติก่อนเปิดจริง</p>
         <h2>1. ข้อมูลที่เก็บ</h2>
         <p>อีเมล ชื่อที่แสดง ประวัติการอ่าน ชั้นหนังสือ ประวัติเหรียญ และข้อมูลเทคนิคที่จำเป็นต่อการให้บริการ</p>
         <h2>2. วัตถุประสงค์</h2>
