@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+tests/node_modules/
+scripts/node_modules/
+scripts/package-lock.json

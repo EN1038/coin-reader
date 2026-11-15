@@ -1,0 +1,43 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>อ่านนิยาย</title><link rel="stylesheet" href="app.css"/>
+<style>
+body{background:#141210}
+.phone{background:var(--c-reader-bg);color:var(--c-reader-text)}
+.rtop{height:52px;padding:0 8px;display:flex;align-items:center;gap:4px;background:rgba(20,18,16,.92);border-bottom:1px solid #2A2622;flex-shrink:0}
+.rtop .t{flex:1;text-align:center;font-family:var(--font-head);font-size:13px;font-weight:600;color:var(--c-reader-muted)}
+.rtop button{width:40px;height:40px;border:none;background:none;color:var(--c-reader-text);font-size:16px;border-radius:999px}
+.article{padding:24px 20px 100px;font-size:18px;line-height:1.85;color:var(--c-reader-text)}
+.article h1{font-size:22px;margin-bottom:8px;color:#fff}
+.article .meta{font-size:12px;color:var(--c-reader-muted);margin-bottom:24px}
+.article p{margin-bottom:1.1em}
+.rbot{position:absolute;left:0;right:0;bottom:0;height:72px;padding:8px 16px 16px;background:linear-gradient(transparent,rgba(20,18,16,.95) 30%);display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.rbot button{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid #2A2622;background:var(--c-reader-surface);color:var(--c-reader-text);font-family:var(--font-head);font-weight:600;font-size:13px}
+.rbot .mid{display:flex;gap:8px}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status" style="color:var(--c-reader-text)"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="rtop">
+    <button>←</button>
+    <div class="t">ตอนที่ 1 · ประตูไม้เก่า</div>
+    <button>Aa</button>
+    <button>⋯</button>
+  </div>
+  <div class="content">
+    <article class="article">
+      <h1>ตอนที่ 1 — ประตูไม้เก่า</h1>
+      <div class="meta">คาเฟ่ตอนตีสาม · นามปากกาตัวอย่าง · <span class="badge badge-ex">ข้อความตัวอย่าง</span></div>
+      <p>ฝนพรำลงมาตั้งแต่หัวค่ำ ถนนซอยแคบๆ ข้างสถานีรถไฟดูเงียบกว่าทุกคืนที่เธอเคยเดินผ่าน</p>
+      <p>ป้ายไม้สีซีดเขียนด้วยลายมือว่า “เปิดหลังเที่ยงคืน” แขวนเอียงๆ เหนือประตูบานเก่า สีน้ำตาลเข้มลอกเป็นด่าง</p>
+      <p>เธอผลักประตูเข้าไป กระดิ่งเล็กๆ ดังขึ้นหนึ่งครั้ง อากาศภายในอุ่นและมีกลิ่นกาแฟคั่วใหม่ๆ ปนกับส้มโอที่เพิ่งผ่า</p>
+      <p>“ยินดีต้อนรับ” เสียงจากหลังเคาน์เตอร์พูดแผ่วๆ “กฎมีข้อเดียว — เล่าความลับหนึ่งอย่าง แล้วค่อยสั่ง”</p>
+      <p>เธอยืนนิ่งอยู่ครู่หนึ่ง มองแก้วเรียงบนชั้น แล้วพูดเสียงเบาว่า “ฉันไม่ได้ตั้งใจจะมาที่นี่”</p>
+    </article>
+  </div>
+  <div class="rbot">
+    <button>← ก่อนหน้า</button>
+    <div class="mid"><button>♡</button><button>☰</button></div>
+    <button>ถัดไป →</button>
+  </div>
+</div>
+</body></html>

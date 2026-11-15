@@ -1,0 +1,35 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ชั้นหนังสือ</title><link rel="stylesheet" href="app.css"/>
+<style>
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:8px 16px 20px}
+.grid .item .name{font-size:12px;font-family:var(--font-head);font-weight:600;margin-top:8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.grid .item .prog{font-size:11px;color:var(--text-muted);margin-top:2px}
+.tabs{display:flex;gap:8px;padding:12px 16px}
+.tabs span{padding:8px 14px;border-radius:999px;font-size:13px;font-family:var(--font-head);font-weight:500;background:var(--surface);border:1px solid var(--line)}
+.tabs span.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+</style></head><body>
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><div class="title">ชั้นหนังสือ</div><span class="coin-pill"><span class="dot"></span>248</span></div>
+  <div class="content">
+    <div class="tabs"><span class="on">ทั้งหมด</span><span>กำลังอ่าน</span><span>ซื้อแล้ว</span><span>ติดตาม</span></div>
+    <div style="padding:0 16px 8px"><span class="badge badge-ex">รายการตัวอย่าง</span></div>
+    <div class="grid">
+      <div class="item"><div class="cover warm"><span class="cover-title">คาเฟ่ตอนตีสาม</span></div><div class="name">คาเฟ่ตอนตีสาม</div><div class="prog">ตอน 3/42</div></div>
+      <div class="item"><div class="cover"><span class="cover-title">เงาในกระจก</span></div><div class="name">เงาในกระจก</div><div class="prog">ซื้อทั้งเล่ม</div></div>
+      <div class="item"><div class="cover teal"><span class="cover-title">สายลมทิศใต้</span></div><div class="name">สายลมทิศใต้</div><div class="prog">ตอน 1/20</div></div>
+      <div class="item"><div class="cover rose"><span class="cover-title">คืนที่ดาวตก</span></div><div class="name">คืนที่ดาวตก</div><div class="prog">ติดตาม</div></div>
+      <div class="item"><div class="cover blue"><span class="cover-title">จดหมายถึงทะเล</span></div><div class="name">จดหมายถึงทะเล</div><div class="prog">ตอน 5/30</div></div>
+      <div class="item"><div class="cover"><span class="cover-title">ดาวเทียมดวงสุดท้าย</span></div><div class="name">ดาวเทียมดวงสุดท้าย</div><div class="prog">ติดตาม</div></div>
+    </div>
+  </div>
+  <nav class="bottomnav">
+    <a><span class="ic">⌂</span>หน้าแรก</a>
+    <a><span class="ic">⌕</span>ค้นหา</a>
+    <a class="on"><span class="ic">▤</span>ชั้นหนังสือ</a>
+    <a><span class="ic">◷</span>ประวัติ</a>
+    <a><span class="ic">☺</span>ฉัน</a>
+  </nav>
+</div>
+</body></html>

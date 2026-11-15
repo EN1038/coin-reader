@@ -1,0 +1,7 @@
+Check file:///workspace/projects/coin-reader/backend/edge-functions/admin-author-review/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/admin-reports-list/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/create-takedown/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/get-manga-page-url/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/mock-topup/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/request-payout/index.ts
+Check file:///workspace/projects/coin-reader/backend/edge-functions/unlock-chapter/index.ts

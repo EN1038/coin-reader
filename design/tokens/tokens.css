@@ -1,0 +1,215 @@
+/* Twilight Blue v2.0.0 — MVP: payment mock; coins non-refundable.
+   Theme scope belongs on html/body or a container. Load fonts separately. */
+:root {
+  color-scheme:light;
+  --palette-dusk-blue:#3D5A80; --palette-deep-indigo:#2E4666; --palette-moon-blue:#A6C5ED;
+  --palette-lavender:#C7BDE3; --palette-champagne:#DDC89D;
+  --bg:#F3F6FA;
+  --surface:#FFFFFF;
+  --surface-2:#E7EDF5;
+  --line:#78899E;
+  --text:#1C2C40;
+  --text-muted:#52647B;
+  --primary:#3D5A80;
+  --on-primary:#FFFFFF;
+  --primary-hover:#2E4666;
+  --accent:#625982;
+  --accent-bg:#EDEAF5;
+  --accent-coin:#DDC89D;
+  --on-coin:#3F3523;
+  --coin-bg:#F7F0E2;
+  --coin-text:#68532F;
+  --free:#21675D;
+  --free-bg:#E5F2ED;
+  --locked:#3D5A80;
+  --locked-bg:#E7EDF5;
+  --danger:#A33542;
+  --danger-bg:#FBECEF;
+  --ok:#276441;
+  --ok-bg:#E8F3EC;
+  --note:#68532F;
+  --note-bg:#F7F0E2;
+  --focus:#3D5A80;
+  --hero-start:#182D49;
+  --hero-end:#41476C;
+  --on-hero:#F3F6FA;
+  /* type */
+  --font-head:'Prompt',system-ui,sans-serif;
+  --font-body:'Sarabun','Noto Sans Thai',system-ui,sans-serif;
+  --fs-xs:12px; --fs-sm:14px; --fs-base:16px; --fs-lg:18px;
+  --fs-h4:18px; --fs-h3:22px; --fs-h2:26px; --fs-h1:32px; --fs-display:40px;
+  --fs-reader:18px;
+  --lh-body:1.6; --lh-head:1.3; --lh-display:1.2; --lh-reader:1.85;
+  --fw-body:400; --fw-strong:600; --fw-head:600; --fw-display:700;
+  /* space / radius / shadow */
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-8:32px;--s-10:40px;--s-12:48px;--s-16:64px;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;--r-pill:999px;
+  --sh-1:0 1px 2px rgba(16,24,39,.05),0 2px 8px rgba(16,24,39,.05);
+  --sh-2:0 8px 24px rgba(16,24,39,.10);
+  --sh-3:0 24px 48px rgba(16,24,39,.18);
+  --tap:48px; --topbar:56px; --bottomnav:64px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --dur-1:150ms;--dur-2:250ms;--dur-3:400ms;
+}
+
+/* Every theme writes its full semantic set: readers can override UI choice. */
+[data-theme="light"], .theme-light {
+  color-scheme:light;
+  --bg:#F3F6FA;
+  --surface:#FFFFFF;
+  --surface-2:#E7EDF5;
+  --line:#78899E;
+  --text:#1C2C40;
+  --text-muted:#52647B;
+  --primary:#3D5A80;
+  --on-primary:#FFFFFF;
+  --primary-hover:#2E4666;
+  --accent:#625982;
+  --accent-bg:#EDEAF5;
+  --accent-coin:#DDC89D;
+  --on-coin:#3F3523;
+  --coin-bg:#F7F0E2;
+  --coin-text:#68532F;
+  --free:#21675D;
+  --free-bg:#E5F2ED;
+  --locked:#3D5A80;
+  --locked-bg:#E7EDF5;
+  --danger:#A33542;
+  --danger-bg:#FBECEF;
+  --ok:#276441;
+  --ok-bg:#E8F3EC;
+  --note:#68532F;
+  --note-bg:#F7F0E2;
+  --focus:#3D5A80;
+  --hero-start:#182D49;
+  --hero-end:#41476C;
+  --on-hero:#F3F6FA;
+}
+[data-theme="dark"], .theme-dark, .theme-night {
+  color-scheme:dark;
+  --bg:#101827;
+  --surface:#192438;
+  --surface-2:#223149;
+  --line:#7D8DA5;
+  --text:#E7EDF5;
+  --text-muted:#AFBCD0;
+  --primary:#A6C5ED;
+  --on-primary:#152A43;
+  --primary-hover:#C0D8F5;
+  --accent:#C7BDE3;
+  --accent-bg:#302E49;
+  --accent-coin:#DDC89D;
+  --on-coin:#3F3523;
+  --coin-bg:#332D23;
+  --coin-text:#E0CDA6;
+  --free:#A0D9C8;
+  --free-bg:#1A3936;
+  --locked:#A6C5ED;
+  --locked-bg:#253951;
+  --danger:#FFB3BC;
+  --danger-bg:#42262F;
+  --ok:#A9D9B7;
+  --ok-bg:#21392D;
+  --note:#E0CDA6;
+  --note-bg:#332D23;
+  --focus:#A6C5ED;
+  --hero-start:#182D49;
+  --hero-end:#41476C;
+  --on-hero:#F3F6FA;
+}
+.theme-reader-light {
+  color-scheme:light;
+  --bg:#F0F3F4;
+  --surface:#E7ECEF;
+  --surface-2:#DFE6EB;
+  --line:#768593;
+  --text:#293644;
+  --text-muted:#52616F;
+  --primary:#3D5A80;
+  --on-primary:#FFFFFF;
+  --primary-hover:#2E4666;
+  --accent:#625982;
+  --accent-bg:#EDEAF5;
+  --accent-coin:#DDC89D;
+  --on-coin:#3F3523;
+  --coin-bg:#F7F0E2;
+  --coin-text:#68532F;
+  --free:#21675D;
+  --free-bg:#E5F2ED;
+  --locked:#3D5A80;
+  --locked-bg:#E7EDF5;
+  --danger:#A33542;
+  --danger-bg:#FBECEF;
+  --ok:#276441;
+  --ok-bg:#E8F3EC;
+  --note:#68532F;
+  --note-bg:#F7F0E2;
+  --focus:#3D5A80;
+  --hero-start:#182D49;
+  --hero-end:#41476C;
+  --on-hero:#F3F6FA;
+}
+.theme-reader-dark, .theme-reader {
+  color-scheme:dark;
+  --bg:#0F171E;
+  --surface:#18232D;
+  --surface-2:#22313C;
+  --line:#7D8C97;
+  --text:#DCE2E6;
+  --text-muted:#AAB8C2;
+  --primary:#A6C5ED;
+  --on-primary:#152A43;
+  --primary-hover:#C0D8F5;
+  --accent:#C7BDE3;
+  --accent-bg:#302E49;
+  --accent-coin:#DDC89D;
+  --on-coin:#3F3523;
+  --coin-bg:#332D23;
+  --coin-text:#E0CDA6;
+  --free:#A0D9C8;
+  --free-bg:#1A3936;
+  --locked:#A6C5ED;
+  --locked-bg:#253951;
+  --danger:#FFB3BC;
+  --danger-bg:#42262F;
+  --ok:#A9D9B7;
+  --ok-bg:#21392D;
+  --note:#E0CDA6;
+  --note-bg:#332D23;
+  --focus:#A6C5ED;
+  --hero-start:#182D49;
+  --hero-end:#41476C;
+  --on-hero:#F3F6FA;
+}
+
+/* Deprecated v1 aliases: migrate components to semantic names above. */
+:root, [data-theme], .theme-light, .theme-dark, .theme-night, .theme-reader-light, .theme-reader-dark, .theme-reader {
+  --c-paper:var(--bg);
+  --c-surface:var(--surface);
+  --c-surface-2:var(--surface-2);
+  --c-line:var(--line);
+  --c-ink:var(--text);
+  --c-muted:var(--text-muted);
+  --c-muted-soft:var(--text-muted);
+  --c-reader-bg:var(--bg);
+  --c-reader-surface:var(--surface);
+  --c-reader-text:var(--text);
+  --c-reader-muted:var(--text-muted);
+  --c-violet-600:var(--primary);
+  --c-violet-700:var(--locked);
+  --c-violet-50:var(--locked-bg);
+  --c-violet-100:var(--surface-2);
+  --c-coin-400:var(--accent-coin);
+  --c-coin-500:var(--accent-coin);
+  --c-coin-50:var(--coin-bg);
+  --c-coin-900:var(--coin-text);
+  --c-teal-600:var(--free);
+  --c-teal-50:var(--free-bg);
+  --c-coral-600:var(--danger);
+  --c-coral-50:var(--danger-bg);
+  --c-ok-600:var(--ok);
+  --c-ok-50:var(--ok-bg);
+  --c-night:#101827; --c-night-2:#192438; --c-night-3:#223149;
+}
+@media (min-width:861px){:root{--fs-base:17px;--fs-h3:26px;--fs-h2:34px;--fs-h1:44px;--fs-display:56px;--fs-reader:20px}}
+@media (prefers-reduced-motion:reduce){:root{--dur-1:0ms;--dur-2:0ms;--dur-3:0ms}}

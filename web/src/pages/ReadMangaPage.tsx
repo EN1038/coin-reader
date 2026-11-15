@@ -1,0 +1,119 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { api } from '../lib/supabase';
+import type { Chapter, Work, MangaPageUrl } from '../lib/types';
+import { Badge } from '../components/Badge';
+import { useApp } from '../context/AppContext';
+import { useTheme } from '../context/ThemeContext';
+import { CommentThread } from '../components/CommentThread';
+import { ReaderAccessGate, type ReaderGateKind } from '../components/ReaderAccessGate';
+import { isFreeEpisode } from '../lib/access';
+import { useReadingProgress } from '../hooks/useReadingProgress';
+
+export function ReadMangaPage() {
+  const { workId, chapterId } = useParams();
+  const nav = useNavigate();
+  const { user } = useApp();
+  const { theme } = useTheme();
+  const readerClass = theme === 'dark' ? 'theme-reader-dark' : 'theme-reader-light';
+  const [work, setWork] = useState<Work | null>(null);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [pages, setPages] = useState<MangaPageUrl[]>([]);
+  const [gate, setGate] = useState<ReaderGateKind | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useReadingProgress(workId, chapterId, !!user && pages.length > 0 && !gate);
+
+  useEffect(() => {
+    if (!workId || !chapterId) return;
+    let cancelled = false;
+    setLoading(true);
+    setGate(null);
+    setPages([]);
+    (async () => {
+      try {
+        const w = await api.getWork(workId);
+        const c = await api.getChapter(chapterId);
+        if (cancelled) return;
+        setWork(w);
+        setChapter(c);
+
+        const free = isFreeEpisode(w, c);
+        const unlocked = await api.isChapterUnlocked(chapterId);
+        if (cancelled) return;
+
+        if (!unlocked) {
+          if (!user) {
+            setGate('need_login');
+            return;
+          }
+          if (!free) {
+            setGate('need_unlock');
+            return;
+          }
+        }
+
+        const urls: MangaPageUrl[] = [];
+        for (let i = 1; i <= 3; i++) {
+          urls.push(await api.getMangaPageUrl(chapterId, i));
+        }
+        if (cancelled) return;
+        setPages(urls);
+      } catch {
+        if (!cancelled) setGate('error');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [workId, chapterId, user]);
+
+  if (gate) {
+    return (
+      <ReaderAccessGate
+        kind={gate}
+        work={work}
+        chapter={chapter}
+        readerClass={readerClass}
+        message={gate === 'error' ? 'อ่านไม่ได้ — ต้องปลดล็อกหรือเข้าสู่ระบบ · หน้ามังงะใช้ signed URL เท่านั้น' : undefined}
+      />
+    );
+  }
+
+  if (loading || !work || !chapter || !pages.length) {
+    return <div className={`${readerClass} reader-shell`} style={{ padding: 24, color: 'var(--text-muted)' }}>กำลังโหลดหน้า…</div>;
+  }
+
+  return (
+    <div className={`${readerClass} reader-shell`}>
+      <div className="reader-top">
+        <button type="button" className="icon-btn" aria-label="ย้อนกลับ" onClick={() => nav(`/works/${work.slug}`)}>←</button>
+        <div style={{ flex: 1, textAlign: 'center', fontFamily: 'var(--font-head)', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>
+          {work.title} · ตอนที่ {chapter.number}
+        </div>
+        <span style={{ width: 40 }} />
+      </div>
+      <div style={{ padding: '8px 16px', fontSize: 11, color: 'var(--text-muted)', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Badge kind="ex">หน้ามังงะตัวอย่าง</Badge>
+        <span>เลื่อนลงเพื่ออ่าน · URL อายุ ~{pages[0]?.expires_in ?? 120}s</span>
+        {!user && isFreeEpisode(work, chapter) && <span>· อ่านฟรีโดยไม่ต้องสมัคร</span>}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 80 }}>
+        {pages.map((pg) => (
+          <img
+            key={pg.page_number}
+            src={pg.url}
+            alt={`หน้า ${pg.page_number}`}
+            style={{ width: '100%', display: 'block', background: 'var(--surface)' }}
+          />
+        ))}
+      </div>
+      {user && <CommentThread chapterId={chapter.id} />}
+      <div style={{ position: 'sticky', bottom: 0, padding: '12px 16px 20px', background: 'linear-gradient(transparent, var(--bg))', textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-head)' }}>
+        ↕ เลื่อนแนวตั้ง · signed URL ผ่าน get-manga-page-url
+      </div>
+    </div>
+  );
+}

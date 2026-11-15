@@ -1,0 +1,65 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Twilight Blue — ตั้งค่าบัญชี</title>
+<link rel="stylesheet" href="app.css"/><link rel="stylesheet" href="twilight.css"/>
+<style>
+.profile{margin:16px;padding:16px;border-radius:16px;background:var(--surface);border:1px solid var(--line);display:flex;gap:14px;align-items:center}
+.av{width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,#3D5A80,#182D49);color:#fff;display:grid;place-items:center;font-family:var(--font-head);font-weight:700;font-size:18px;flex-shrink:0}
+.group{margin:0 16px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.group .item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px;font-family:var(--font-head);font-weight:500}
+.group .item:last-child{border-bottom:0}
+.group .item .sub{font-size:12px;color:var(--text-muted);font-weight:400;font-family:var(--font-body);margin-top:2px}
+.group .item .r{color:var(--text-muted);font-size:13px;font-weight:400}
+.toggle{width:44px;height:26px;border-radius:999px;background:var(--primary);position:relative;flex-shrink:0}
+.toggle::after{content:"";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff}
+.pdpa{margin:0 16px 14px;padding:14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);font-size:13px;line-height:1.65;color:var(--text-muted)}
+.pdpa strong{color:var(--text)}
+.pdpa ul{padding-left:18px;margin:8px 0 0}
+</style></head><body data-theme="light">
+<div class="phone scroll" id="screen" style="height:auto;min-height:844px">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">ตั้งค่าบัญชี</div></div>
+  <div class="content">
+    <div class="profile">
+      <div class="av">กม</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-head);font-weight:600">ผู้ใช้อย่าง</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px">demo@example.com</div>
+        <span class="badge badge-ex" style="margin-top:6px">บัญชีตัวอย่าง</span>
+      </div>
+      <span style="color:var(--text-muted)">แก้ไข</span>
+    </div>
+    <div class="sec" style="padding-top:0"><h2 style="font-size:15px;color:var(--text-muted);font-weight:500">การแสดงผล</h2></div>
+    <div class="group">
+      <div class="item"><div>ธีมสว่าง / มืด<div class="sub">ตอนนี้: สว่าง (UI)</div></div><div class="toggle" title="light on"></div></div>
+      <div class="item"><div>ธีมหน้าอ่าน<div class="sub">อิสระจากธีม UI</div></div><span class="r">มืด →</span></div>
+    </div>
+    <div class="sec"><h2 style="font-size:15px;color:var(--text-muted);font-weight:500">กฎหมายและสิทธิ</h2></div>
+    <div class="group">
+      <div class="item">ข้อกำหนดการใช้ <span class="r">→</span></div>
+      <div class="item">นโยบายความเป็นส่วนตัว <span class="r">→</span></div>
+      <div class="item">นโยบายเหรียญ (คืนไม่ได้) <span class="r">→</span></div>
+      <div class="item">ศูนย์ช่วยเหลือ / รายงานปัญหา <span class="r">→</span></div>
+    </div>
+    <div class="sec"><h2 style="font-size:15px;color:var(--text-muted);font-weight:500">PDPA สั้น ๆ</h2></div>
+    <div class="pdpa">
+      <strong>สิทธิของเจ้าของข้อมูล (สรุป)</strong>
+      <ul>
+        <li>เข้าถึง / ขอสำเนาข้อมูลบัญชีที่เก็บ</li>
+        <li>แก้ไขข้อมูลไม่ถูกต้อง</li>
+        <li>ขอให้ลบหรือระงับเมื่อเข้าเงื่อนไข</li>
+        <li>ถอนความยินยอมบางประเภท (ถ้ามีการขอ)</li>
+      </ul>
+      <div style="margin-top:10px">ติดต่อ: <u>privacy@example.com</u> (ที่อยู่ตัวอย่าง) · รายละเอียดเต็มในนโยบายความเป็นส่วนตัว</div>
+    </div>
+    <div class="sec"><h2 style="font-size:15px;color:var(--text-muted);font-weight:500">โซนอันตราย</h2></div>
+    <div class="group">
+      <div class="item" style="color:var(--danger)">ลบบัญชี / ปิดการใช้งาน<span class="r" style="color:var(--danger)">→</span></div>
+    </div>
+    <div style="padding:4px 16px 8px;font-size:12px;color:var(--text-muted);line-height:1.55">การลบจะปิดการเข้าถึงชั้นหนังสือและประวัติ · <strong style="color:var(--text)">เหรียญคงเหลือคืนเป็นเงินสดไม่ได้</strong> ตามนโยบาย</div>
+    <div style="padding:0 16px 28px">
+      <button class="btn btn-ghost btn-block">ออกจากระบบ</button>
+    </div>
+  </div>
+</div>
+</body></html>

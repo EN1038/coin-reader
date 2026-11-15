@@ -1,0 +1,14 @@
+wf-writer-register writer-register.html 390 844 0
+wf-writer-dashboard writer-dashboard.html 390 844 0
+wf-writer-works writer-works.html 390 844 0
+wf-writer-edit-series writer-edit-series.html 390 844 0
+wf-writer-edit-episode writer-edit-episode.html 390 844 0
+wf-writer-payout writer-payout.html 390 844 0
+wf-admin-dashboard admin-dashboard.html 1200 800 0
+wf-admin-users admin-users.html 1200 800 0
+wf-admin-queue admin-queue.html 1200 800 0
+wf-admin-content admin-content.html 1200 800 0
+wf-admin-tx admin-tx.html 1200 800 0
+wf-admin-refunds admin-refunds.html 1200 800 0
+wf-admin-payouts admin-payouts.html 1200 800 0
+wf-admin-reports admin-reports.html 1200 800 0

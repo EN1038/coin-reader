@@ -1,0 +1,36 @@
+# name file width height fullpage(0|1)
+home-mobile home.html 390 844 0
+search-mobile search.html 390 844 0
+series-mobile series.html 390 844 0
+read-novel-mobile read-novel.html 390 844 0
+read-manga-mobile read-manga.html 390 844 0
+auth-login-mobile auth.html 390 844 0
+auth-signup-mobile auth-signup.html 390 844 0
+topup-mobile topup.html 390 844 0
+pay-pending-mobile pay-pending.html 390 844 0
+pay-success-mobile pay-success.html 390 844 0
+pay-fail-mobile pay-fail.html 390 844 0
+wallet-mobile wallet.html 390 844 0
+library-mobile library.html 390 844 0
+history-mobile history.html 390 844 0
+unlock-confirm-mobile unlock-confirm.html 390 844 0
+unlock-insufficient-mobile unlock-insufficient.html 390 844 0
+legal-tos-mobile legal-tos.html 390 844 1
+legal-privacy-mobile legal-privacy.html 390 844 1
+legal-coins-mobile legal-coins.html 390 844 1
+home-desktop home-desktop.html 1440 900 0
+series-desktop series-desktop.html 1440 900 0
+read-novel-desktop read-novel-desktop.html 1440 900 0
+# --- MVP gap + Twilight rebrand light (6 พ.ย. 2569) ---
+help-mobile help.html 390 844 0
+report-mobile report.html 390 844 0
+takedown-mobile takedown.html 390 844 1
+settings-mobile settings.html 390 844 1
+settings-delete-mobile settings-delete.html 390 844 0
+forgot-password-mobile forgot-password.html 390 844 0
+forgot-password-sent-mobile forgot-password-sent.html 390 844 0
+writer-public-mobile writer-public.html 390 844 0
+search-mobile-light search-twilight.html 390 844 0
+series-mobile-light series-twilight.html 390 844 0
+topup-mobile-light topup-twilight.html 390 844 0
+wallet-mobile-light wallet-twilight.html 390 844 0

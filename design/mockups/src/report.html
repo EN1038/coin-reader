@@ -1,0 +1,39 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Twilight Blue — รายงานปัญหา</title>
+<link rel="stylesheet" href="app.css"/><link rel="stylesheet" href="twilight.css"/>
+<style>
+.form{padding:0 16px 24px}
+.hint{font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chips span{padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);font-size:12px;font-family:var(--font-head);font-weight:500}
+.chips span.on{border-color:var(--primary);background:var(--locked-bg);color:var(--primary)}
+textarea{min-height:110px;padding:12px 14px;resize:none;width:100%;border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--surface);font:inherit}
+</style></head><body data-theme="light">
+<div class="phone" id="screen">
+  <div class="status"><span>9:41</span><span class="icons">▮▮▮ 📶 🔋</span></div>
+  <div class="topbar"><button class="icon-btn">←</button><div class="title">รายงานปัญหา</div></div>
+  <div class="content">
+    <div style="padding:12px 16px">
+      <div class="card" style="background:var(--danger-bg);border-color:#F0C8D0;font-size:12px;color:var(--danger);line-height:1.55">
+        <strong>ไม่ใช่แบบฟอร์มคืนเหรียญ</strong> — ส่งรายงานแล้วทีมจะตรวจสอบการใช้งานเท่านั้น เหรียญคืน/แลกเงินสดไม่ได้
+      </div>
+    </div>
+    <div class="form">
+      <div class="field"><label>ประเภทปัญหา</label>
+        <div class="chips">
+          <span class="on">อ่าน / ปลดล็อก</span><span>เติมเหรียญ (mock)</span><span>บัญชี</span><span>อื่น ๆ</span>
+        </div>
+      </div>
+      <div class="field"><label>หัวข้อ</label><input placeholder="เช่น ปลดล็อกแล้วเปิดตอนไม่ได้"/></div>
+      <div class="field"><label>รายละเอียด</label>
+        <textarea placeholder="บอกชื่อเรื่อง ตอน เวลาที่เกิด และสิ่งที่เห็นบนจอ (ข้อมูลตัวอย่าง)"></textarea>
+        <div class="hint">อย่าใส่รหัสผ่าน · หมายเลขบัตร · หรือเลขบัญชีเต็ม</div>
+      </div>
+      <div class="field"><label>อีเมลติดต่อกลับ</label><input type="email" value="demo@example.com"/><div class="hint">บัญชี demo · ตัวอย่าง</div></div>
+      <button class="btn btn-primary btn-block" style="margin-top:8px">ส่งรายงาน</button>
+      <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted);line-height:1.5">ต้องการแจ้งละเมิดลิขสิทธิ์? ใช้ <u style="color:var(--primary);font-weight:600">ฟอร์ม takedown</u></p>
+    </div>
+  </div>
+</div>
+</body></html>

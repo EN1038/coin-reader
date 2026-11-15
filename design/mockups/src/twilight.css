@@ -1,0 +1,13 @@
+/* New themed mocks only; do not recolour archived v1 screenshots. */
+html,body{background:var(--bg);color:var(--text)}
+.coin-pill{background:var(--coin-bg);color:var(--coin-text);border:1px solid var(--coin-text);padding:6px 9px;font-size:11px}
+.coin-pill .dot{background:var(--accent-coin);box-shadow:none}
+.bottomnav a{color:var(--text-muted)}.bottomnav a.on{color:var(--primary)}
+.badge-ex{background:var(--surface-2);color:var(--text-muted);border-color:var(--line)}
+.cover{background:linear-gradient(145deg,#3D5A80,#182D49)}
+.cover.rose{background:linear-gradient(145deg,#655575,#293147)}
+.cover.warm{background:linear-gradient(145deg,#6D5E48,#293147)}
+.cover.blue{background:linear-gradient(145deg,#3D5A80,#182D49)}
+.hero{color:var(--on-hero)}
+
+.btn-coin{background:var(--accent-coin);color:var(--on-coin)}

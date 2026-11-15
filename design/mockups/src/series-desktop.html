@@ -1,0 +1,37 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>หน้าเรื่อง Desktop</title><link rel="stylesheet" href="app.css"/>
+<style>
+.wrap{max-width:980px;margin:0 auto;padding:32px 40px;display:grid;grid-template-columns:200px 1fr;gap:32px}
+.desk-top{height:64px;display:flex;align-items:center;gap:24px;padding:0 40px;background:var(--surface);border-bottom:1px solid var(--line)}
+.desk-top .logo{font-family:var(--font-head);font-weight:700;font-size:18px}
+</style></head><body>
+<div class="desktop" id="screen">
+  <div class="desk-top">
+    <div class="logo">🪙 Coin Reader</div>
+    <div style="flex:1"></div>
+    <span class="coin-pill"><span class="dot"></span>248</span>
+  </div>
+  <div class="wrap">
+    <div>
+      <div class="cover warm" style="width:200px;height:280px;padding:16px;font-size:16px"><span class="cover-title">คาเฟ่<br/>ตอนตีสาม</span></div>
+      <button class="btn btn-primary btn-block" style="margin-top:16px">อ่านตอนล่าสุด</button>
+      <button class="btn btn-coin btn-block" style="margin-top:8px">ซื้อทั้งเล่ม · 🪙 180</button>
+    </div>
+    <div>
+      <span class="badge badge-ex">ข้อมูลตัวอย่าง</span>
+      <h1 style="font-size:32px;margin:8px 0 4px">คาเฟ่ตอนตีสาม</h1>
+      <div style="color:var(--text-muted);margin-bottom:12px">นามปากกาตัวอย่าง · นิยาย · โรแมนติก · 42 ตอน</div>
+      <p style="line-height:1.65;color:var(--text-muted);margin-bottom:24px;max-width:560px">คาเฟ่ที่เปิดเฉพาะหลังเที่ยงคืน มีกฎข้อเดียว — ลูกค้าต้องเล่าความลับหนึ่งอย่างก่อนสั่งเครื่องดื่ม</p>
+      <h2 style="font-size:18px;margin-bottom:12px">สารบัญ</h2>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="ep"><div class="n">1</div><div class="meta"><div class="t">ตอนที่ 1 — ประตูไม้เก่า</div></div><span class="badge badge-free">ฟรี</span></div>
+        <div class="ep"><div class="n">2</div><div class="meta"><div class="t">ตอนที่ 2 — กาแฟไม่มีน้ำตาล</div></div><span class="badge badge-free">ฟรี</span></div>
+        <div class="ep"><div class="n">3</div><div class="meta"><div class="t">ตอนที่ 3 — ลูกค้าประจำคนแรก</div></div><span class="badge badge-free">ฟรี</span></div>
+        <div class="ep"><div class="n">4</div><div class="meta"><div class="t">ตอนที่ 4 — ความลับบนแก้ว</div></div><span class="badge badge-lock">🪙 8</span></div>
+        <div class="ep" style="border:0"><div class="n">5</div><div class="meta"><div class="t">ตอนที่ 5 — ฝนสามทุ่ม</div></div><span class="badge badge-lock">🪙 8</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

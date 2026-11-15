@@ -1,0 +1,121 @@
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode,
+} from 'react';
+import { api, isMockMode } from '../lib/supabase';
+import type { SessionUser } from '../lib/types';
+import { ApiError } from '../lib/types';
+
+interface AppCtx {
+  user: SessionUser | null;
+  /** Gold — reader spendable (alias kept as balance) */
+  balance: number;
+  gold: number;
+  diamond: number;
+  tickets: number;
+  loading: boolean;
+  isMock: boolean;
+  refresh: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, referralCode?: string) => Promise<void>;
+  logout: () => Promise<void>;
+  setBalance: (n: number) => void;
+  setGold: (n: number) => void;
+  setDiamond: (n: number) => void;
+  setTickets: (n: number) => void;
+}
+
+const Ctx = createContext<AppCtx | null>(null);
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [gold, setGold] = useState(0);
+  const [diamond, setDiamond] = useState(0);
+  const [tickets, setTickets] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const balance = gold;
+  const setBalance = setGold;
+
+  const applyWallet = useCallback((w: { gold?: number; diamond?: number; balance?: number }) => {
+    const g = w.gold ?? w.balance ?? 0;
+    setGold(g);
+    setDiamond(w.diamond ?? 0);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const s = await api.getSession();
+    setUser(s);
+    if (s) {
+      try {
+        applyWallet(await api.myWallet());
+      } catch {
+        setGold(0);
+        setDiamond(0);
+      }
+      try {
+        setTickets(await api.ticketBalance());
+      } catch {
+        setTickets(0);
+      }
+    } else {
+      setGold(0);
+      setDiamond(0);
+      setTickets(0);
+    }
+  }, [applyWallet]);
+
+  useEffect(() => {
+    refresh().finally(() => setLoading(false));
+  }, [refresh]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const u = await api.login(email, password);
+    setUser(u);
+    applyWallet(await api.myWallet());
+    setTickets(await api.ticketBalance());
+  }, [applyWallet]);
+
+  const signup = useCallback(async (email: string, password: string, name: string, referralCode?: string) => {
+    const u = await api.signup(email, password, name, referralCode);
+    setUser(u);
+    applyWallet(await api.myWallet());
+    setTickets(await api.ticketBalance());
+  }, [applyWallet]);
+
+  const logout = useCallback(async () => {
+    await api.logout();
+    setUser(null);
+    setGold(0);
+    setDiamond(0);
+    setTickets(0);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      user, balance, gold, diamond, tickets, loading, isMock: isMockMode,
+      refresh, login, signup, logout, setBalance, setGold, setDiamond, setTickets,
+    }),
+    [user, balance, gold, diamond, tickets, loading, refresh, login, signup, logout],
+  );
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export function useApp() {
+  const v = useContext(Ctx);
+  if (!v) throw new Error('useApp outside provider');
+  return v;
+}
+
+export function errMessage(e: unknown): string {
+  if (e instanceof ApiError) {
+    switch (e.code) {
+      case 'INSUFFICIENT_COINS': return 'Gold ไม่พอ';
+      case 'PRICE_CHANGED': return 'ราคาเปลี่ยนแล้ว กรุณาลองใหม่';
+      case 'UNAUTHORIZED': return e.message || 'กรุณาเข้าสู่ระบบ';
+      case 'IDEMPOTENCY_CONFLICT': return 'คำขอซ้ำกับแพ็กอื่น';
+      default: return e.message || e.code;
+    }
+  }
+  if (e instanceof Error) return e.message;
+  return 'เกิดข้อผิดพลาด';
+}
