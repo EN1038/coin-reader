@@ -16,6 +16,7 @@ import {
 import { PRODUCT_NAME } from '../lib/brand';
 import { BrandLogo } from './BrandAssets';
 import { ThemeToggle } from './ThemeToggle';
+import { UserAvatar } from './UserAvatar';
 import { useApp } from '../context/AppContext';
 import { api, isMockMode } from '../lib/supabase';
 import type { Category } from '../lib/types';
@@ -60,7 +61,6 @@ export function ReaderHeader() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [notifyTick, setNotifyTick] = useState(0);
   const catsRef = useRef<HTMLDivElement>(null);
-  const initial = user?.display_name?.trim().slice(0, 1).toUpperCase() || '';
   const notifications = user && isMockMode ? mockDb.listNotifications(user.id) : [];
   const unread = user && isMockMode ? mockDb.unreadNotificationCount(user.id) : 0;
   void notifyTick;
@@ -246,7 +246,11 @@ export function ReaderHeader() {
               <CoinPill />
               <Link to="/wallet/topup" className="btn btn-coin btn-sm topup-link">เติม</Link>
               <Link to="/me" className="avatar-btn" aria-label="โปรไฟล์">
-                {initial || <IconUser size={16} />}
+                {user ? (
+                  <UserAvatar name={user.display_name} src={user.avatar_url} className="avatar-btn-img" />
+                ) : (
+                  <IconUser size={16} />
+                )}
               </Link>
             </>
           ) : (

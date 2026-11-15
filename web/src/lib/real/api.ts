@@ -130,12 +130,18 @@ async function mapUser(): Promise<SessionUser | null> {
   const client = sb();
   const { data } = await client.auth.getUser();
   if (!data.user) return null;
-  const { data: profile } = await client.from('profiles').select('display_name,watermark_id').eq('id', data.user.id).maybeSingle();
+  const { data: profile } = await client
+    .from('profiles')
+    .select('display_name,watermark_id,avatar_url')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  const metaName = (data.user.user_metadata as { display_name?: string } | undefined)?.display_name;
   return {
     id: data.user.id,
     email: data.user.email ?? '',
-    display_name: profile?.display_name ?? data.user.email ?? 'ผู้ใช้',
+    display_name: (profile?.display_name || metaName || data.user.email || 'ผู้ใช้') as string,
     watermark_id: profile?.watermark_id ?? data.user.id.slice(0, 8),
+    avatar_url: (profile?.avatar_url as string | null | undefined) ?? null,
   };
 }
 
@@ -155,12 +161,18 @@ export const realApi: CoinReaderApi = {
   },
 
   async signup(email, password, displayName, _referralCode?: string) {
-    const { error } = await sb().auth.signUp({
+    const { data, error } = await sb().auth.signUp({
       email,
       password,
       options: { data: { display_name: displayName } },
     });
     if (error) throw new ApiError(400, 'VALIDATION', error.message);
+    if (data.user) {
+      const name = displayName.trim().slice(0, 80);
+      if (name) {
+        await sb().from('profiles').update({ display_name: name }).eq('id', data.user.id);
+      }
+    }
     const u = await mapUser();
     if (!u) throw new ApiError(401, 'UNAUTHORIZED', 'สมัครแล้ว แต่ยังไม่มีเซสชัน — ตรวจยืนยันอีเมล');
     return u;
@@ -168,6 +180,40 @@ export const realApi: CoinReaderApi = {
 
   async logout() {
     await sb().auth.signOut();
+  },
+
+  async updateProfile(input) {
+    const client = sb();
+    const { data: auth } = await client.auth.getUser();
+    if (!auth.user) throw new ApiError(401, 'UNAUTHORIZED');
+
+    const name = input.display_name.trim();
+    if (!name || name.length > 80) {
+      throw new ApiError(400, 'VALIDATION', 'ชื่อต้องมีความยาว 1–80 ตัวอักษร');
+    }
+
+    const patch: { display_name: string; avatar_url?: string | null } = { display_name: name };
+
+    if (input.clear_avatar) {
+      patch.avatar_url = null;
+      await client.storage.from('avatars').remove([`${auth.user.id}/avatar.jpg`]);
+    } else if (input.avatar_blob) {
+      const path = `${auth.user.id}/avatar.jpg`;
+      const { error: upErr } = await client.storage.from('avatars').upload(path, input.avatar_blob, {
+        upsert: true,
+        contentType: 'image/jpeg',
+        cacheControl: '3600',
+      });
+      if (upErr) throw new ApiError(400, 'VALIDATION', upErr.message || 'อัปโหลดรูปไม่สำเร็จ');
+      const { data: pub } = client.storage.from('avatars').getPublicUrl(path);
+      patch.avatar_url = `${pub.publicUrl}?v=${Date.now()}`;
+    }
+
+    const { error } = await client.from('profiles').update(patch).eq('id', auth.user.id);
+    if (error) throw new ApiError(400, 'VALIDATION', error.message);
+    const u = await mapUser();
+    if (!u) throw new ApiError(401, 'UNAUTHORIZED');
+    return u;
   },
 
   async listWorks(params) {

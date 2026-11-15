@@ -1,28 +1,37 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { Badge } from '../components/Badge';
 import { MockBanner } from '../components/MockBanner';
-import { useApp } from '../context/AppContext';
+import { UserAvatar } from '../components/UserAvatar';
+import { errMessage, useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
-import { mockDb } from '../lib/mock/store';
-import { isMockMode } from '../lib/supabase';
+import { api } from '../lib/supabase';
+import { compressAvatarFile } from '../lib/avatar';
 import { profilePathFor } from '../lib/profileSlug';
-
-function initials(name: string): string {
-  const t = name.trim();
-  if (!t) return '?';
-  return t.slice(0, 2);
-}
 
 export function SettingsPage() {
   const { user, refresh, isMock, logout } = useApp();
   const { theme, setTheme } = useTheme();
   const nav = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.display_name ?? '');
+  const [preview, setPreview] = useState<string | null>(user?.avatar_url ?? null);
+  const [avatarBlob, setAvatarBlob] = useState<Blob | null>(null);
+  const [clearAvatar, setClearAvatar] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!editing && user) {
+      setName(user.display_name);
+      setPreview(user.avatar_url ?? null);
+      setAvatarBlob(null);
+      setClearAvatar(false);
+    }
+  }, [user, editing]);
 
   if (!user) {
     return (
@@ -40,23 +49,63 @@ export function SettingsPage() {
 
   const backTo = profilePathFor(user);
 
-  async function saveName(e: React.FormEvent) {
+  function startEdit() {
+    if (!user) return;
+    setEditing(true);
+    setName(user.display_name);
+    setPreview(user.avatar_url ?? null);
+    setAvatarBlob(null);
+    setClearAvatar(false);
+    setMsg('');
+    setError('');
+  }
+
+  function cancelEdit() {
+    if (!user) return;
+    setEditing(false);
+    setName(user.display_name);
+    setPreview(user.avatar_url ?? null);
+    setAvatarBlob(null);
+    setClearAvatar(false);
+    setError('');
+  }
+
+  async function onPickFile(file: File | undefined) {
+    if (!file) return;
+    setError('');
+    try {
+      const blob = await compressAvatarFile(file);
+      const url = URL.createObjectURL(blob);
+      setPreview(url);
+      setAvatarBlob(blob);
+      setClearAvatar(false);
+    } catch (e) {
+      setError(errMessage(e));
+    }
+  }
+
+  async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setMsg('');
-    if (!isMockMode) {
-      setError('แก้ไขชื่อได้ในโหมด mock เท่านั้นตอนนี้');
-      return;
-    }
+    setSaving(true);
     try {
-      mockDb.updateDisplayName(name);
+      const next = await api.updateProfile({
+        display_name: name,
+        avatar_blob: avatarBlob ?? undefined,
+        clear_avatar: clearAvatar,
+      });
       await refresh();
       setMsg('บันทึกแล้ว');
       setEditing(false);
-      const next = mockDb.getState().user;
-      if (next) nav(profilePathFor(next), { replace: true });
-    } catch {
-      setError('บันทึกไม่สำเร็จ');
+      setAvatarBlob(null);
+      setClearAvatar(false);
+      setPreview(next.avatar_url ?? null);
+      nav(profilePathFor(next), { replace: true });
+    } catch (err) {
+      setError(errMessage(err));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -75,34 +124,82 @@ export function SettingsPage() {
       )}
 
       <div className="settings-profile">
-        <div className="settings-av">{initials(user.display_name)}</div>
+        <div className="settings-av-wrap">
+          <UserAvatar
+            name={name || user.display_name}
+            src={preview}
+            className="settings-av"
+          />
+          {editing && (
+            <>
+              <button
+                type="button"
+                className="settings-av-edit"
+                onClick={() => fileRef.current?.click()}
+              >
+                เปลี่ยนรูป
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={(e) => {
+                  void onPickFile(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
+            </>
+          )}
+        </div>
+
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
-            <form onSubmit={saveName}>
+            <form onSubmit={saveProfile}>
+              <label className="settings-label" htmlFor="settings-display-name">ชื่อที่แสดง</label>
               <input
+                id="settings-display-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                maxLength={40}
+                maxLength={80}
                 style={{ width: '100%', marginBottom: 8 }}
               />
+              {(preview || user.avatar_url) && !clearAvatar && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ minHeight: 36, marginBottom: 8, padding: '0 10px' }}
+                  onClick={() => {
+                    setClearAvatar(true);
+                    setAvatarBlob(null);
+                    setPreview(null);
+                  }}
+                >
+                  ลบรูปโปรไฟล์
+                </button>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1, minHeight: 40 }}>บันทึก</button>
-                <button type="button" className="btn btn-ghost" style={{ flex: 1, minHeight: 40 }} onClick={() => { setEditing(false); setName(user.display_name); }}>ยกเลิก</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, minHeight: 40 }} disabled={saving}>
+                  {saving ? 'กำลังบันทึก…' : 'บันทึก'}
+                </button>
+                <button type="button" className="btn btn-ghost" style={{ flex: 1, minHeight: 40 }} onClick={cancelEdit} disabled={saving}>
+                  ยกเลิก
+                </button>
               </div>
             </form>
           ) : (
             <>
               <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600 }}>{user.display_name}</div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{user.email}</div>
-              {isMock && <Badge kind="ex" >บัญชีตัวอย่าง</Badge>}
+              {isMock && <Badge kind="ex">บัญชีตัวอย่าง</Badge>}
             </>
           )}
           {msg && <div style={{ fontSize: 12, color: 'var(--primary)', marginTop: 6 }}>{msg}</div>}
           {error && <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 6 }}>{error}</div>}
         </div>
         {!editing && (
-          <button type="button" className="btn btn-ghost" style={{ minHeight: 36, padding: '0 10px', color: 'var(--text-muted)' }} onClick={() => setEditing(true)}>
+          <button type="button" className="btn btn-ghost" style={{ minHeight: 36, padding: '0 10px', color: 'var(--text-muted)' }} onClick={startEdit}>
             แก้ไข
           </button>
         )}

@@ -105,6 +105,16 @@ export interface SessionUser {
   email: string;
   display_name: string;
   watermark_id: string;
+  /** Public URL or data URL for profile photo */
+  avatar_url?: string | null;
+}
+
+export interface UpdateProfileInput {
+  display_name: string;
+  /** Compressed image blob; omit to keep current photo */
+  avatar_blob?: Blob | null;
+  /** Clear photo without uploading a new one */
+  clear_avatar?: boolean;
 }
 
 export type CoinCurrency = 'gold' | 'diamond';

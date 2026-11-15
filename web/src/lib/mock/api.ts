@@ -116,6 +116,32 @@ export const mockApi: CoinReaderApi = {
     mockDb.logout();
   },
 
+  async updateProfile(input) {
+    requireUser();
+    try {
+      let avatar_url: string | null | undefined;
+      if (input.clear_avatar) {
+        avatar_url = null;
+      } else if (input.avatar_blob) {
+        const { blobToDataUrl } = await import('../avatar');
+        avatar_url = await blobToDataUrl(input.avatar_blob);
+      }
+      return mockDb.updateProfile({
+        display_name: input.display_name,
+        avatar_url,
+        clear_avatar: input.clear_avatar,
+      });
+    } catch (e) {
+      if (e instanceof Error && e.message === 'VALIDATION') {
+        throw new ApiError(400, 'VALIDATION', 'ชื่อไม่ถูกต้อง');
+      }
+      if (e instanceof Error && e.message === 'UNAUTHORIZED') {
+        throw new ApiError(401, 'UNAUTHORIZED');
+      }
+      throw e;
+    }
+  },
+
   async listWorks(params) {
     let list = [...mockDb.works];
     if (params?.kind) list = list.filter((w) => w.kind === params.kind);
