@@ -178,6 +178,15 @@ export function IconDiamond({ size = 16, className }: IconProps) {
   );
 }
 
+export function IconTicket({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M3 8.5A2.5 2.5 0 0 0 5.5 11 2.5 2.5 0 0 0 3 13.5V17a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-3.5A2.5 2.5 0 0 0 18.5 11 2.5 2.5 0 0 0 21 8.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v1.5z" />
+      <path d="M12 7v11" />
+    </svg>
+  );
+}
+
 export function IconSun({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../lib/supabase';
+import { api, isMockMode } from '../lib/supabase';
 import type { LedgerEntry, LedgerKind } from '../lib/types';
 import { useApp } from '../context/AppContext';
 import { CoinAmount } from '../components/CoinAmount';
+import { Topbar } from '../components/Topbar';
 import { mockDb } from '../lib/mock/store';
-import { isMockMode } from '../lib/supabase';
+import { profilePathFor } from '../lib/profileSlug';
+import { IconChevronRight, IconCoin, IconDiamond, IconTicket } from '../components/icons';
 
 const KIND: Record<LedgerKind, string> = {
   topup: 'เติม Gold',
@@ -20,6 +22,17 @@ const KIND: Record<LedgerKind, string> = {
   diamond_to_gold: 'แลก Diamond↔Gold',
 };
 
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString('th-TH', {
+    timeZone: 'Asia/Bangkok',
+    day: 'numeric',
+    month: 'short',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function WalletPage() {
   const { user, gold, diamond, tickets, isMock, refresh } = useApp();
   const nav = useNavigate();
@@ -29,95 +42,158 @@ export function WalletPage() {
   );
   const [convertAmt, setConvertAmt] = useState(10);
   const [msg, setMsg] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!user) { nav('/auth/login?next=/wallet'); return; }
+    if (!user) {
+      nav('/auth/login?next=/wallet');
+      return;
+    }
     api.listLedger().then(setLedger).catch(() => setLedger([]));
     if (isMockMode) setReaderTier(mockDb.readerAchievement(user.id));
   }, [user, nav, gold, diamond]);
+
+  if (!user) return null;
+
+  const backTo = profilePathFor(user);
 
   function onConvert(e: React.FormEvent) {
     e.preventDefault();
     if (!user || !isMockMode) return;
     setMsg('');
+    setError('');
     try {
       mockDb.convertDiamondToGold(user.id, convertAmt);
-      refresh();
-      setMsg(`แลก ${convertAmt} Diamond → Gold สำเร็จ`);
+      void refresh();
+      setMsg(`แลก ${convertAmt} Diamond เป็น Gold แล้ว`);
     } catch {
-      setMsg('แลกไม่สำเร็จ — Diamond ไม่พอ');
+      setError('แลกไม่สำเร็จ — Diamond ไม่พอ');
     }
   }
 
   return (
-    <div className="wallet-page">
-      <div className="wallet-hero">
-        <div className="muted">กระเป๋า Stock Manga {isMock ? '· mock' : ''}</div>
-        <div className="wallet-balance-row">
-          <div>
-            <div className="muted" style={{ fontSize: 12 }}>Gold (นักอ่าน)</div>
-            <div className="wallet-balance"><CoinAmount value={gold} size={20} currency="gold" className="head-amt" /></div>
-          </div>
-          <div>
-            <div className="muted" style={{ fontSize: 12 }}>Diamond (นักแปล)</div>
-            <div className="wallet-balance"><CoinAmount value={diamond} size={20} currency="diamond" className="head-amt" /></div>
-          </div>
-        </div>
-        <div className="muted">ตั๋วอ่านฟรี {tickets} ใบ</div>
-        {readerTier && (
-          <div className={`tier-badge tier-${readerTier.tier_id}`} title="ระดับนักอ่านจากยอดเติมสะสม">
-            <span className="tier-badge-bob" aria-hidden />
-            {readerTier.tier_label}
-            <small>เติมสะสม {readerTier.lifetime_topup.toLocaleString()} G
-              {readerTier.next_tier_at != null ? ` · ถัดไป ${readerTier.next_tier_at.toLocaleString()}` : ''}
-            </small>
-          </div>
-        )}
-        <Link to="/wallet/topup" className="btn btn-coin" style={{ marginTop: 12 }}>เติม Gold</Link>
-      </div>
+    <>
+      <Topbar title="กระเป๋าเหรียญ" back={backTo} showCoin={false} />
 
-      <div className="notice">
-        Gold คืนเป็นเงินสดไม่ได้ · Diamond ถอนธนาคารได้เมื่อเป็นนักแปล (ขั้นต่ำ 500) หรือแลกเป็น Gold 1:1
-        {' '}<Link to="/legal/coins">นโยบายเหรียญ</Link>
-      </div>
-
-      {isMock && diamond > 0 && (
-        <form className="card" style={{ margin: '0 16px 12px', padding: 14 }} onSubmit={onConvert}>
-          <strong style={{ display: 'block', marginBottom: 8 }}>แลก Diamond → Gold (1:1)</strong>
-          <div className="row" style={{ gap: 8 }}>
-            <input
-              type="number"
-              min={1}
-              max={diamond}
-              value={convertAmt}
-              onChange={(e) => setConvertAmt(Number(e.target.value))}
-              style={{ flex: 1, minHeight: 40, borderRadius: 10, border: '1px solid var(--line)', padding: '0 12px' }}
-            />
-            <button type="submit" className="btn btn-primary btn-sm">แลก</button>
-          </div>
-          {msg && <p style={{ marginTop: 8, fontSize: 13, color: 'var(--ok)' }}>{msg}</p>}
-        </form>
-      )}
-
-      <div className="sec"><h2>ประวัติ</h2><span className="muted">อ่านอย่างเดียว</span></div>
-      {ledger.length === 0 && <p className="pad muted">ยังไม่มีรายการ</p>}
-      <div className="ledger">
-        {ledger.map((e) => (
-          <div key={e.id} className="ledger-row">
-            <div>
-              <span className={`kind-tag ${e.kind}`}>{KIND[e.kind] ?? e.kind}</span>
-              <div className="ledger-label">{e.label}</div>
-              <div className="muted" style={{ fontSize: 12 }}>
-                {new Date(e.created_at).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' })}
-                {e.currency ? ` · ${e.currency === 'diamond' ? 'Diamond' : 'Gold'}` : ''}
+      <div className="wallet-page">
+        <div className="wallet-frame">
+          <section className="wallet-balances" aria-label="ยอดคงเหลือ">
+            <div className="wallet-bal-card wallet-bal-gold">
+              <div className="wallet-bal-head">
+                <span className="wallet-bal-ic" aria-hidden><IconCoin size={18} /></span>
+                <div>
+                  <strong>Gold</strong>
+                  <span>ใช้ปลดล็อกตอน</span>
+                </div>
               </div>
+              <div className="wallet-bal-value">
+                <CoinAmount value={gold} size={28} currency="gold" />
+              </div>
+              <Link to="/wallet/topup" className="btn btn-coin btn-block">เติม Gold</Link>
             </div>
-            <strong className={e.amount > 0 ? 'plus' : e.amount < 0 ? 'minus' : ''}>
-              {e.amount > 0 ? '+' : ''}{e.amount}
-            </strong>
+
+            <div className="wallet-bal-card wallet-bal-diamond">
+              <div className="wallet-bal-head">
+                <span className="wallet-bal-ic" aria-hidden><IconDiamond size={18} /></span>
+                <div>
+                  <strong>Diamond</strong>
+                  <span>รายได้นักแปล</span>
+                </div>
+              </div>
+              <div className="wallet-bal-value">
+                <CoinAmount value={diamond} size={28} currency="diamond" />
+              </div>
+              <Link to="/writer/payout" className="btn btn-ghost btn-block">
+                ถอน / จัดการ <IconChevronRight size={16} />
+              </Link>
+            </div>
+          </section>
+
+          <div className="wallet-meta-row">
+            <div className="wallet-meta-chip">
+              <IconTicket size={16} />
+              <span>ตั๋วอ่านฟรี <strong>{tickets}</strong></span>
+            </div>
+            {readerTier && (
+              <div className={`wallet-meta-chip tier-badge tier-${readerTier.tier_id}`}>
+                <span className="tier-badge-bob" aria-hidden />
+                <span>
+                  {readerTier.tier_label}
+                  <small>
+                    เติมสะสม {readerTier.lifetime_topup.toLocaleString()} G
+                    {readerTier.next_tier_at != null ? ` · ถัดไป ${readerTier.next_tier_at.toLocaleString()}` : ''}
+                  </small>
+                </span>
+              </div>
+            )}
+            {isMock && <span className="wallet-mock-tag">mock</span>}
           </div>
-        ))}
+
+          <p className="wallet-notice">
+            Gold คืนเป็นเงินสดไม่ได้ · Diamond ถอนได้เมื่อเป็นนักแปล (ขั้นต่ำ 500) หรือแลกเป็น Gold 1:1
+            {' '}<Link to="/legal/coins">นโยบายเหรียญ</Link>
+          </p>
+
+          {isMock && diamond > 0 && (
+            <form className="wallet-convert card" onSubmit={onConvert}>
+              <div className="wallet-convert-head">
+                <strong>แลก Diamond เป็น Gold</strong>
+                <span>อัตรา 1:1 · โหมดตัวอย่าง</span>
+              </div>
+              <div className="wallet-convert-row">
+                <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+                  <label htmlFor="wallet-convert-amt">จำนวน Diamond</label>
+                  <input
+                    id="wallet-convert-amt"
+                    type="number"
+                    min={1}
+                    max={diamond}
+                    value={convertAmt}
+                    onChange={(e) => setConvertAmt(Number(e.target.value))}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">แลก</button>
+              </div>
+              {msg && <p className="wallet-convert-msg ok">{msg}</p>}
+              {error && <p className="wallet-convert-msg err">{error}</p>}
+            </form>
+          )}
+
+          <section className="wallet-ledger-sec">
+            <div className="wallet-ledger-head">
+              <h2>ประวัติธุรกรรม</h2>
+              <span className="muted">อ่านอย่างเดียว</span>
+            </div>
+
+            {ledger.length === 0 ? (
+              <div className="wallet-empty">
+                <p>ยังไม่มีรายการ</p>
+                <Link to="/wallet/topup" className="btn btn-primary btn-sm">เติม Gold ครั้งแรก</Link>
+              </div>
+            ) : (
+              <div className="wallet-ledger">
+                {ledger.map((e) => {
+                  const currency = e.currency === 'diamond' ? 'diamond' : 'gold';
+                  const abs = Math.abs(e.amount);
+                  return (
+                    <div key={e.id} className="wallet-ledger-row">
+                      <div className="wallet-ledger-copy">
+                        <span className={`kind-tag ${e.kind}`}>{KIND[e.kind] ?? e.kind}</span>
+                        <strong className="wallet-ledger-label">{e.label}</strong>
+                        <time dateTime={e.created_at}>{formatWhen(e.created_at)}</time>
+                      </div>
+                      <div className={`wallet-ledger-amt ${e.amount > 0 ? 'plus' : e.amount < 0 ? 'minus' : ''}`}>
+                        <span className="wallet-ledger-sign">{e.amount > 0 ? '+' : e.amount < 0 ? '−' : ''}</span>
+                        <CoinAmount value={abs} size={16} currency={currency} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
