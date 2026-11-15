@@ -9,11 +9,15 @@ const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const isMockMode = useMockFlag || !url || !anon;
 
+let supabaseClient: SupabaseClient | null | undefined;
+
 export function getSupabase(): SupabaseClient | null {
   if (isMockMode || !url || !anon) return null;
-  return createClient(url, anon, {
+  if (supabaseClient !== undefined) return supabaseClient;
+  supabaseClient = createClient(url, anon, {
     auth: { persistSession: true, autoRefreshToken: true },
   });
+  return supabaseClient;
 }
 
 export const api: CoinReaderApi = isMockMode ? mockApi : realApi;

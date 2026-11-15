@@ -155,21 +155,22 @@ export function SettingsPage() {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
-            <form onSubmit={saveProfile}>
-              <label className="settings-label" htmlFor="settings-display-name">ชื่อที่แสดง</label>
-              <input
-                id="settings-display-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={80}
-                style={{ width: '100%', marginBottom: 8 }}
-              />
+            <form className="settings-edit-form" onSubmit={saveProfile}>
+              <div className="field">
+                <label htmlFor="settings-display-name">ชื่อที่แสดง</label>
+                <input
+                  id="settings-display-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  maxLength={80}
+                  autoComplete="nickname"
+                />
+              </div>
               {(preview || user.avatar_url) && !clearAvatar && (
                 <button
                   type="button"
-                  className="btn btn-ghost"
-                  style={{ minHeight: 36, marginBottom: 8, padding: '0 10px' }}
+                  className="btn btn-ghost settings-remove-photo"
                   onClick={() => {
                     setClearAvatar(true);
                     setAvatarBlob(null);
@@ -179,11 +180,11 @@ export function SettingsPage() {
                   ลบรูปโปรไฟล์
                 </button>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1, minHeight: 40 }} disabled={saving}>
+              <div className="settings-edit-actions">
+                <button type="submit" className="btn btn-primary" disabled={saving}>
                   {saving ? 'กำลังบันทึก…' : 'บันทึก'}
                 </button>
-                <button type="button" className="btn btn-ghost" style={{ flex: 1, minHeight: 40 }} onClick={cancelEdit} disabled={saving}>
+                <button type="button" className="btn btn-ghost" onClick={cancelEdit} disabled={saving}>
                   ยกเลิก
                 </button>
               </div>

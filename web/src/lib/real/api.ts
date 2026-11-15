@@ -184,8 +184,10 @@ export const realApi: CoinReaderApi = {
 
   async updateProfile(input) {
     const client = sb();
-    const { data: auth } = await client.auth.getUser();
-    if (!auth.user) throw new ApiError(401, 'UNAUTHORIZED');
+    const { data: sessionData } = await client.auth.getSession();
+    const session = sessionData.session;
+    if (!session?.user) throw new ApiError(401, 'UNAUTHORIZED');
+    const userId = session.user.id;
 
     const name = input.display_name.trim();
     if (!name || name.length > 80) {
@@ -193,23 +195,34 @@ export const realApi: CoinReaderApi = {
     }
 
     const patch: { display_name: string; avatar_url?: string | null } = { display_name: name };
+    const path = `${userId}/avatar.jpg`;
 
     if (input.clear_avatar) {
       patch.avatar_url = null;
-      await client.storage.from('avatars').remove([`${auth.user.id}/avatar.jpg`]);
+      await client.storage.from('avatars').remove([path]);
     } else if (input.avatar_blob) {
-      const path = `${auth.user.id}/avatar.jpg`;
+      // Prefer replace: remove then insert (avoids upsert RLS edge cases)
+      await client.storage.from('avatars').remove([path]);
       const { error: upErr } = await client.storage.from('avatars').upload(path, input.avatar_blob, {
-        upsert: true,
+        upsert: false,
         contentType: 'image/jpeg',
         cacheControl: '3600',
       });
-      if (upErr) throw new ApiError(400, 'VALIDATION', upErr.message || 'อัปโหลดรูปไม่สำเร็จ');
-      const { data: pub } = client.storage.from('avatars').getPublicUrl(path);
-      patch.avatar_url = `${pub.publicUrl}?v=${Date.now()}`;
+      if (upErr) {
+        // Fallback: keep photo inline if storage policy still blocks
+        try {
+          const { blobToDataUrl } = await import('../avatar');
+          patch.avatar_url = await blobToDataUrl(input.avatar_blob);
+        } catch {
+          throw new ApiError(400, 'VALIDATION', upErr.message || 'อัปโหลดรูปไม่สำเร็จ');
+        }
+      } else {
+        const { data: pub } = client.storage.from('avatars').getPublicUrl(path);
+        patch.avatar_url = `${pub.publicUrl}?v=${Date.now()}`;
+      }
     }
 
-    const { error } = await client.from('profiles').update(patch).eq('id', auth.user.id);
+    const { error } = await client.from('profiles').update(patch).eq('id', userId);
     if (error) throw new ApiError(400, 'VALIDATION', error.message);
     const u = await mapUser();
     if (!u) throw new ApiError(401, 'UNAUTHORIZED');
