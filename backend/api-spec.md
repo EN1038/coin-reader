@@ -14,7 +14,7 @@
 ## ตาราง
 | ตาราง | keys/ข้อมูล | สิทธิ์ client |
 |---|---|---|
-| auth.users / profiles | auth uuid, display_name, status, random watermark_id | self read; update display_name เท่านั้น |
+| auth.users / profiles | auth uuid, display_name, avatar_url, status, random watermark_id | self read; update display_name + avatar_url |
 | app_admins | user_id + moderator/finance/superadmin | ไม่มี direct read/write; trusted SQL provision |
 | platform_settings | singleton, writer_share_bps, hold_days, minimum_payout, mock_enabled | ไม่มี direct access; service config พร้อม audit |
 | authors | user_id UNIQUE, display_name, contract_version/accepted_at, status, approved_at | self apply (server time), self read; public ผ่าน view |

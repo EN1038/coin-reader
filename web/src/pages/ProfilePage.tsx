@@ -23,12 +23,7 @@ import {
   IconTrophy,
   IconUser,
 } from '../components/icons';
-
-function initials(name: string): string {
-  const t = name.trim();
-  if (!t) return '?';
-  return t.slice(0, 2);
-}
+import { UserAvatar } from '../components/UserAvatar';
 
 function findAccountUserBySlug(slug: string): SessionUser | null {
   const accounts = mockDb.getState().accounts;
@@ -101,7 +96,7 @@ export function ProfilePage() {
   const identity = (
     <>
       <div className="profile-id">
-        <div className="profile-av" aria-hidden>{initials(viewed.display_name)}</div>
+        <UserAvatar name={viewed.display_name} src={viewed.avatar_url} className="profile-av" />
         <div className="profile-id-copy">
           <h1 className="profile-name">{viewed.display_name}</h1>
           <p className="profile-handle">/{handle}</p>

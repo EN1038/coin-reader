@@ -1018,11 +1018,23 @@ export const mockDb = {
   },
 
   updateDisplayName(displayName: string): SessionUser {
+    return this.updateProfile({ display_name: displayName });
+  },
+
+  updateProfile(input: {
+    display_name: string;
+    avatar_url?: string | null;
+    clear_avatar?: boolean;
+  }): SessionUser {
     const u = state.user;
     if (!u) throw new Error('UNAUTHORIZED');
-    const name = displayName.trim();
+    const name = input.display_name.trim();
     if (!name) throw new Error('VALIDATION');
-    const next = { ...u, display_name: name };
+    if (name.length > 80) throw new Error('VALIDATION');
+    let avatar_url = u.avatar_url ?? null;
+    if (input.clear_avatar) avatar_url = null;
+    else if (input.avatar_url !== undefined) avatar_url = input.avatar_url;
+    const next: SessionUser = { ...u, display_name: name, avatar_url };
     state.user = next;
     const key = u.email.toLowerCase();
     if (state.accounts[key]) {

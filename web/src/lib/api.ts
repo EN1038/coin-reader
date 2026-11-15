@@ -2,7 +2,7 @@ import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser, WalletInfo,
   LedgerEntry, UnlockResult, TopupResult, MangaPageUrl, BookshelfItem,
   ReadingProgress, SeriesUpdate, CheckInCalendar, CheckInClaim, ReferralInfo,
-  ReaderComment, RatingResult, Category, CategoryIconKey,
+  ReaderComment, RatingResult, Category, CategoryIconKey, UpdateProfileInput,
 } from './types';
 
 export interface ListWorksParams {
@@ -22,6 +22,7 @@ export interface CoinReaderApi {
   login(email: string, password: string): Promise<SessionUser>;
   signup(email: string, password: string, displayName: string, referralCode?: string): Promise<SessionUser>;
   logout(): Promise<void>;
+  updateProfile(input: UpdateProfileInput): Promise<SessionUser>;
   listWorks(params?: ListWorksParams): Promise<Work[]>;
   getWorkBySlug(slug: string): Promise<Work>;
   getWork(id: string): Promise<Work>;
