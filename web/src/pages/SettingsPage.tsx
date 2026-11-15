@@ -4,7 +4,7 @@ import { Topbar } from '../components/Topbar';
 import { Badge } from '../components/Badge';
 import { MockBanner } from '../components/MockBanner';
 import { UserAvatar } from '../components/UserAvatar';
-import { IconCaretRight } from '../components/icons';
+import { IconChevronRight } from '../components/icons';
 import { errMessage, useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { api } from '../lib/supabase';
@@ -230,7 +230,7 @@ export function SettingsPage() {
           </div>
           <span className="r settings-row-meta">
             {theme === 'dark' ? 'มืด' : 'สว่าง'}
-            <IconCaretRight size={12} className="settings-row-ic" />
+            <IconChevronRight size={18} className="settings-row-ic" />
           </span>
         </div>
       </div>
@@ -239,10 +239,10 @@ export function SettingsPage() {
         <h2 style={{ fontSize: 15, color: 'var(--text-muted)', fontWeight: 500 }}>กฎหมายและสิทธิ</h2>
       </div>
       <div className="settings-group">
-        <Link to="/legal/tos" className="item">ข้อกำหนดการใช้ <span className="r"><IconCaretRight size={12} className="settings-row-ic" /></span></Link>
-        <Link to="/legal/privacy" className="item">นโยบายความเป็นส่วนตัว <span className="r"><IconCaretRight size={12} className="settings-row-ic" /></span></Link>
-        <Link to="/legal/coins" className="item">นโยบายเหรียญ (คืนไม่ได้) <span className="r"><IconCaretRight size={12} className="settings-row-ic" /></span></Link>
-        <Link to="/help" className="item">ศูนย์ช่วยเหลือ / รายงานปัญหา <span className="r"><IconCaretRight size={12} className="settings-row-ic" /></span></Link>
+        <Link to="/legal/tos" className="item">ข้อกำหนดการใช้ <span className="r"><IconChevronRight size={18} className="settings-row-ic" /></span></Link>
+        <Link to="/legal/privacy" className="item">นโยบายความเป็นส่วนตัว <span className="r"><IconChevronRight size={18} className="settings-row-ic" /></span></Link>
+        <Link to="/legal/coins" className="item">นโยบายเหรียญ (คืนไม่ได้) <span className="r"><IconChevronRight size={18} className="settings-row-ic" /></span></Link>
+        <Link to="/help" className="item">ศูนย์ช่วยเหลือ / รายงานปัญหา <span className="r"><IconChevronRight size={18} className="settings-row-ic" /></span></Link>
       </div>
 
       <div className="sec">
@@ -268,7 +268,7 @@ export function SettingsPage() {
       <div className="settings-group">
         <Link to="/me/settings/delete" className="item" style={{ color: 'var(--danger)' }}>
           ลบบัญชี / ปิดการใช้งาน
-          <span className="r" style={{ color: 'var(--danger)' }}><IconCaretRight size={12} className="settings-row-ic" /></span>
+          <span className="r" style={{ color: 'var(--danger)' }}><IconChevronRight size={18} className="settings-row-ic" /></span>
         </Link>
       </div>
 

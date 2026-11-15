@@ -2,7 +2,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { IconCaretRight } from '../components/icons';
+import { IconChevronRight } from '../components/icons';
 import { profilePathFor } from '../lib/profileSlug';
 
 /** /me → ไป /u/ชื่อ เมื่อล็อกอินแล้ว · ถ้ายังไม่ล็อกอินแสดงเกสต์ฮับ */
@@ -34,10 +34,10 @@ export function MePage() {
         <section className="profile-section">
           <h2 className="profile-section-title">สำรวจ</h2>
           <nav className="profile-links">
-            <Link to="/library" className="profile-link profile-link-plain">ชั้นหนังสือ <IconCaretRight size={12} className="profile-link-chev" /></Link>
-            <Link to="/check-in" className="profile-link profile-link-plain">เช็คอินรายวัน <IconCaretRight size={12} className="profile-link-chev" /></Link>
-            <Link to="/ranking" className="profile-link profile-link-plain">อันดับ <IconCaretRight size={12} className="profile-link-chev" /></Link>
-            <Link to="/help" className="profile-link profile-link-plain">ศูนย์ช่วยเหลือ <IconCaretRight size={12} className="profile-link-chev" /></Link>
+            <Link to="/library" className="profile-link profile-link-plain">ชั้นหนังสือ <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/check-in" className="profile-link profile-link-plain">เช็คอินรายวัน <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/ranking" className="profile-link profile-link-plain">อันดับ <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/help" className="profile-link profile-link-plain">ศูนย์ช่วยเหลือ <IconChevronRight size={18} className="profile-link-chev" /></Link>
           </nav>
         </section>
       </div>
