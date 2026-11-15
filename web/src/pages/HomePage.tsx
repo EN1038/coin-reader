@@ -8,7 +8,7 @@ import { GENRES } from '../lib/mock/seed';
 import { formatCount, relativeTime } from '../lib/format';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
-import { PRODUCT_NAME } from '../lib/brand';
+import { BRAND_HERO, PRODUCT_NAME } from '../lib/brand';
 
 type RankPeriod = 'weekly' | 'monthly' | 'all';
 
@@ -85,14 +85,15 @@ export function HomePage() {
   return (
     <div className="home clean-home">
       <section className="cm-hero" aria-label="แบนเนอร์ Stock Manga">
-        <div className="cm-hero-inner">
-          <div className="cm-hero-copy">
-            <h1>อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน</h1>
-            <p>คลังมังงะคุณภาพ หลากหลายแนว อ่านได้ฟรี สะดวก ทุกอุปกรณ์</p>
-            <Link to="/discover" className="btn btn-primary cm-hero-cta">เริ่มอ่านเลย</Link>
-          </div>
-          <BrandMascot size="xl" className="cm-hero-mascot" alt="" />
-        </div>
+        <Link to="/discover" className="cm-hero-banner" aria-label="เริ่มอ่านเลย">
+          <img
+            src={BRAND_HERO}
+            alt="อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน — คลังมังงะคุณภาพ หลากหลายแนว อ่านได้ฟรี สะดวก ทุกอุปกรณ์"
+            width={1600}
+            height={520}
+            decoding="async"
+          />
+        </Link>
       </section>
 
       <section className="cm-section" aria-label="หมวดหมู่ยอดนิยม">

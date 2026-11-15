@@ -452,18 +452,12 @@ button{cursor:pointer}
 .home{padding-bottom:12px}
 .clean-home{max-width:1200px;margin:0 auto}
 .cm-hero{padding:12px 16px 4px}
-.cm-hero-inner{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:22px 24px;border-radius:var(--r-lg);
-  background:linear-gradient(135deg,var(--hero-start),var(--hero-end));
-  color:var(--on-hero);box-shadow:var(--sh-2);overflow:hidden;min-height:160px;
+.cm-hero-banner{
+  display:block;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-2);
+  transition:transform var(--dur-1) var(--ease),box-shadow var(--dur-1) var(--ease);
 }
-.cm-hero-copy{flex:1;min-width:0;max-width:520px}
-.cm-hero-copy h1{font-size:clamp(22px,3.2vw,34px);line-height:1.25;margin:0 0 8px;color:var(--on-hero)}
-.cm-hero-copy p{font-size:14px;line-height:1.5;opacity:.92;margin:0 0 16px}
-.cm-hero-cta{background:#fff!important;color:var(--primary)!important;border:0!important;box-shadow:var(--sh-1)}
-.cm-hero-cta:hover{filter:brightness(.97)}
-.cm-hero-mascot{height:132px!important;width:auto;flex-shrink:0;filter:drop-shadow(0 8px 16px rgba(0,0,0,.18))}
+.cm-hero-banner:hover{transform:translateY(-1px);box-shadow:var(--sh-3)}
+.cm-hero-banner img{width:100%;height:auto;display:block;aspect-ratio:1600/520;object-fit:cover;object-position:center}
 .cm-section{margin-top:8px}
 .cm-chips{display:flex;gap:8px;overflow:auto;padding:0 16px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .cm-chips::-webkit-scrollbar{display:none}
@@ -704,9 +698,7 @@ button{cursor:pointer}
   .brand-welcome-actions{justify-content:center}
   .site-header-inner,.topbar-inner{padding:10px 14px;gap:12px}
   .topup-link,.header-login{padding:0 14px}
-  .cm-hero-inner{flex-direction:column-reverse;text-align:center;padding:18px 16px}
-  .cm-hero-mascot{height:110px!important}
-  .cm-hero-cta{width:100%}
+  .cm-hero-banner{border-radius:var(--r-md)}
   .cm-continue-row .btn{padding:0 10px}
 }
 @media (min-width:768px){
@@ -718,7 +710,6 @@ button{cursor:pointer}
   .hero-slide h1{font-size:32px}
   .checkin-page,.referral-page{max-width:720px}
   .cm-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .cm-hero-mascot{height:160px!important}
 }
 @media (min-width:861px){
   .desk-nav{display:flex}
