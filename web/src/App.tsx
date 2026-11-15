@@ -44,6 +44,7 @@ import { AdminTakedownsPage } from './pages/admin/AdminTakedownsPage';
 import { AdminLedgerPage } from './pages/admin/AdminLedgerPage';
 import { AdminPayoutsPage } from './pages/admin/AdminPayoutsPage';
 import { AdminRefundsPage } from './pages/admin/AdminRefundsPage';
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
 
 export default function App() {
   return (
@@ -95,6 +96,7 @@ export default function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="authors" element={<AdminAuthorsPage />} />
               <Route path="works" element={<AdminWorksPage />} />
+              <Route path="categories" element={<AdminCategoriesPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="takedowns" element={<AdminTakedownsPage />} />
               <Route path="ledger" element={<AdminLedgerPage />} />

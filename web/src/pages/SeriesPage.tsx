@@ -9,6 +9,8 @@ import { CoverBadges } from '../components/SeriesCard';
 import { UnlockSheet } from '../components/UnlockSheet';
 import { episodeState, isFreeEpisode } from '../lib/access';
 import { formatCount, kindLabel, relativeTime, statusLabel } from '../lib/format';
+import { IconEye, IconStar } from '../components/icons';
+import { CoinAmount } from '../components/CoinAmount';
 
 const TIP_AMOUNTS = [5, 10, 20, 50];
 
@@ -185,14 +187,14 @@ export function SeriesPage() {
             {work.rating === '18+' && <span>18+ เดโม ไม่ได้ตรวจอายุ</span>}
           </div>
           <div className="series-stats">
-            <span>👁 {formatCount(work.views)}</span>
-            <span>★ {work.score.toFixed(1)} ({work.rating_count.toLocaleString('th-TH')})</span>
+            <span className="meta-inline"><IconEye size={14} /> {formatCount(work.views)}</span>
+            <span className="meta-inline"><IconStar size={14} className="ic-star" /> {work.score.toFixed(1)} ({work.rating_count.toLocaleString('th-TH')})</span>
             <span>ฟรี {work.free_episode_count} ตอนแรก</span>
           </div>
           <div className="star-row" role="group" aria-label="ให้คะแนนเรื่อง">
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} type="button" className={mine != null && n <= mine ? 'on' : undefined} onClick={() => rate(n)} aria-label={`${n} ดาว`}>
-                ★
+                <IconStar size={20} />
               </button>
             ))}
             <span className="muted">{mine ? `คุณให้ ${mine}` : 'ให้คะแนน'}</span>
@@ -211,7 +213,7 @@ export function SeriesPage() {
               setSheet({ work: true });
             }}>
               <span>ซื้อทั้งเรื่อง</span>
-              <strong>🪙 {work.price_full_work}</strong>
+              <strong><CoinAmount value={work.price_full_work} /></strong>
             </button>
           )}
           {note && <p className="ok-note">{note}</p>}
@@ -237,9 +239,9 @@ export function SeriesPage() {
                     {state === 'free' && 'ฟรี'}
                     {state === 'unlocked' && (c.follow_free && !purchased[c.id] ? 'อ่านฟรีเพราะติดตาม' : 'ปลดแล้ว')}
                     {state === 'follow' && (
-                      <span>ติดตามเพื่ออ่านฟรี<br />หรือ 🪙 {c.coin_price}</span>
+                      <span>ติดตามเพื่ออ่านฟรี<br />หรือ <CoinAmount value={c.coin_price} /></span>
                     )}
-                    {state === 'locked' && <span>🪙 {c.coin_price}</span>}
+                    {state === 'locked' && <CoinAmount value={c.coin_price} />}
                   </span>
                 </button>
               );
@@ -272,7 +274,7 @@ export function SeriesPage() {
             <div className="tip-grid">
               {TIP_AMOUNTS.map((n) => (
                 <button key={n} type="button" className={tipAmount === n ? 'on' : undefined} onClick={() => setTipAmount(n)}>
-                  🪙 {n}
+                  <CoinAmount value={n} />
                 </button>
               ))}
             </div>

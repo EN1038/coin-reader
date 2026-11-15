@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Badge } from './Badge';
+import { CoinAmount } from './CoinAmount';
 
 export function UnlockSheet({
   title,
@@ -37,7 +38,7 @@ export function UnlockSheet({
             <div className="card" style={{ marginBottom: 12 }}>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>ราคา</span>
-                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700 }}>🪙 {price}</span>
+                <CoinAmount value={price} className="head-amt" />
               </div>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>ยอดปัจจุบัน</span>
@@ -45,9 +46,7 @@ export function UnlockSheet({
               </div>
               <div className="row-between" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
                 <span style={{ fontWeight: 600 }}>ขาดอีก</span>
-                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--danger)' }}>
-                  🪙 {Math.max(0, price - balance)}
-                </span>
+                <CoinAmount value={Math.max(0, price - balance)} className="head-amt danger" />
               </div>
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>
@@ -69,7 +68,7 @@ export function UnlockSheet({
             <div className="card" style={{ marginBottom: 12 }}>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>{mode === 'work' ? 'ราคาทั้งเล่ม' : 'ราคาตอน'}</span>
-                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700 }}>🪙 {price}</span>
+                <CoinAmount value={price} className="head-amt" />
               </div>
               <div className="row-between" style={{ marginBottom: 10 }}>
                 <span>ยอดปัจจุบัน</span>
@@ -77,9 +76,7 @@ export function UnlockSheet({
               </div>
               <div className="row-between" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
                 <span style={{ fontWeight: 600 }}>ยอดหลังหัก</span>
-                <span style={{ fontFamily: 'var(--font-head)', fontWeight: 700, color: 'var(--primary)' }}>
-                  🪙 {balance - price}
-                </span>
+                <CoinAmount value={balance - price} className="head-amt primary" />
               </div>
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.5 }}>

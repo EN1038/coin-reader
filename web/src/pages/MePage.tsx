@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Badge } from '../components/Badge';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { BrandMascot } from '../components/BrandAssets';
+import { CoinAmount } from '../components/CoinAmount';
 
 export function MePage() {
   const { user, balance, tickets, logout, isMock } = useApp();
@@ -22,7 +23,7 @@ export function MePage() {
             <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 18 }}>{user.display_name}</div>
             <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{user.email}</div>
             <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Badge kind="note">🪙 {balance}</Badge>
+              <Badge kind="note"><CoinAmount value={balance} /></Badge>
               <Badge>ตั๋ว {tickets}</Badge>
               {isMock && <Badge kind="ex">mock</Badge>}
             </div>

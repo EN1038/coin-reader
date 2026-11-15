@@ -6,6 +6,7 @@ import { useApp } from '../context/AppContext';
 import { mockDb } from '../lib/mock/store';
 import { isMockMode } from '../lib/supabase';
 import { BrandMascot } from '../components/BrandAssets';
+import { IconCheck } from '../components/icons';
 
 export function ForgotPasswordPage() {
   const { isMock } = useApp();
@@ -34,7 +35,7 @@ export function ForgotPasswordPage() {
       {sent ? (
         <div className="content">
           <div className="forgot-sent">
-            <div className="icon">✓</div>
+            <div className="icon" aria-hidden><IconCheck size={28} /></div>
             <h1 style={{ fontSize: 20, marginBottom: 8, fontFamily: 'var(--font-head)' }}>ส่งลิงก์แล้ว (mock)</h1>
             <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.65 }}>
               ถ้ามีบัญชีที่ <strong style={{ color: 'var(--text)' }}>{email}</strong> ระบบจำลองว่าส่งลิงก์รีเซ็ตแล้ว · ใน MVP นี้ไม่ออกอีเมลจริง

@@ -5,6 +5,7 @@ import type { Work } from '../lib/types';
 import { Cover } from '../components/CoverCard';
 import { CoverBadges } from '../components/SeriesCard';
 import { formatCount, kindLabel } from '../lib/format';
+import { IconEye, IconStar } from '../components/icons';
 
 const TABS = [
   { id: 'daily', label: 'รายวัน' },
@@ -42,9 +43,9 @@ export function RankingPage() {
               <span className="rank-copy">
                 <strong>{w.title}</strong>
                 <small>{w.author_name} · {kindLabel(w.kind)} · {w.category}</small>
-                <small>★ {w.score.toFixed(1)} · {w.chapter_count} ตอน · {w.status === 'completed' ? 'จบ' : 'กำลังดำเนินเรื่อง'}</small>
+                <small className="meta-inline"><IconStar size={12} className="ic-star" /> {w.score.toFixed(1)} · {w.chapter_count} ตอน · {w.status === 'completed' ? 'จบ' : 'กำลังดำเนินเรื่อง'}</small>
               </span>
-              <span className="rank-views">👁 {formatCount(w.views)}</span>
+              <span className="rank-views meta-inline"><IconEye size={14} /> {formatCount(w.views)}</span>
             </Link>
           </li>
         ))}

@@ -1,4 +1,5 @@
 import { useTheme } from '../context/ThemeContext';
+import { IconMoon, IconSun } from './icons';
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const { theme, setTheme, toggleTheme } = useTheme();
@@ -12,7 +13,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
         title={theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'}
         onClick={toggleTheme}
       >
-        {theme === 'dark' ? '☀' : '☾'}
+        {theme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
       </button>
     );
   }

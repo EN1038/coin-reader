@@ -8,6 +8,7 @@ const NAV = [
   { to: '/admin', end: true, label: 'Dashboard' },
   { to: '/admin/authors', label: 'คิวอนุมัติ' },
   { to: '/admin/works', label: 'เนื้อหา' },
+  { to: '/admin/categories', label: 'หมวดหมู่' },
   { to: '/admin/reports', label: 'รายงาน' },
   { to: '/admin/takedowns', label: 'Takedown' },
   { to: '/admin/ledger', label: 'ธุรกรรม' },

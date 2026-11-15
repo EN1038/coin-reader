@@ -1,5 +1,5 @@
 import type {
-  Author, Work, Chapter, ChapterContent, ChapterPage, CoinPack, ReaderComment,
+  Author, Work, Chapter, ChapterContent, ChapterPage, CoinPack, ReaderComment, Category,
 } from '../types';
 import type { CoverTone } from '../types';
 
@@ -29,7 +29,18 @@ export const seedAuthors: Author[] = [
   { id: 'a-005', display_name: 'ทีมแปลสมมติ' },
 ];
 
-export const GENRES = ['โรแมนติก', 'แฟนตาซี', 'สยองขวัญ', 'ดราม่า', 'แอ็กชัน', 'ไซไฟ', 'ลึกลับ'] as const;
+export const seedCategories: Category[] = [
+  { id: 'cat-romance', name: 'โรแมนติก', slug: 'romance', icon_key: 'heart', sort_order: 1, active: true },
+  { id: 'cat-fantasy', name: 'แฟนตาซี', slug: 'fantasy', icon_key: 'sparkles', sort_order: 2, active: true },
+  { id: 'cat-horror', name: 'สยองขวัญ', slug: 'horror', icon_key: 'ghost', sort_order: 3, active: true },
+  { id: 'cat-drama', name: 'ดราม่า', slug: 'drama', icon_key: 'masks', sort_order: 4, active: true },
+  { id: 'cat-action', name: 'แอ็กชัน', slug: 'action', icon_key: 'zap', sort_order: 5, active: true },
+  { id: 'cat-scifi', name: 'ไซไฟ', slug: 'sci-fi', icon_key: 'rocket', sort_order: 6, active: true },
+  { id: 'cat-mystery', name: 'ลึกลับ', slug: 'mystery', icon_key: 'search', sort_order: 7, active: true },
+];
+
+/** @deprecated ใช้ seedCategories / api.listCategories() — คงไว้เพื่อความเข้ากันของข้อมูล seed */
+export const GENRES = seedCategories.map((c) => c.name) as readonly string[];
 
 interface Spec {
   id: string;

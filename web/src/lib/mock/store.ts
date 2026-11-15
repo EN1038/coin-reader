@@ -1,14 +1,14 @@
 import type {
   SessionUser, UnlockRecord, BookshelfItem, ReadingProgress, LedgerEntry, ReaderComment,
-  Work, Chapter,
+  Work, Chapter, Category, CategoryIconKey,
 } from '../types';
 import {
   seedWorks, seedChapters, seedContents, seedPages, seedPacks, seedAuthors, DEMO_PASSWORD,
-  DEMO_REFERRAL_CODE, REFERRAL_PERCENT, seedComments,
+  DEMO_REFERRAL_CODE, REFERRAL_PERCENT, seedComments, seedCategories,
 } from './seed';
 import { bangkokToday, checkInReward, isoDay, bangkokParts, daysInMonth } from '../format';
 
-const LS_KEY = 'stock-manga-mock-v1';
+const LS_KEY = 'stock-manga-mock-v2';
 
 export interface HelpReport {
   id: string;
@@ -158,6 +158,7 @@ export interface MockState {
   ratings: { user_id: string; work_id: string; stars: number }[];
   referrals: Record<string, ReferralProfile>;
   referralEvents: ReferralEvent[];
+  categories: Category[];
 }
 
 function uid(prefix: string): string {
@@ -466,6 +467,7 @@ function defaultState(): MockState {
         transaction_id: 'tx-seed-ref',
       },
     ],
+    categories: seedCategories.map((c) => ({ ...c })),
   };
 }
 
@@ -503,6 +505,7 @@ function normalize(parsed: Partial<MockState>): MockState {
     ratings: parsed.ratings ?? [],
     referrals: { ...base.referrals, ...(parsed.referrals ?? {}) },
     referralEvents: parsed.referralEvents ?? base.referralEvents,
+    categories: parsed.categories?.length ? parsed.categories : base.categories,
   };
   for (const [id, row] of Object.entries(merged.writerEarnings)) {
     merged.writerEarnings[id] = {
@@ -547,6 +550,63 @@ export const mockDb = {
   packs: seedPacks,
   authors: seedAuthors,
   demoPassword: DEMO_PASSWORD,
+
+  listCategories(activeOnly = true): Category[] {
+    return state.categories
+      .filter((c) => (activeOnly ? c.active : true))
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name, 'th'));
+  },
+
+  upsertCategory(input: {
+    id?: string;
+    name: string;
+    slug: string;
+    icon_key: CategoryIconKey;
+    sort_order: number;
+    active: boolean;
+  }): Category {
+    const name = input.name.trim();
+    const slug = input.slug.trim().toLowerCase().replace(/\s+/g, '-');
+    if (!name || !slug) throw new Error('VALIDATION');
+    const dup = state.categories.find(
+      (c) => c.id !== input.id && (c.name === name || c.slug === slug),
+    );
+    if (dup) throw new Error('CONFLICT');
+    if (input.id) {
+      const idx = state.categories.findIndex((c) => c.id === input.id);
+      if (idx < 0) throw new Error('NOT_FOUND');
+      const next: Category = {
+        ...state.categories[idx],
+        name,
+        slug,
+        icon_key: input.icon_key,
+        sort_order: input.sort_order,
+        active: input.active,
+      };
+      state.categories[idx] = next;
+      save(state);
+      return next;
+    }
+    const created: Category = {
+      id: uid('cat'),
+      name,
+      slug,
+      icon_key: input.icon_key,
+      sort_order: input.sort_order,
+      active: input.active,
+    };
+    state.categories.push(created);
+    save(state);
+    return created;
+  },
+
+  deleteCategory(id: string) {
+    const before = state.categories.length;
+    state.categories = state.categories.filter((c) => c.id !== id);
+    if (state.categories.length === before) throw new Error('NOT_FOUND');
+    save(state);
+  },
 
   getState: () => state,
   persist: () => save(state),

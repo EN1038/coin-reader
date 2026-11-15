@@ -3,8 +3,9 @@ import type { CoinReaderApi } from '../api';
 import { getSupabase } from '../supabase';
 import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser,
-  UnlockResult, TopupResult, MangaPageUrl, BookshelfItem, ReadingProgress, LedgerEntry,
+  UnlockResult, TopupResult, MangaPageUrl, BookshelfItem, ReadingProgress, LedgerEntry, Category,
 } from '../types';
+import { seedCategories } from '../mock/seed';
 
 function sb() {
   const c = getSupabase();
@@ -240,4 +241,26 @@ export const realApi: CoinReaderApi = {
   async rateWork() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async myRating() { return null; },
   async tipWriter() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+
+  async listCategories(activeOnly = true) {
+    try {
+      let q = sb().from('categories').select('id,name,slug,icon_key,sort_order,active').order('sort_order');
+      if (activeOnly) q = q.eq('active', true);
+      const { data, error } = await q;
+      if (error || !data?.length) {
+        return seedCategories.filter((c) => (activeOnly ? c.active : true));
+      }
+      return data as Category[];
+    } catch {
+      return seedCategories.filter((c) => (activeOnly ? c.active : true));
+    }
+  },
+
+  async upsertCategory() {
+    throw new ApiError(501, 'MOCK_DISABLED', 'จัดการหมวดหมู่ผ่าน admin mock ก่อน หรือใช้ SQL บน Supabase');
+  },
+
+  async deleteCategory() {
+    throw new ApiError(501, 'MOCK_DISABLED', 'จัดการหมวดหมู่ผ่าน admin mock ก่อน หรือใช้ SQL บน Supabase');
+  },
 };

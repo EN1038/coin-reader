@@ -54,7 +54,24 @@ button{cursor:pointer}
   background:var(--coin-bg);color:var(--coin-text);font-weight:600;font-size:13px;
   font-family:var(--font-head);border:1px solid color-mix(in srgb, var(--accent-coin) 55%, var(--line));
 }
-.coin-pill .dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--primary-hover),var(--accent-coin));box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.coin-amount{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-head);font-weight:700;vertical-align:middle}
+.coin-amount-ic{flex-shrink:0;color:var(--accent-coin)}
+.coin-amount.head-amt{font-size:15px}
+.coin-amount.danger{color:var(--danger)}
+.coin-amount.danger .coin-amount-ic{color:var(--danger)}
+.coin-amount.primary{color:var(--primary)}
+.coin-amount.primary .coin-amount-ic{color:var(--primary)}
+.meta-inline{display:inline-flex;align-items:center;gap:4px}
+.ic-star{color:var(--star)}
+.cm-chip-ic{flex-shrink:0;opacity:.9}
+.admin-cat-preview{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:10px;
+  background:var(--surface-2);color:var(--primary);margin-top:18px;
+}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th,.admin-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+.admin-table th{font-family:var(--font-head);font-size:12px;color:var(--text-muted)}
+.pay-status-ic{display:grid;place-items:center}
 
 .bottomnav{
   min-height:var(--bottomnav);padding:6px 8px calc(10px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(5,1fr);
@@ -600,8 +617,8 @@ button{cursor:pointer}
 .series-pills,.series-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .series-pills span,.series-stats span{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--surface-2)}
 .star-row{display:flex;align-items:center;gap:4px;margin-top:10px}
-.star-row button{border:0;background:transparent;font-size:22px;color:var(--line);line-height:1;min-height:36px;min-width:32px}
-.star-row button.on{color:#C4A15A}
+.star-row button{border:0;background:transparent;font-size:22px;color:var(--line);line-height:1;min-height:36px;min-width:32px;display:inline-grid;place-items:center}
+.star-row button.on{color:var(--star)}
 .synopsis{margin:10px 0;font-size:14px;line-height:1.6;color:var(--text)}
 .series-info .series-actions{margin-top:8px}
 .series-info .series-buy{

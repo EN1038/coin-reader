@@ -475,4 +475,31 @@ export const mockApi: CoinReaderApi = {
       throw e;
     }
   },
+
+  async listCategories(activeOnly = true) {
+    return mockDb.listCategories(activeOnly);
+  },
+
+  async upsertCategory(input) {
+    requireUser();
+    try {
+      return mockDb.upsertCategory(input);
+    } catch (e) {
+      const code = e instanceof Error ? e.message : '';
+      if (code === 'VALIDATION') throw new ApiError(400, 'VALIDATION', 'ชื่อหรือ slug ไม่ถูกต้อง');
+      if (code === 'CONFLICT') throw new ApiError(409, 'CONFLICT', 'ชื่อหรือ slug ซ้ำ');
+      if (code === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
+
+  async deleteCategory(id) {
+    requireUser();
+    try {
+      mockDb.deleteCategory(id);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
 };

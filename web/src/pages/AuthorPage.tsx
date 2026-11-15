@@ -102,7 +102,7 @@ export function AuthorPage() {
               {w.kind === 'manga' ? 'มังงะ' : 'นิยาย'} · {w.category} · {w.chapter_count} ตอน
             </div>
             {w.price_full_work != null ? (
-              <Badge kind="lock">🪙 ทั้งเล่ม {w.price_full_work}</Badge>
+              <Badge kind="lock">ทั้งเล่ม {w.price_full_work} เหรียญ</Badge>
             ) : (
               <Badge kind="free">มีตอนฟรี</Badge>
             )}

@@ -88,7 +88,7 @@ export function TopupPage() {
       <div className="pack-grid">
         {packs.map((pk) => (
           <button key={pk.id} type="button" className={`pack${selected === pk.id ? ' on' : ''}`} onClick={() => setSelected(pk.id)}>
-            <div className="amt">🪙 {pk.coins.toLocaleString('th-TH')}</div>
+            <div className="amt">{pk.coins.toLocaleString('th-TH')} เหรียญ</div>
             {pk.bonus_coins > 0 && <div className="bonus">+โบนัส {pk.bonus_coins}</div>}
             <div className="baht">{pk.amount_thb.toLocaleString('th-TH')} บาท</div>
           </button>

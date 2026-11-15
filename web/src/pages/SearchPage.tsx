@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/supabase';
-import type { Work } from '../lib/types';
+import type { Category, Work } from '../lib/types';
 import { SeriesCard } from '../components/SeriesCard';
-import { GENRES } from '../lib/mock/seed';
 
 export function SearchPage() {
   const [sp, setSp] = useSearchParams();
   const [works, setWorks] = useState<Work[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const q = sp.get('q') ?? '';
   const kind = sp.get('kind') === 'manga' || sp.get('kind') === 'novel' ? sp.get('kind')! : '';
   const category = sp.get('category') ?? '';
@@ -22,6 +22,10 @@ export function SearchPage() {
     });
     setSp(params, { replace: true });
   }
+
+  useEffect(() => {
+    api.listCategories(true).then(setCategories).catch(() => setCategories([]));
+  }, []);
 
   useEffect(() => {
     const t = window.setTimeout(() => {
@@ -56,7 +60,7 @@ export function SearchPage() {
         <label>หมวด
           <select value={category} onChange={(e) => set({ category: e.target.value })}>
             <option value="">ทั้งหมด</option>
-            {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
+            {categories.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
         </label>
         <label>สถานะ

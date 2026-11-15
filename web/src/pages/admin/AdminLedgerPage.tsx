@@ -16,7 +16,7 @@ export function AdminLedgerPage() {
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontWeight: 700, color: e.amount >= 0 ? 'var(--ok)' : 'var(--danger)' }}>{e.amount >= 0 ? '+' : ''}{e.amount}</div>
-              <Badge kind="ex">🪙 {e.coins}</Badge>
+              <Badge kind="ex">{e.coins} เหรียญ</Badge>
             </div>
           </div>
         ))}

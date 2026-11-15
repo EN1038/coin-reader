@@ -2,7 +2,7 @@ import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser, WalletInfo,
   LedgerEntry, UnlockResult, TopupResult, MangaPageUrl, BookshelfItem,
   ReadingProgress, SeriesUpdate, CheckInCalendar, CheckInClaim, ReferralInfo,
-  ReaderComment, RatingResult,
+  ReaderComment, RatingResult, Category, CategoryIconKey,
 } from './types';
 
 export interface ListWorksParams {
@@ -56,4 +56,14 @@ export interface CoinReaderApi {
   rateWork(workId: string, stars: number): Promise<RatingResult>;
   myRating(workId: string): Promise<number | null>;
   tipWriter(workId: string, coins: number): Promise<{ balance: number; transaction_id: string }>;
+  listCategories(activeOnly?: boolean): Promise<Category[]>;
+  upsertCategory(input: {
+    id?: string;
+    name: string;
+    slug: string;
+    icon_key: CategoryIconKey;
+    sort_order: number;
+    active: boolean;
+  }): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
 }

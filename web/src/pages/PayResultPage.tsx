@@ -3,6 +3,8 @@ import { Topbar } from '../components/Topbar';
 import { MockBanner } from '../components/MockBanner';
 import { Badge } from '../components/Badge';
 import { BrandMascot } from '../components/BrandAssets';
+import { CoinAmount } from '../components/CoinAmount';
+import { IconCheck, IconX } from '../components/icons';
 
 export function PayResultPage() {
   const { status } = useParams<{ status: string }>();
@@ -21,15 +23,15 @@ export function PayResultPage() {
           {st === 'success' ? (
             <BrandMascot size="md" className="pay-mascot" />
           ) : (
-            <div style={{ fontSize: 48, marginBottom: 8 }}>
-              {st === 'fail' ? '✕' : '…'}
+            <div className="pay-status-ic" style={{ color, marginBottom: 8 }}>
+              {st === 'fail' ? <IconX size={48} /> : <IconCheck size={48} />}
             </div>
           )}
           <h1 style={{ fontSize: 22, color, marginBottom: 8 }}>{title}</h1>
           <Badge kind="ex">ผลจำลอง (mock)</Badge>
           {st === 'success' && (
             <p className="muted mt-3" style={{ lineHeight: 1.6 }}>
-              ได้รับ <strong style={{ color: 'var(--text)' }}>🪙 {loc.state?.coins ?? '—'}</strong> เหรียญ
+              ได้รับ <strong style={{ color: 'var(--text)' }}><CoinAmount value={loc.state?.coins ?? '—'} /></strong> เหรียญ
               <br />
               ยอดคงเหลือ <strong style={{ color: 'var(--text)' }}>{loc.state?.balance ?? '—'}</strong>
             </p>

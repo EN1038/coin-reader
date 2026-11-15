@@ -2,6 +2,26 @@ export type WorkKind = 'novel' | 'manga';
 export type Pricing = 'free' | 'coin';
 export type CoverTone = 'default' | 'warm' | 'teal' | 'rose' | 'blue';
 
+/** icon_key maps to SVG in CategoryIcon — managed from admin/backend */
+export type CategoryIconKey =
+  | 'book'
+  | 'zap'
+  | 'sparkles'
+  | 'heart'
+  | 'ghost'
+  | 'masks'
+  | 'rocket'
+  | 'search';
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  icon_key: CategoryIconKey;
+  sort_order: number;
+  active: boolean;
+}
+
 export interface Author {
   id: string;
   display_name: string;
@@ -130,6 +150,7 @@ export type ApiErrorCode =
   | 'PRICE_CHANGED'
   | 'NOT_FOUND'
   | 'IDEMPOTENCY_CONFLICT'
+  | 'CONFLICT'
   | 'VALIDATION'
   | 'MOCK_DISABLED'
   | 'ALREADY_UNLOCKED'

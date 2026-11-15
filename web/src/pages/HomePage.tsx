@@ -1,26 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/supabase';
-import type { ReadingProgress, SeriesUpdate, Work } from '../lib/types';
+import type { Category, ReadingProgress, SeriesUpdate, Work } from '../lib/types';
 import { CoverBadges } from '../components/SeriesCard';
 import { Cover } from '../components/CoverCard';
-import { GENRES } from '../lib/mock/seed';
 import { formatCount, relativeTime } from '../lib/format';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
 import { BRAND_HERO, PRODUCT_NAME } from '../lib/brand';
+import { CategoryIcon, IconEye, IconStar } from '../components/icons';
 
 type RankPeriod = 'weekly' | 'monthly' | 'all';
-
-const CATEGORY_ICONS: Record<string, string> = {
-  แอ็กชัน: '⚡',
-  แฟนตาซี: '✨',
-  โรแมนติก: '💖',
-  สยองขวัญ: '👻',
-  ดราม่า: '🎭',
-  ไซไฟ: '🚀',
-  ลึกลับ: '🔎',
-};
 
 type ContinueItem = {
   work: Work;
@@ -32,6 +22,7 @@ type ContinueItem = {
 export function HomePage() {
   const { user } = useApp();
   const [works, setWorks] = useState<Work[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [updates, setUpdates] = useState<SeriesUpdate[]>([]);
   const [continueItems, setContinueItems] = useState<ContinueItem[]>([]);
   const [rankPeriod, setRankPeriod] = useState<RankPeriod>('weekly');
@@ -40,11 +31,12 @@ export function HomePage() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    Promise.all([api.listWorks(), api.listRecentUpdates(8)])
-      .then(async ([all, recent]) => {
+    Promise.all([api.listWorks(), api.listRecentUpdates(8), api.listCategories(true)])
+      .then(async ([all, recent, cats]) => {
         if (!alive) return;
         setWorks(all);
         setUpdates(recent);
+        setCategories(cats);
 
         if (!user) {
           setContinueItems([]);
@@ -102,14 +94,14 @@ export function HomePage() {
           <Link to="/discover">ดูทั้งหมด</Link>
         </div>
         <div className="cm-chips">
-          {GENRES.map((genre) => (
+          {categories.map((cat) => (
             <Link
-              key={genre}
-              to={`/discover?category=${encodeURIComponent(genre)}`}
+              key={cat.id}
+              to={`/discover?category=${encodeURIComponent(cat.name)}`}
               className="cm-chip"
             >
-              <span aria-hidden>{CATEGORY_ICONS[genre] ?? '📚'}</span>
-              {genre}
+              <CategoryIcon name={cat.icon_key} size={15} className="cm-chip-ic" />
+              {cat.name}
             </Link>
           ))}
         </div>
@@ -204,10 +196,12 @@ export function HomePage() {
                     <span className="cm-rank-thumb"><Cover work={w} /></span>
                     <span className="cm-rank-copy">
                       <strong>{w.title}</strong>
-                      <small>
-                        ★ {w.score.toFixed(1)} · {w.chapter_count} ตอน
+                      <small className="meta-inline">
+                        <IconStar size={12} className="ic-star" /> {w.score.toFixed(1)} · {w.chapter_count} ตอน
                       </small>
-                      <small>👁 {formatCount(w.views)}</small>
+                      <small className="meta-inline">
+                        <IconEye size={12} /> {formatCount(w.views)}
+                      </small>
                     </span>
                   </Link>
                 </li>
@@ -287,7 +281,7 @@ function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boolean }) {
       </div>
       <div className="cm-poster-title">{work.title}</div>
       <div className="cm-poster-meta">
-        <span className="cm-star">★ {work.score.toFixed(1)}</span>
+        <span className="cm-star meta-inline"><IconStar size={12} className="ic-star" /> {work.score.toFixed(1)}</span>
         <span>{work.chapter_count} ตอน</span>
       </div>
     </Link>
