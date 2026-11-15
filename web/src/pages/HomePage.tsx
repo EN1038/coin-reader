@@ -1,177 +1,261 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/supabase';
-import type { SeriesUpdate, Work } from '../lib/types';
-import { SeriesCard, UpdateCard } from '../components/SeriesCard';
+import type { ReadingProgress, SeriesUpdate, Work } from '../lib/types';
+import { CoverBadges } from '../components/SeriesCard';
 import { Cover } from '../components/CoverCard';
 import { GENRES } from '../lib/mock/seed';
-import { formatCount, kindLabel, relativeTime } from '../lib/format';
+import { formatCount, relativeTime } from '../lib/format';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
 import { PRODUCT_NAME } from '../lib/brand';
+
+type RankPeriod = 'weekly' | 'monthly' | 'all';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  แอ็กชัน: '⚡',
+  แฟนตาซี: '✨',
+  โรแมนติก: '💖',
+  สยองขวัญ: '👻',
+  ดราม่า: '🎭',
+  ไซไฟ: '🚀',
+  ลึกลับ: '🔎',
+};
+
+type ContinueItem = {
+  work: Work;
+  chapterId: string;
+  chapterNumber: number;
+  progressPct: number;
+};
 
 export function HomePage() {
   const { user } = useApp();
   const [works, setWorks] = useState<Work[]>([]);
   const [updates, setUpdates] = useState<SeriesUpdate[]>([]);
-  const [slide, setSlide] = useState(0);
+  const [continueItems, setContinueItems] = useState<ContinueItem[]>([]);
+  const [rankPeriod, setRankPeriod] = useState<RankPeriod>('weekly');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.listWorks(), api.listRecentUpdates(8)]).then(([all, recent]) => {
-      setWorks(all);
-      setUpdates(recent);
-    }).catch(() => undefined);
-  }, []);
+    let alive = true;
+    setLoading(true);
+    Promise.all([api.listWorks(), api.listRecentUpdates(8)])
+      .then(async ([all, recent]) => {
+        if (!alive) return;
+        setWorks(all);
+        setUpdates(recent);
 
-  const banners = works.filter((w) => w.featured).slice(0, 3);
-  const ranking = [...works].sort((a, b) => b.rank_daily - a.rank_daily).slice(0, 5);
+        if (!user) {
+          setContinueItems([]);
+          return;
+        }
+        try {
+          const history = await api.listHistory();
+          const items = await buildContinue(all, history.slice(0, 5));
+          if (alive) setContinueItems(items);
+        } catch {
+          if (alive) setContinueItems([]);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
-  useEffect(() => {
-    if (banners.length < 2) return undefined;
-    const t = window.setInterval(() => setSlide((n) => (n + 1) % banners.length), 5000);
-    return () => window.clearInterval(t);
-  }, [banners.length]);
+  const recommended = useMemo(
+    () => [...works].sort((a, b) => b.score - a.score || b.views - a.views).slice(0, 8),
+    [works],
+  );
 
-  const hero = banners[slide] ?? banners[0];
+  const ranking = useMemo(() => {
+    const key = rankPeriod === 'weekly' ? 'rank_weekly' : rankPeriod === 'monthly' ? 'rank_monthly' : 'rank_daily';
+    return [...works].sort((a, b) => b[key] - a[key]).slice(0, 5);
+  }, [works, rankPeriod]);
+
+  const latestGrid = useMemo(
+    () => [...works].sort((a, b) => +new Date(b.latest_at) - +new Date(a.latest_at)).slice(0, 8),
+    [works],
+  );
 
   return (
-    <div className="home">
-      {!user && (
-        <section className="brand-welcome" aria-label={PRODUCT_NAME}>
-          <BrandMascot size="xl" />
-          <div className="brand-welcome-copy">
-            <strong>{PRODUCT_NAME}</strong>
-            <p>อ่านนิยายและมังงะ · ปลดล็อกตอนด้วยเหรียญ</p>
-            <div className="brand-welcome-actions">
-              <Link to="/auth/signup" className="btn btn-primary btn-sm">สมัครฟรี</Link>
-              <Link to="/auth/login" className="btn btn-ghost btn-sm">เข้าสู่ระบบ</Link>
-            </div>
+    <div className="home clean-home">
+      <section className="cm-hero" aria-label="แบนเนอร์ Stock Manga">
+        <div className="cm-hero-inner">
+          <div className="cm-hero-copy">
+            <h1>อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน</h1>
+            <p>คลังมังงะคุณภาพ หลากหลายแนว อ่านได้ฟรี สะดวก ทุกอุปกรณ์</p>
+            <Link to="/discover" className="btn btn-primary cm-hero-cta">เริ่มอ่านเลย</Link>
           </div>
-        </section>
-      )}
+          <BrandMascot size="xl" className="cm-hero-mascot" alt="" />
+        </div>
+      </section>
 
-      {hero && (
-        <section className="hero" aria-roledescription="carousel" aria-label="เรื่องเด่น">
-          <Link to={`/works/${hero.slug}`} className={`hero-slide tone-${hero.cover_tone}`}>
-            <div className="hero-copy">
-              <div className="hero-kicker">{hero.is_new ? 'มาใหม่' : 'เรื่องเด่น'} · {kindLabel(hero.kind)}</div>
-              <h1>{hero.title}</h1>
-              <p>{hero.synopsis}</p>
-              <div className="hero-meta">
-                <span>★ {hero.score.toFixed(1)}</span>
-                <span>👁 {formatCount(hero.views)}</span>
-                <span>{hero.author_name}</span>
+      <section className="cm-section" aria-label="หมวดหมู่ยอดนิยม">
+        <div className="sec">
+          <h2>หมวดหมู่ยอดนิยม</h2>
+          <Link to="/discover">ดูทั้งหมด</Link>
+        </div>
+        <div className="cm-chips">
+          {GENRES.map((genre) => (
+            <Link
+              key={genre}
+              to={`/discover?category=${encodeURIComponent(genre)}`}
+              className="cm-chip"
+            >
+              <span aria-hidden>{CATEGORY_ICONS[genre] ?? '📚'}</span>
+              {genre}
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div className="cm-layout">
+        <div className="cm-main">
+          <section className="cm-section">
+            <div className="sec">
+              <h2>การ์ตูนแนะนำวันนี้</h2>
+              <Link to="/discover?sort=score">ดูทั้งหมด</Link>
+            </div>
+            {loading ? (
+              <div className="cm-grid">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="cm-skel" aria-hidden />
+                ))}
               </div>
-              <span className="btn btn-coin btn-sm">อ่านเลย</span>
-            </div>
-            <div className="hero-cover"><Cover work={hero} /></div>
-          </Link>
-          <div className="hero-dots">
-            {banners.map((b, i) => (
-              <button key={b.id} type="button" className={i === slide ? 'on' : undefined} aria-label={b.title} onClick={() => setSlide(i)} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <div className="promo-row">
-        <Link to="/check-in" className="promo-card checkin">
-          <span className="promo-ic" aria-hidden>📅</span>
-          <span>
-            <strong>เช็คอินรายวัน</strong>
-            <small>รับเหรียญและตั๋วอ่านฟรี · รางวัลใหญ่ท้ายเดือน</small>
-          </span>
-        </Link>
-        <Link to="/referral" className="promo-card refer">
-          <span className="promo-ic" aria-hidden>🎁</span>
-          <span>
-            <strong>ชวนเพื่อน รับเหรียญ 7%</strong>
-            <small>จากยอดเติมที่เพื่อนจ่าย ไม่รวมโบนัส · ถอนเป็นเงินไม่ได้</small>
-          </span>
-        </Link>
-      </div>
-
-      <section>
-        <div className="sec">
-          <h2>อัปเดตล่าสุด</h2>
-          <Link to="/discover?sort=updated">ดูทั้งหมด</Link>
-        </div>
-        <div className="rail update-rail">
-          {updates.map((u) => (
-            <UpdateCard
-              key={u.work.id}
-              work={u.work}
-              episodes={u.episodes.map((ep) => ({ ...ep, when: relativeTime(ep.published_at) }))}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <div className="sec">
-          <h2>อันดับยอดนิยมวันนี้</h2>
-          <Link to="/ranking">ดูอันดับ</Link>
-        </div>
-        <ol className="rank-preview">
-          {ranking.map((w, i) => (
-            <li key={w.id}>
-              <Link to={`/works/${w.slug}`}>
-                <span className={`rank-no ${i < 3 ? 'top' : ''}`}>{i + 1}</span>
-                <span className="rank-cover"><Cover work={w} /></span>
-                <span className="rank-copy">
-                  <strong>{w.title}</strong>
-                  <small>{w.author_name} · {w.category} · ★ {w.score.toFixed(1)}</small>
-                </span>
-                <span className="rank-views">👁 {formatCount(w.views)}</span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {GENRES.map((genre) => {
-        const novels = works.filter((w) => w.category === genre && w.kind === 'novel');
-        const manga = works.filter((w) => w.category === genre && w.kind === 'manga');
-        if (!novels.length && !manga.length) return null;
-        return (
-          <section key={genre}>
-            {novels.length > 0 && (
-              <>
-                <div className="sec">
-                  <h2>{genre} · นิยาย</h2>
-                  <Link to={`/discover?kind=novel&category=${encodeURIComponent(genre)}`}>ดูทั้งหมด</Link>
-                </div>
-                <div className="rail card-rail">
-                  {novels.map((w) => <SeriesCard key={w.id} work={w} />)}
-                </div>
-              </>
-            )}
-            {manga.length > 0 && (
-              <>
-                <div className="sec">
-                  <h2>{genre} · มังงะ</h2>
-                  <Link to={`/discover?kind=manga&category=${encodeURIComponent(genre)}`}>ดูทั้งหมด</Link>
-                </div>
-                <div className="rail card-rail">
-                  {manga.map((w) => <SeriesCard key={w.id} work={w} />)}
-                </div>
-              </>
+            ) : (
+              <div className="cm-grid">
+                {recommended.map((w) => (
+                  <MangaPosterCard key={w.id} work={w} />
+                ))}
+              </div>
             )}
           </section>
-        );
-      })}
 
-      {!user && (
-        <div className="pad">
-          <div className="card row-between" style={{ gap: 12, flexWrap: 'wrap' }}>
-            <div>
-              <strong>บัญชีตัวอย่าง</strong>
-              <div className="muted" style={{ fontSize: 13 }}>demo@example.com · writer@example.com · รหัส demo1234</div>
+          <section className="cm-section">
+            <div className="sec">
+              <h2>อัปเดตตอนล่าสุด</h2>
+              <Link to="/discover?sort=updated">ดูทั้งหมด</Link>
             </div>
-            <Link to="/auth/login" className="btn btn-primary btn-sm">เข้าสู่ระบบ</Link>
-          </div>
+            <div className="cm-grid">
+              {(updates.length ? updates.map((u) => u.work) : latestGrid).slice(0, 8).map((w) => (
+                <MangaPosterCard key={`up-${w.id}`} work={w} showNew />
+              ))}
+            </div>
+            {updates.length > 0 && (
+              <div className="cm-update-list">
+                {updates.slice(0, 4).map((u) => {
+                  const ep = u.episodes[0];
+                  return (
+                    <Link key={u.work.id} to={`/works/${u.work.slug}`} className="cm-update-row">
+                      <span className="cm-update-cover"><Cover work={u.work} /></span>
+                      <span className="cm-update-copy">
+                        <strong>{u.work.title}</strong>
+                        <small>
+                          {ep ? `ตอนที่ ${ep.number}` : `${u.work.chapter_count} ตอน`}
+                          {ep ? ` · ${relativeTime(ep.published_at)}` : ''}
+                        </small>
+                      </span>
+                      <span className="mini-badge fresh">ใหม่</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
-      )}
+
+        <aside className="cm-side">
+          <section className="cm-panel">
+            <div className="cm-panel-head">
+              <h2>อันดับยอดนิยม</h2>
+              <Link to="/ranking">ทั้งหมด</Link>
+            </div>
+            <div className="cm-rank-tabs" role="tablist" aria-label="ช่วงอันดับ">
+              {(
+                [
+                  ['weekly', 'รายสัปดาห์'],
+                  ['monthly', 'รายเดือน'],
+                  ['all', 'ทั้งหมด'],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={rankPeriod === key}
+                  className={rankPeriod === key ? 'on' : undefined}
+                  onClick={() => setRankPeriod(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <ol className="cm-rank-list">
+              {ranking.map((w, i) => (
+                <li key={w.id}>
+                  <Link to={`/works/${w.slug}`}>
+                    <span className={`cm-rank-no ${i < 3 ? 'top' : ''}`}>{i + 1}</span>
+                    <span className="cm-rank-thumb"><Cover work={w} /></span>
+                    <span className="cm-rank-copy">
+                      <strong>{w.title}</strong>
+                      <small>
+                        ★ {w.score.toFixed(1)} · {w.chapter_count} ตอน
+                      </small>
+                      <small>👁 {formatCount(w.views)}</small>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+
+          <section className="cm-panel">
+            <div className="cm-panel-head">
+              <h2>อ่านต่อจากที่ค้างไว้</h2>
+              {user && <Link to="/library?tab=history">ทั้งหมด</Link>}
+            </div>
+            {!user ? (
+              <div className="cm-empty">
+                <BrandMascot size="sm" />
+                <p>เข้าสู่ระบบเพื่อบันทึกความคืบหน้า</p>
+                <Link to="/auth/login" className="btn btn-primary btn-sm">เข้าสู่ระบบ</Link>
+              </div>
+            ) : continueItems.length === 0 ? (
+              <div className="cm-empty">
+                <BrandMascot size="sm" />
+                <p>ยังไม่มีประวัติการอ่าน</p>
+                <Link to="/discover" className="btn btn-ghost btn-sm">เริ่มเลือกเรื่อง</Link>
+              </div>
+            ) : (
+              <ul className="cm-continue-list">
+                {continueItems.map((item) => (
+                  <li key={item.work.id}>
+                    <Link
+                      to={`/read/${item.work.kind}/${item.work.id}/${item.chapterId}`}
+                      className="cm-continue-row"
+                    >
+                      <span className="cm-continue-cover"><Cover work={item.work} /></span>
+                      <span className="cm-continue-copy">
+                        <strong>{item.work.title}</strong>
+                        <small>ตอนที่ {item.chapterNumber}</small>
+                        <span className="cm-progress" aria-label={`ความคืบหน้า ${item.progressPct}%`}>
+                          <span style={{ width: `${item.progressPct}%` }} />
+                        </span>
+                      </span>
+                      <span className="btn btn-primary btn-sm">อ่านต่อ</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </aside>
+      </div>
 
       <footer className="site-footer">
         <BrandMascot size="sm" className="footer-mascot" />
@@ -187,4 +271,51 @@ export function HomePage() {
       </footer>
     </div>
   );
+}
+
+function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boolean }) {
+  return (
+    <Link to={`/works/${work.slug}`} className="cm-poster">
+      <div className="cm-poster-cover">
+        <Cover
+          work={work}
+          tag={(
+            <CoverBadges work={showNew ? { ...work, is_new: true } : work} />
+          )}
+        />
+      </div>
+      <div className="cm-poster-title">{work.title}</div>
+      <div className="cm-poster-meta">
+        <span className="cm-star">★ {work.score.toFixed(1)}</span>
+        <span>{work.chapter_count} ตอน</span>
+      </div>
+    </Link>
+  );
+}
+
+async function buildContinue(works: Work[], history: ReadingProgress[]): Promise<ContinueItem[]> {
+  const byId = new Map(works.map((w) => [w.id, w]));
+  const out: ContinueItem[] = [];
+  for (const h of history) {
+    const work = byId.get(h.work_id);
+    if (!work) continue;
+    try {
+      const chapter = await api.getChapter(h.chapter_id);
+      const pct = Math.max(4, Math.min(96, Math.round((h.position || 0.1) * 100)));
+      out.push({
+        work,
+        chapterId: h.chapter_id,
+        chapterNumber: chapter.number,
+        progressPct: pct,
+      });
+    } catch {
+      out.push({
+        work,
+        chapterId: h.chapter_id,
+        chapterNumber: 1,
+        progressPct: Math.max(4, Math.min(96, Math.round((h.position || 0.1) * 100))),
+      });
+    }
+  }
+  return out;
 }

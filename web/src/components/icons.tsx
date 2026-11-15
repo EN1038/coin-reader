@@ -61,3 +61,12 @@ export function IconShelf({ size = 22, className }: IconProps) {
     </svg>
   );
 }
+
+export function IconBell({ size = 20, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M6.5 9.5a5.5 5.5 0 0 1 11 0c0 5 2 6.5 2 6.5H4.5S6.5 14.5 6.5 9.5" />
+      <path d="M10 18.5a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}

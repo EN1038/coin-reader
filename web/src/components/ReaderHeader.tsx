@@ -1,22 +1,25 @@
 import { useState, type FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CoinPill } from './CoinPill';
-import { IconSearch, IconUser } from './icons';
+import { IconBell, IconSearch, IconUser } from './icons';
 import { PRODUCT_NAME } from '../lib/brand';
 import { BrandLogo } from './BrandAssets';
+import { ThemeToggle } from './ThemeToggle';
 import { useApp } from '../context/AppContext';
 
 const LINKS = [
   { to: '/', label: 'หน้าแรก', end: true },
-  { to: '/discover', label: 'ค้นพบ' },
-  { to: '/ranking', label: 'อันดับ' },
-  { to: '/library', label: 'ชั้นหนังสือ' },
+  { to: '/discover', label: 'หมวดหมู่' },
+  { to: '/ranking', label: 'อันดับยอดนิยม' },
+  { to: '/discover?sort=updated', label: 'อัปเดตล่าสุด', matchPath: '/discover' },
+  { to: '/library', label: 'คอลเลกชัน' },
 ];
 
 export function ReaderHeader() {
   const nav = useNavigate();
   const { user } = useApp();
   const [q, setQ] = useState('');
+  const [notifyOpen, setNotifyOpen] = useState(false);
   const initial = user?.display_name?.trim().slice(0, 1).toUpperCase() || '';
 
   function onSearch(e: FormEvent) {
@@ -34,7 +37,12 @@ export function ReaderHeader() {
 
         <nav className="desk-nav" aria-label="หลัก">
           {LINKS.map((l) => (
-            <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => (isActive ? 'on' : undefined)}>
+            <NavLink
+              key={l.label}
+              to={l.to}
+              end={'end' in l ? l.end : false}
+              className={({ isActive }) => (isActive ? 'on' : undefined)}
+            >
               {l.label}
             </NavLink>
           ))}
@@ -54,6 +62,24 @@ export function ReaderHeader() {
           <Link to="/discover" className="icon-btn header-search-btn" aria-label="ค้นหา">
             <IconSearch size={20} />
           </Link>
+          <ThemeToggle compact />
+          <div className="notify-wrap">
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="การแจ้งเตือน"
+              aria-expanded={notifyOpen}
+              onClick={() => setNotifyOpen((v) => !v)}
+            >
+              <IconBell size={20} />
+            </button>
+            {notifyOpen && (
+              <div className="notify-pop" role="dialog" aria-label="การแจ้งเตือน">
+                <p>ยังไม่มีการแจ้งเตือนใหม่</p>
+                <Link to="/check-in" onClick={() => setNotifyOpen(false)}>ไปเช็คอินรายวัน</Link>
+              </div>
+            )}
+          </div>
           {user ? (
             <>
               <CoinPill />

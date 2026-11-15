@@ -3,10 +3,10 @@ import { IconHome, IconRank, IconSearch, IconShelf, IconUser } from './icons';
 
 const items = [
   { to: '/', label: 'หน้าแรก', icon: 'home', end: true },
-  { to: '/discover', label: 'ค้นพบ', icon: 'search', match: ['/discover', '/search'] },
+  { to: '/discover', label: 'หมวดหมู่', icon: 'search', match: ['/discover', '/search'] },
   { to: '/ranking', label: 'อันดับ', icon: 'rank' },
-  { to: '/library', label: 'ชั้นหนังสือ', icon: 'shelf', match: ['/library', '/history'] },
-  { to: '/me', label: 'ฉัน', icon: 'me', match: ['/me'] },
+  { to: '/library', label: 'คลังของฉัน', icon: 'shelf', match: ['/library', '/history'] },
+  { to: '/me', label: 'โปรไฟล์', icon: 'me', match: ['/me'] },
 ] as const;
 
 function NavIcon({ name }: { name: string }) {
