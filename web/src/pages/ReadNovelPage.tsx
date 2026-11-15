@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/supabase';
 import type { Chapter, Work } from '../lib/types';
 import { Badge } from '../components/Badge';
+import { IconArrowLeft, IconArrowRight } from '../components/icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { CommentThread } from '../components/CommentThread';
@@ -115,8 +116,12 @@ export function ReadNovelPage() {
       </article>
       {user && <CommentThread chapterId={chapter.id} />}
       <div className="reader-nav">
-        <button type="button" className="btn" disabled={!prev} onClick={() => prev && go(prev)}>← ก่อนหน้า</button>
-        <button type="button" className="btn" disabled={!next} onClick={() => next && go(next)}>ถัดไป →</button>
+        <button type="button" className="btn reader-nav-btn" disabled={!prev} onClick={() => prev && go(prev)}>
+          <IconArrowLeft size={16} /> ก่อนหน้า
+        </button>
+        <button type="button" className="btn reader-nav-btn" disabled={!next} onClick={() => next && go(next)}>
+          ถัดไป <IconArrowRight size={16} />
+        </button>
       </div>
     </div>
   );

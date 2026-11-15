@@ -39,10 +39,45 @@ export function IconChevronRight({ size = 18, className }: IconProps) {
   );
 }
 
+export function IconChevronLeft({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="m15 6-6 6 6 6" />
+    </svg>
+  );
+}
+
 export function IconChevronDown({ size = 18, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
       <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+/** Filled triangle caret — settings / FAQ list rows */
+export function IconCaretRight({ size = 14, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden fill="currentColor">
+      <path d="M9 5.5v13l10-6.5L9 5.5z" />
+    </svg>
+  );
+}
+
+export function IconArrowRight({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+export function IconArrowLeft({ size = 18, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M19 12H5" />
+      <path d="m11 6-6 6 6 6" />
     </svg>
   );
 }

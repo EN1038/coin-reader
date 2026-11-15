@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { Badge } from '../components/Badge';
+import { IconArrowRight, IconCaretRight } from '../components/icons';
 
 const FAQS: { q: string; a: ReactNode; open?: boolean }[] = [
   {
@@ -82,7 +83,7 @@ export function HelpPage() {
         <details key={f.q} className="faq" open={f.open}>
           <summary>
             {f.q}
-            <span className="chev">▸</span>
+            <span className="chev"><IconCaretRight size={12} /></span>
           </summary>
           <div className="body">{f.a}</div>
         </details>
@@ -93,13 +94,16 @@ export function HelpPage() {
       </div>
       <div className="help-links">
         <Link to="/help/report">
-          รายงานปัญหา <span>บั๊ก · อ่านไม่ได้ →</span>
+          รายงานปัญหา
+          <span className="help-link-meta">บั๊ก · อ่านไม่ได้ <IconArrowRight size={14} className="help-link-ic" /></span>
         </Link>
         <Link to="/legal/takedown">
-          แจ้งละเมิดลิขสิทธิ์ <span>ฟอร์ม takedown →</span>
+          แจ้งละเมิดลิขสิทธิ์
+          <span className="help-link-meta">ฟอร์ม takedown <IconArrowRight size={14} className="help-link-ic" /></span>
         </Link>
         <Link to="/legal/coins">
-          นโยบายเหรียญ <span>Gold / Diamond →</span>
+          นโยบายเหรียญ
+          <span className="help-link-meta">Gold / Diamond <IconArrowRight size={14} className="help-link-ic" /></span>
         </Link>
       </div>
     </>
