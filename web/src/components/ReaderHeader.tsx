@@ -32,7 +32,7 @@ export function ReaderHeader() {
     <header className="site-header">
       <div className="site-header-inner">
         <Link to="/" className="brand-mark" aria-label={PRODUCT_NAME}>
-          <BrandLogo size="md" className="header-logo" />
+          <BrandLogo variant="topbar" size="md" className="header-logo" />
         </Link>
 
         <nav className="desk-nav" aria-label="หลัก">

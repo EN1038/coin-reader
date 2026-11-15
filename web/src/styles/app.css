@@ -384,7 +384,8 @@ button{cursor:pointer}
 .brand-logo-md{max-width:160px}
 .brand-logo-lg{max-width:220px}
 .brand-logo-xl{max-width:280px}
-.header-logo{height:40px!important;max-width:min(180px,42vw)}
+.header-logo{height:40px!important;max-width:min(200px,52vw)}
+.brand-logo-topbar{height:36px!important;width:auto;max-width:min(220px,56vw);object-fit:contain}
 .auth-hero{display:grid;justify-items:center;gap:10px;margin-bottom:18px;text-align:center}
 .auth-brand-mascot{margin:0 auto 8px}
 .brand-welcome{
