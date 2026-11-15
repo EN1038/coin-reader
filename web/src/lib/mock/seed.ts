@@ -2,6 +2,7 @@ import type {
   Author, Work, Chapter, ChapterContent, ChapterPage, CoinPack, ReaderComment, Category,
 } from '../types';
 import type { CoverTone } from '../types';
+import { COVER_DEFAULT } from '../brand';
 
 export const PACK_IDS = {
   p50: '10000000-0000-4000-8000-000000000050',
@@ -271,6 +272,7 @@ function build(spec: Spec): { work: Work; chapters: Chapter[] } {
     rating: spec.rating ?? 'ทั่วไป',
     status: spec.status ?? 'published',
     cover_tone: spec.cover_tone,
+    cover_url: COVER_DEFAULT,
     author_id: spec.author_id,
     author_name: spec.author_name,
     price_full_work: spec.price_full_work,

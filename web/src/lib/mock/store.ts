@@ -6,6 +6,7 @@ import {
   seedWorks, seedChapters, seedContents, seedPages, seedPacks, seedAuthors, DEMO_PASSWORD,
   DEMO_REFERRAL_CODE, REFERRAL_PERCENT, seedComments, seedCategories,
 } from './seed';
+import { COVER_DEFAULT } from '../brand';
 import { bangkokToday, checkInReward, isoDay, bangkokParts, daysInMonth } from '../format';
 
 const LS_KEY = 'stock-manga-mock-v2';
@@ -70,6 +71,7 @@ export interface WriterWork {
   price_full_work: number | null;
   free_episode_count: number;
   cover_tone: 'default' | 'warm' | 'teal' | 'rose' | 'blue';
+  cover_url?: string | null;
   created_at: string;
   updated_at: string;
   is_example_data: true;
@@ -196,6 +198,7 @@ function seedWriterCatalog(): { works: WriterWork[]; chapters: WriterChapter[] }
       price_full_work: w.price_full_work,
       free_episode_count: w.free_episode_count,
       cover_tone: w.cover_tone,
+      cover_url: w.cover_url ?? COVER_DEFAULT,
       created_at: now,
       updated_at: now,
       is_example_data: true,
@@ -959,6 +962,7 @@ export const mockDb = {
       price_full_work: input.price_full_work ?? null,
       free_episode_count: input.free_episode_count ?? 0,
       cover_tone: input.cover_tone ?? 'default',
+      cover_url: input.cover_url ?? COVER_DEFAULT,
       created_at: now,
       updated_at: now,
       is_example_data: true,
@@ -1157,6 +1161,7 @@ export const mockDb = {
           rating: 'ทั่วไป',
           status: 'published',
           cover_tone: w.cover_tone,
+          cover_url: w.cover_url ?? COVER_DEFAULT,
           author_id: w.author_id,
           author_name: author?.display_name ?? 'นักเขียน',
           price_full_work: w.price_full_work,

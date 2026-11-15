@@ -6,3 +6,5 @@ export const BRAND_LOGO = '/brand/logo.png';
 export const BRAND_LOGO_TOPBAR = '/brand/logo-topbar.png';
 export const BRAND_MASCOT = '/brand/mascot.png';
 export const BRAND_HERO = '/brand/hero-banner.png';
+/** ปกเรื่องเริ่มต้นเมื่อยังไม่มีรูป / โหลดรูปไม่ได้ */
+export const COVER_DEFAULT = '/brand/cover-default.png';

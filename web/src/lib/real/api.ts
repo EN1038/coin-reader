@@ -5,7 +5,43 @@ import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser,
   UnlockResult, TopupResult, MangaPageUrl, BookshelfItem, ReadingProgress, LedgerEntry, Category,
 } from '../types';
-import { seedCategories } from '../mock/seed';
+import { seedCategories, seedWorks, seedChapters } from '../mock/seed';
+import { COVER_DEFAULT } from '../brand';
+import type { ListWorksParams } from '../api';
+
+function withCover(work: Work): Work {
+  return { ...work, cover_url: work.cover_url?.trim() || COVER_DEFAULT };
+}
+
+function filterSeedWorks(params?: ListWorksParams): Work[] {
+  let list = seedWorks.map(withCover);
+  if (params?.kind) list = list.filter((w) => w.kind === params.kind);
+  if (params?.category && params.category !== 'ทั้งหมด') list = list.filter((w) => w.category === params.category);
+  if (params?.q) {
+    const q = params.q.toLowerCase();
+    list = list.filter((w) => w.title.toLowerCase().includes(q) || w.author_name.toLowerCase().includes(q));
+  }
+  if (params?.status) list = list.filter((w) => w.status === params.status);
+  if (params?.featured) list = list.filter((w) => w.featured);
+  if (params?.popular) list = list.filter((w) => w.popular);
+  if (params?.isNew) list = list.filter((w) => w.is_new);
+  switch (params?.sort) {
+    case 'views':
+    case 'daily':
+      return list.sort((a, b) => b.rank_daily - a.rank_daily);
+    case 'weekly':
+      return list.sort((a, b) => b.rank_weekly - a.rank_weekly);
+    case 'monthly':
+      return list.sort((a, b) => b.rank_monthly - a.rank_monthly);
+    case 'rating':
+      return list.sort((a, b) => b.score - a.score);
+    case 'new':
+      return list.sort((a, b) => +new Date(b.latest_at) - +new Date(a.latest_at));
+    case 'updated':
+    default:
+      return list.sort((a, b) => +new Date(b.latest_at) - +new Date(a.latest_at));
+  }
+}
 
 function sb() {
   const c = getSupabase();
@@ -81,38 +117,59 @@ export const realApi: CoinReaderApi = {
   },
 
   async listWorks(params) {
-    let q = sb().from('works').select('*').eq('status', 'published');
-    if (params?.kind) q = q.eq('kind', params.kind);
-    if (params?.category && params.category !== 'ทั้งหมด') q = q.eq('category', params.category);
-    if (params?.q) q = q.ilike('title', `%${params.q}%`);
-    const { data, error } = await q;
-    if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-    return (data ?? []) as Work[];
+    try {
+      let q = sb().from('works').select('*').eq('status', 'published');
+      if (params?.kind) q = q.eq('kind', params.kind);
+      if (params?.category && params.category !== 'ทั้งหมด') q = q.eq('category', params.category);
+      if (params?.q) q = q.ilike('title', `%${params.q}%`);
+      const { data, error } = await q;
+      if (error || !data?.length) return filterSeedWorks(params);
+      return (data as Work[]).map(withCover);
+    } catch {
+      return filterSeedWorks(params);
+    }
   },
 
   async getWorkBySlug(slug) {
-    const { data, error } = await sb().from('works').select('*').or(`slug.eq.${slug},id.eq.${slug}`).maybeSingle();
-    if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-    if (!data) throw new ApiError(404, 'NOT_FOUND');
-    return data as Work;
+    try {
+      const { data, error } = await sb().from('works').select('*').or(`slug.eq.${slug},id.eq.${slug}`).maybeSingle();
+      if (error) throw new ApiError(500, 'UNKNOWN', error.message);
+      if (data) return withCover(data as Work);
+    } catch {
+      /* fall through to seed */
+    }
+    const seeded = seedWorks.find((w) => w.slug === slug || w.id === slug);
+    if (!seeded) throw new ApiError(404, 'NOT_FOUND');
+    return withCover(seeded);
   },
 
   async getWork(id) {
-    const { data, error } = await sb().from('works').select('*').eq('id', id).maybeSingle();
-    if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-    if (!data) throw new ApiError(404, 'NOT_FOUND');
-    return data as Work;
+    try {
+      const { data, error } = await sb().from('works').select('*').eq('id', id).maybeSingle();
+      if (error) throw new ApiError(500, 'UNKNOWN', error.message);
+      if (data) return withCover(data as Work);
+    } catch {
+      /* fall through to seed */
+    }
+    const seeded = seedWorks.find((w) => w.id === id);
+    if (!seeded) throw new ApiError(404, 'NOT_FOUND');
+    return withCover(seeded);
   },
 
   async listChapters(workId) {
-    const { data, error } = await sb()
-      .from('chapters')
-      .select('*')
-      .eq('work_id', workId)
-      .eq('status', 'published')
-      .order('number');
-    if (error) throw new ApiError(500, 'UNKNOWN', error.message);
-    return (data ?? []) as Chapter[];
+    try {
+      const { data, error } = await sb()
+        .from('chapters')
+        .select('*')
+        .eq('work_id', workId)
+        .eq('status', 'published')
+        .order('number');
+      if (error) throw new ApiError(500, 'UNKNOWN', error.message);
+      if (data?.length) return data as Chapter[];
+    } catch {
+      /* fall through to seed */
+    }
+    return seedChapters.filter((c) => c.work_id === workId);
   },
 
   async getChapter(chapterId) {
@@ -229,7 +286,22 @@ export const realApi: CoinReaderApi = {
     return !!data;
   },
 
-  async listRecentUpdates() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
+  async listRecentUpdates(limit = 8) {
+    const works = filterSeedWorks({ sort: 'updated' }).slice(0, limit);
+    return works.map((work) => {
+      const episodes = seedChapters
+        .filter((c) => c.work_id === work.id)
+        .sort((a, b) => b.number - a.number)
+        .slice(0, 2)
+        .map((c) => ({
+          id: c.id,
+          number: c.number,
+          title: c.title,
+          published_at: c.published_at,
+        }));
+      return { work, episodes };
+    });
+  },
   async checkInCalendar() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async claimCheckIn() { throw new ApiError(501, 'MOCK_DISABLED', 'โหมด mock เท่านั้น'); },
   async ticketBalance() { return 0; },

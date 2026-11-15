@@ -40,6 +40,8 @@ export interface Work {
   /** published = กำลังดำเนินเรื่อง, completed = จบ */
   status: 'published' | 'completed';
   cover_tone: CoverTone;
+  /** URL ปกเรื่อง — ว่างหรือโหลดไม่ได้ให้ใช้ COVER_DEFAULT */
+  cover_url?: string | null;
   author_id: string;
   author_name: string;
   price_full_work: number | null;

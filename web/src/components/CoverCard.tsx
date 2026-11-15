@@ -1,19 +1,40 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Work } from '../lib/types';
 import { Badge } from './Badge';
+import { COVER_DEFAULT } from '../lib/brand';
+
+function resolveCover(url?: string | null): string {
+  const src = url?.trim();
+  return src || COVER_DEFAULT;
+}
 
 export function Cover({
   work, tag, className = '',
 }: {
-  work: Pick<Work, 'title' | 'cover_tone'>;
+  work: Pick<Work, 'title' | 'cover_tone' | 'cover_url'>;
   tag?: React.ReactNode;
   className?: string;
 }) {
-  const tone = work.cover_tone === 'default' ? '' : work.cover_tone;
+  const [src, setSrc] = useState(() => resolveCover(work.cover_url));
+
+  useEffect(() => {
+    setSrc(resolveCover(work.cover_url));
+  }, [work.cover_url]);
+
   return (
-    <div className={`cover ${tone} ${className}`.trim()}>
+    <div className={`cover has-img ${className}`.trim()}>
       {tag && <span className="tag">{tag}</span>}
-      <span className="cover-title">{work.title}</span>
+      <img
+        className="cover-img"
+        src={src}
+        alt={work.title}
+        loading="lazy"
+        decoding="async"
+        onError={() => {
+          if (src !== COVER_DEFAULT) setSrc(COVER_DEFAULT);
+        }}
+      />
     </div>
   );
 }
