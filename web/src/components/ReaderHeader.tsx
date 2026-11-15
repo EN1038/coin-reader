@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { CoinPill } from './CoinPill';
+import { IconSearch, IconUser } from './icons';
 import { PRODUCT_NAME } from '../lib/brand';
 import { useApp } from '../context/AppContext';
 
@@ -15,7 +16,7 @@ export function ReaderHeader() {
   const nav = useNavigate();
   const { user } = useApp();
   const [q, setQ] = useState('');
-  const initial = user?.display_name?.trim().slice(0, 1) || '?';
+  const initial = user?.display_name?.trim().slice(0, 1).toUpperCase() || '';
 
   function onSearch(e: FormEvent) {
     e.preventDefault();
@@ -30,6 +31,7 @@ export function ReaderHeader() {
           <span className="brand-glyph" aria-hidden>TB</span>
           <span className="brand-name">{PRODUCT_NAME}</span>
         </Link>
+
         <nav className="desk-nav" aria-label="หลัก">
           {LINKS.map((l) => (
             <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => (isActive ? 'on' : undefined)}>
@@ -37,8 +39,9 @@ export function ReaderHeader() {
             </NavLink>
           ))}
         </nav>
+
         <form className="header-search" onSubmit={onSearch}>
-          <span aria-hidden>⌕</span>
+          <IconSearch className="header-search-icon" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -46,17 +49,24 @@ export function ReaderHeader() {
             aria-label="ค้นหา"
           />
         </form>
+
         <div className="header-tools">
-          <Link to="/discover" className="icon-btn header-search-btn" aria-label="ค้นหา">⌕</Link>
+          <Link to="/discover" className="icon-btn header-search-btn" aria-label="ค้นหา">
+            <IconSearch size={20} />
+          </Link>
           {user ? (
             <>
               <CoinPill />
               <Link to="/wallet/topup" className="btn btn-coin btn-sm topup-link">เติม</Link>
+              <Link to="/me" className="avatar-btn" aria-label="โปรไฟล์">
+                {initial || <IconUser size={16} />}
+              </Link>
             </>
           ) : (
-            <Link to="/auth/login" className="btn btn-primary btn-sm topup-link">เข้าสู่ระบบ</Link>
+            <Link to="/auth/login" className="btn btn-primary btn-sm topup-link header-login">
+              เข้าสู่ระบบ
+            </Link>
           )}
-          <Link to="/me" className="avatar-btn" aria-label="โปรไฟล์">{initial}</Link>
         </div>
       </div>
     </header>

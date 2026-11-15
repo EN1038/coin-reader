@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+import { IconHome, IconRank, IconSearch, IconShelf, IconUser } from './icons';
 
 const items = [
   { to: '/', label: 'หน้าแรก', icon: 'home', end: true },
@@ -8,13 +9,12 @@ const items = [
   { to: '/me', label: 'ฉัน', icon: 'me', match: ['/me'] },
 ] as const;
 
-function Icon({ name }: { name: string }) {
-  const common = { width: 22, height: 22, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
-  if (name === 'home') return <svg {...common}><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z" /></svg>;
-  if (name === 'search') return <svg {...common}><circle cx="11" cy="11" r="6" /><path d="m20 20-3.5-3.5" /></svg>;
-  if (name === 'rank') return <svg {...common}><path d="M5 20V10M12 20V4M19 20v-7" /></svg>;
-  if (name === 'shelf') return <svg {...common}><path d="M5 5h14v14H5zM5 12h14M12 5v14" /></svg>;
-  return <svg {...common}><circle cx="12" cy="8" r="3" /><path d="M5 19c1.2-3 3.4-4.5 7-4.5S17.8 16 19 19" /></svg>;
+function NavIcon({ name }: { name: string }) {
+  if (name === 'home') return <IconHome />;
+  if (name === 'search') return <IconSearch size={22} />;
+  if (name === 'rank') return <IconRank />;
+  if (name === 'shelf') return <IconShelf />;
+  return <IconUser size={22} />;
 }
 
 export function BottomNav() {
@@ -31,7 +31,7 @@ export function BottomNav() {
             return isActive || extra ? 'on' : undefined;
           }}
         >
-          <span className="ic"><Icon name={it.icon} /></span>
+          <span className="ic"><NavIcon name={it.icon} /></span>
           {it.label}
         </NavLink>
       ))}
