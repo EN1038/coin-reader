@@ -389,13 +389,23 @@ button{cursor:pointer}
 .faq{margin:0 16px 8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .faq summary,.faq .q{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--font-head);font-weight:600;font-size:13px;cursor:pointer;list-style:none}
 .faq summary::-webkit-details-marker{display:none}
-.faq .chev{color:var(--text-muted);display:inline-flex;align-items:center;flex-shrink:0;transition:transform .15s ease}
-.faq[open] .chev{transform:rotate(90deg)}
+.faq-q{flex:1;min-width:0}
+.faq-chev,.faq .chev{
+  color:var(--text-muted);flex-shrink:0;display:block;
+  transition:transform .15s ease;opacity:.75;
+}
+.faq[open] .faq-chev,.faq[open] .chev{transform:rotate(90deg)}
 .faq[open] .body,.faq .a{padding:0 16px 12px;font-size:12px;line-height:1.6;color:var(--text-muted);border-top:1px solid var(--line);padding-top:10px}
 .help-links{padding:4px 16px 16px;display:flex;flex-direction:column;gap:8px}
-.help-links a{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;font-family:var(--font-head);font-weight:600;font-size:13px;color:var(--text)}
-.help-links a .help-link-meta{color:var(--text-muted);font-weight:400;font-size:11px;text-align:right;max-width:55%;display:inline-flex;align-items:center;justify-content:flex-end;gap:4px}
-.help-links a .help-link-ic{flex-shrink:0;opacity:.75}
+.help-links a,.help-link{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  font-family:var(--font-head);font-weight:600;font-size:13px;color:var(--text);text-decoration:none;
+}
+.help-link-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.help-link-copy strong{font-weight:600;font-size:13px;color:var(--text)}
+.help-link-copy small{font-weight:400;font-size:11px;color:var(--text-muted);font-family:var(--font-body)}
+.help-link-ic{flex-shrink:0;color:var(--text-muted);opacity:.75}
 .settings-group .item .r.settings-row-meta,.settings-group .item .r{display:inline-flex;align-items:center;gap:6px}
 .settings-row-ic{flex-shrink:0;opacity:.7}
 .reader-nav-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px}

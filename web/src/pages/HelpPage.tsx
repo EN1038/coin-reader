@@ -2,7 +2,7 @@ import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { Badge } from '../components/Badge';
-import { IconArrowRight, IconCaretRight } from '../components/icons';
+import { IconChevronRight } from '../components/icons';
 
 const FAQS: { q: string; a: ReactNode; open?: boolean }[] = [
   {
@@ -53,6 +53,12 @@ const FAQS: { q: string; a: ReactNode; open?: boolean }[] = [
   },
 ];
 
+const ACTIONS: { to: string; title: string; hint: string }[] = [
+  { to: '/help/report', title: 'รายงานปัญหา', hint: 'บั๊ก · อ่านไม่ได้' },
+  { to: '/legal/takedown', title: 'แจ้งละเมิดลิขสิทธิ์', hint: 'ฟอร์ม takedown' },
+  { to: '/legal/coins', title: 'นโยบายเหรียญ', hint: 'Gold / Diamond' },
+];
+
 export function HelpPage() {
   return (
     <>
@@ -82,8 +88,8 @@ export function HelpPage() {
       {FAQS.map((f) => (
         <details key={f.q} className="faq" open={f.open}>
           <summary>
-            {f.q}
-            <span className="chev"><IconCaretRight size={12} /></span>
+            <span className="faq-q">{f.q}</span>
+            <IconChevronRight size={18} className="faq-chev" />
           </summary>
           <div className="body">{f.a}</div>
         </details>
@@ -93,18 +99,15 @@ export function HelpPage() {
         <h2 style={{ fontSize: 16 }}>ดำเนินการ</h2>
       </div>
       <div className="help-links">
-        <Link to="/help/report">
-          รายงานปัญหา
-          <span className="help-link-meta">บั๊ก · อ่านไม่ได้ <IconArrowRight size={14} className="help-link-ic" /></span>
-        </Link>
-        <Link to="/legal/takedown">
-          แจ้งละเมิดลิขสิทธิ์
-          <span className="help-link-meta">ฟอร์ม takedown <IconArrowRight size={14} className="help-link-ic" /></span>
-        </Link>
-        <Link to="/legal/coins">
-          นโยบายเหรียญ
-          <span className="help-link-meta">Gold / Diamond <IconArrowRight size={14} className="help-link-ic" /></span>
-        </Link>
+        {ACTIONS.map((a) => (
+          <Link key={a.to} to={a.to} className="help-link">
+            <span className="help-link-copy">
+              <strong>{a.title}</strong>
+              <small>{a.hint}</small>
+            </span>
+            <IconChevronRight size={18} className="help-link-ic" />
+          </Link>
+        ))}
       </div>
     </>
   );
