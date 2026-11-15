@@ -11,6 +11,7 @@ const PAGE_TOPBAR = [
   /^\/legal\//,
   /^\/help/,
   /^\/me\/settings/,
+  /^\/wallet$/,
   /^\/wallet\/pay\//,
 ];
 
