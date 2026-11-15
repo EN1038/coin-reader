@@ -32,6 +32,12 @@ button{cursor:pointer}
 .app-shell:has(.admin-shell) > .content > .desk-wrap{
   max-width:none;width:100%;margin:0;
 }
+.app-shell:has(.profile-page) > .content{
+  max-width:none;width:100%;padding:0;margin:0;
+}
+.app-shell:has(.profile-page) > .content > .profile-page{
+  max-width:none;width:100%;margin:0;
+}
 
 .topbar{
   position:sticky;top:0;z-index:30;width:100%;
@@ -422,8 +428,11 @@ button{cursor:pointer}
 .profile-page{
   width:100%;min-height:100%;padding-bottom:32px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-bg) 70%, transparent) 0%, var(--bg) 42%);
+    radial-gradient(ellipse 70% 40% at 80% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-bg) 80%, transparent) 0%, var(--bg) 36%);
 }
+.profile-frame{width:100%;max-width:1100px;margin:0 auto}
+.profile-rail{display:none}
 .profile-hero{
   padding:20px 16px 56px;position:relative;color:var(--on-hero);
   background:
@@ -488,6 +497,7 @@ button{cursor:pointer}
 }
 .profile-quick-item:hover{border-color:color-mix(in srgb, var(--primary) 35%, var(--line));transform:translateY(-1px)}
 .profile-quick-item svg{color:var(--primary)}
+.profile-panels{display:flex;flex-direction:column}
 .profile-section{margin-top:16px}
 .profile-section-title{
   font-size:11px;font-family:var(--font-head);font-weight:700;color:var(--text-muted);
@@ -514,11 +524,15 @@ button{cursor:pointer}
 .profile-link-copy small{font-size:12px;color:var(--text-muted);font-weight:400}
 .profile-link-chev{flex-shrink:0;color:var(--text-muted);opacity:.7}
 .profile-legal{margin-top:18px}
+.profile-legal-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:14px 16px;box-shadow:var(--sh-1);
+}
 .profile-legal-links{
-  display:flex;flex-wrap:wrap;gap:8px 14px;padding:4px 6px 2px;
+  display:flex;flex-wrap:wrap;gap:10px 16px;
 }
 .profile-legal-links a{
-  font-size:12px;color:var(--text-muted);text-decoration:none;font-family:var(--font-head);font-weight:500;
+  font-size:13px;color:var(--text-muted);text-decoration:none;font-family:var(--font-head);font-weight:500;
 }
 .profile-legal-links a:hover{color:var(--primary)}
 .profile-logout{
@@ -530,9 +544,63 @@ button{cursor:pointer}
 }
 .profile-logout:hover{background:var(--danger-bg)}
 .profile-body{max-width:560px;margin:0 auto}
+.profile-rail-theme{margin-top:16px}
+.profile-rail-theme .card{border:0;box-shadow:none;padding:8px 0 0;background:transparent}
+.profile-rail .profile-logout{margin-top:14px;margin-bottom:0}
+
 @media (max-width:420px){
   .profile-quick{grid-template-columns:repeat(2,minmax(0,1fr))}
   .profile-name{font-size:18px}
+}
+
+/* Desktop profile — 2-column board, no empty side gutters */
+@media (min-width:861px){
+  .profile-page{padding:28px 28px 48px}
+  .profile-frame{
+    display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;align-items:start;
+  }
+  .profile-hero-mobile,
+  .profile-sheet-top-mobile,
+  .profile-logout-mobile{display:none !important}
+  .profile-rail{display:block;position:sticky;top:76px}
+  .profile-rail-card{
+    padding:22px;border-radius:22px;color:var(--on-hero);
+    background:
+      radial-gradient(ellipse 90% 70% at 0% 0%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 55%),
+      linear-gradient(160deg, var(--hero-start), var(--primary-hover) 55%, var(--hero-end));
+    box-shadow:var(--sh-2);
+  }
+  .profile-rail .profile-av{
+    width:84px;height:84px;font-size:28px;
+  }
+  .profile-rail .profile-name{font-size:24px;white-space:normal}
+  .profile-rail .profile-id{flex-direction:column;align-items:flex-start;gap:12px}
+  .profile-rail .profile-stats{margin-top:18px}
+  .profile-rail .profile-stat{
+    background:color-mix(in srgb, var(--on-hero) 14%, transparent);
+  }
+  .profile-main{min-width:0}
+  .profile-sheet{
+    max-width:none;margin:0;padding:0;
+  }
+  .profile-quick{
+    grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px;
+  }
+  .profile-quick-item{
+    padding:16px 10px;font-size:12px;border-radius:16px;
+  }
+  .profile-panels{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px;
+  }
+  .profile-section{margin-top:0}
+  .profile-legal{grid-column:1 / -1}
+  .profile-link{min-height:56px;padding:14px 16px}
+  .profile-link-copy strong{font-size:15px}
+}
+
+@media (min-width:1100px){
+  .profile-frame{grid-template-columns:340px minmax(0,1fr);gap:28px}
+  .profile-page{padding:32px 40px 56px}
 }
 .author-work{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--surface);color:inherit;text-decoration:none}
 .author-work .thumb{width:56px;flex-shrink:0}
