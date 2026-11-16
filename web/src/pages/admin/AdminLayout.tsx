@@ -40,6 +40,8 @@ const NAV_GROUPS: { title: string; items: NavItem[] }[] = [
     items: [
       { to: '/admin/works', label: 'ผลงาน', icon: <IconBook size={16} /> },
       { to: '/admin/categories', label: 'หมวดหมู่', icon: <IconFolder size={16} /> },
+      { to: '/admin/banners', label: 'แบนเนอร์', icon: <IconThumbsUp size={16} /> },
+      { to: '/admin/assets', label: 'ภาพเริ่มต้น', icon: <IconSearch size={16} /> },
     ],
   },
   {

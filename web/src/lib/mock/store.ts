@@ -1,12 +1,18 @@
 import type {
   SessionUser, UnlockRecord, BookshelfItem, ReadingProgress, LedgerEntry, ReaderComment,
-  Work, Chapter, Category, CategoryIconKey,
+  Work, Chapter, Category, CategoryIconKey, HeroBanner,
 } from '../types';
 import {
   seedWorks, seedChapters, seedContents, seedPages, seedPacks, seedAuthors, DEMO_PASSWORD,
   DEMO_REFERRAL_CODE, REFERRAL_PERCENT, seedComments, seedCategories,
 } from './seed';
-import { COVER_DEFAULT } from '../brand';
+import { BRAND_HERO, COVER_DEFAULT } from '../brand';
+import {
+  mergeSiteAssets,
+  SITE_ASSET_DEFAULTS,
+  type SiteAssetKey,
+  type SiteAssetsMap,
+} from '../siteAssets';
 import { bangkokToday, checkInReward, isoDay, bangkokParts, daysInMonth } from '../format';
 import {
   evaluateWriterTierDrop,
@@ -90,10 +96,14 @@ export type ActivityAction =
   | 'work_status'
   | 'category_upsert'
   | 'category_delete'
+  | 'banner_upsert'
+  | 'banner_delete'
+  | 'site_asset_update'
+  | 'site_asset_reset'
   | 'author_review'
   | 'takedown_review';
 
-export type ActivityTargetType = 'work' | 'chapter' | 'category' | 'author' | 'takedown';
+export type ActivityTargetType = 'work' | 'chapter' | 'category' | 'banner' | 'site_asset' | 'author' | 'takedown';
 
 export interface ActivityLogEntry {
   id: string;
@@ -263,10 +273,35 @@ export interface MockState {
   referrals: Record<string, ReferralProfile>;
   referralEvents: ReferralEvent[];
   categories: Category[];
+  banners: HeroBanner[];
+  siteAssets: SiteAssetsMap;
   readerEconomy: Record<string, ReaderEconomyRow>;
   writerEconomy: Record<string, WriterEconomyRow>;
   notifications: AppNotification[];
   activityLog: ActivityLogEntry[];
+}
+
+function seedBanners(): HeroBanner[] {
+  return [
+    {
+      id: 'banner-home-1',
+      title: 'Stock Manga',
+      alt: 'อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน — คลังมังงะคุณภาพ หลากหลายแนว อ่านได้ฟรี สะดวก ทุกอุปกรณ์',
+      image_url: BRAND_HERO,
+      href: '/discover',
+      sort_order: 1,
+      active: true,
+    },
+    {
+      id: 'banner-home-2',
+      title: 'เรื่องแนะนำ',
+      alt: 'เรื่องฮิตอัปเดตทุกวัน — กดเริ่มอ่านเลย',
+      image_url: BRAND_HERO,
+      href: '/ranking',
+      sort_order: 2,
+      active: true,
+    },
+  ];
 }
 
 function uid(prefix: string): string {
@@ -655,6 +690,8 @@ function defaultState(): MockState {
       },
     ],
     categories: seedCategories.map((c) => ({ ...c })),
+    banners: seedBanners(),
+    siteAssets: { ...SITE_ASSET_DEFAULTS },
     readerEconomy: {
       [demoUser.id]: { lifetime_topup: topupCoins, tier_id: 'none', last_bonus_tier: 'none' },
       [friendUser.id]: { lifetime_topup: 0, tier_id: 'none', last_bonus_tier: 'none' },
@@ -730,6 +767,8 @@ function normalize(parsed: Partial<MockState>): MockState {
     referrals: { ...base.referrals, ...(parsed.referrals ?? {}) },
     referralEvents: parsed.referralEvents ?? base.referralEvents,
     categories: parsed.categories?.length ? parsed.categories : base.categories,
+    banners: parsed.banners?.length ? parsed.banners : base.banners,
+    siteAssets: mergeSiteAssets(parsed.siteAssets),
     notifications: parsed.notifications ?? [],
     activityLog: parsed.activityLog?.length
       ? parsed.activityLog
@@ -910,6 +949,139 @@ export const mockDb = {
       summary: `ลบหมวด · ${cat?.name ?? id}`,
     });
     save(state);
+  },
+
+  listBanners(activeOnly = true): HeroBanner[] {
+    return state.banners
+      .filter((b) => (activeOnly ? b.active : true))
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order || a.title.localeCompare(b.title, 'th'));
+  },
+
+  upsertBanner(input: {
+    id?: string;
+    title: string;
+    alt: string;
+    image_url: string;
+    href: string;
+    sort_order: number;
+    active: boolean;
+  }): HeroBanner {
+    const title = input.title.trim() || 'แบนเนอร์';
+    const image_url = input.image_url.trim();
+    if (!image_url) throw new Error('VALIDATION');
+    const href = input.href.trim() || '/discover';
+    const alt = input.alt.trim() || title;
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+
+    if (input.id) {
+      const idx = state.banners.findIndex((b) => b.id === input.id);
+      if (idx < 0) throw new Error('NOT_FOUND');
+      const next: HeroBanner = {
+        ...state.banners[idx],
+        title,
+        alt,
+        image_url,
+        href,
+        sort_order: input.sort_order,
+        active: input.active,
+      };
+      state.banners[idx] = next;
+      mockDb.pushActivityLog({
+        actor_id: actor.id,
+        actor_name: actor.name,
+        action: 'banner_upsert',
+        target_type: 'banner',
+        target_id: next.id,
+        summary: `แก้ไขแบนเนอร์ · ${next.title}`,
+      });
+      save(state);
+      return next;
+    }
+
+    const created: HeroBanner = {
+      id: uid('banner'),
+      title,
+      alt,
+      image_url,
+      href,
+      sort_order: input.sort_order,
+      active: input.active,
+    };
+    state.banners.push(created);
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'banner_upsert',
+      target_type: 'banner',
+      target_id: created.id,
+      summary: `สร้างแบนเนอร์ · ${created.title}`,
+    });
+    save(state);
+    return created;
+  },
+
+  deleteBanner(id: string) {
+    const row = state.banners.find((b) => b.id === id);
+    const before = state.banners.length;
+    state.banners = state.banners.filter((b) => b.id !== id);
+    if (state.banners.length === before) throw new Error('NOT_FOUND');
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'banner_delete',
+      target_type: 'banner',
+      target_id: id,
+      summary: `ลบแบนเนอร์ · ${row?.title ?? id}`,
+    });
+    save(state);
+  },
+
+  getSiteAssets(): SiteAssetsMap {
+    return mergeSiteAssets(state.siteAssets);
+  },
+
+  updateSiteAsset(key: SiteAssetKey, imageUrl: string): SiteAssetsMap {
+    const url = imageUrl.trim();
+    if (!url) throw new Error('VALIDATION');
+    if (!(key in SITE_ASSET_DEFAULTS)) throw new Error('VALIDATION');
+    state.siteAssets = { ...mergeSiteAssets(state.siteAssets), [key]: url };
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'site_asset_update',
+      target_type: 'site_asset',
+      target_id: key,
+      summary: `อัปเดตภาพเริ่มต้น · ${key}`,
+    });
+    save(state);
+    return mockDb.getSiteAssets();
+  },
+
+  resetSiteAsset(key: SiteAssetKey): SiteAssetsMap {
+    if (!(key in SITE_ASSET_DEFAULTS)) throw new Error('VALIDATION');
+    state.siteAssets = { ...mergeSiteAssets(state.siteAssets), [key]: SITE_ASSET_DEFAULTS[key] };
+    const actor = state.user
+      ? { id: state.user.id, name: state.user.display_name || 'แอดมิน' }
+      : { id: 'admin', name: 'แอดมิน' };
+    mockDb.pushActivityLog({
+      actor_id: actor.id,
+      actor_name: actor.name,
+      action: 'site_asset_reset',
+      target_type: 'site_asset',
+      target_id: key,
+      summary: `รีเซ็ตภาพเริ่มต้น · ${key}`,
+    });
+    save(state);
+    return mockDb.getSiteAssets();
   },
 
   getState: () => state,
@@ -1141,12 +1313,25 @@ export const mockDb = {
 
   toggleBookshelf(userId: string, workId: string): boolean {
     const i = state.bookshelf.findIndex((b) => b.user_id === userId && b.work_id === workId);
+    const wi = mockDb.works.findIndex((w) => w.id === workId);
     if (i >= 0) {
       state.bookshelf.splice(i, 1);
+      if (wi >= 0) {
+        mockDb.works[wi] = {
+          ...mockDb.works[wi],
+          bookmark_count: Math.max(0, (mockDb.works[wi].bookmark_count ?? 0) - 1),
+        };
+      }
       save(state);
       return false;
     }
     state.bookshelf.push({ user_id: userId, work_id: workId, added_at: nowIso() });
+    if (wi >= 0) {
+      mockDb.works[wi] = {
+        ...mockDb.works[wi],
+        bookmark_count: (mockDb.works[wi].bookmark_count ?? 0) + 1,
+      };
+    }
     save(state);
     return true;
   },
@@ -1661,6 +1846,7 @@ export const mockDb = {
           chapter_count: state.writerChapters.filter((c) => c.work_id === w.id && c.status === 'published').length,
           free_episode_count: w.free_episode_count ?? 0,
           views: 0,
+          bookmark_count: 0,
           score: 0,
           rating_count: 0,
           rank_daily: 0,

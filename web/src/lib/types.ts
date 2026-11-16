@@ -22,6 +22,17 @@ export interface Category {
   active: boolean;
 }
 
+/** Homepage hero slides — managed from admin CMS */
+export interface HeroBanner {
+  id: string;
+  title: string;
+  alt: string;
+  image_url: string;
+  href: string;
+  sort_order: number;
+  active: boolean;
+}
+
 export interface Author {
   id: string;
   display_name: string;
@@ -49,7 +60,10 @@ export interface Work {
   /** first N episodes are free regardless of the stored per-episode price */
   free_episode_count: number;
   views: number;
+  /** จำนวนติดตาม/บุ๊คมาร์ก */
+  bookmark_count: number;
   score: number;
+  /** จำนวนคนให้คะแนน — แสดงเป็นไลค์บนการ์ด */
   rating_count: number;
   /** higher sorts first on /ranking tabs */
   rank_daily: number;

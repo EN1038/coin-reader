@@ -3,7 +3,9 @@ import type {
   LedgerEntry, UnlockResult, TopupResult, MangaPageUrl, BookshelfItem,
   ReadingProgress, SeriesUpdate, CheckInCalendar, CheckInClaim, ReferralInfo,
   ReaderComment, RatingResult, Category, CategoryIconKey, UpdateProfileInput,
+  HeroBanner,
 } from './types';
+import type { SiteAssetKey, SiteAssetsMap } from './siteAssets';
 
 export interface ListWorksParams {
   kind?: 'novel' | 'manga';
@@ -69,4 +71,18 @@ export interface CoinReaderApi {
     active: boolean;
   }): Promise<Category>;
   deleteCategory(id: string): Promise<void>;
+  listBanners(activeOnly?: boolean): Promise<HeroBanner[]>;
+  upsertBanner(input: {
+    id?: string;
+    title: string;
+    alt: string;
+    image_url: string;
+    href: string;
+    sort_order: number;
+    active: boolean;
+  }): Promise<HeroBanner>;
+  deleteBanner(id: string): Promise<void>;
+  getSiteAssets(): Promise<SiteAssetsMap>;
+  updateSiteAsset(key: SiteAssetKey, imageUrl: string): Promise<SiteAssetsMap>;
+  resetSiteAsset(key: SiteAssetKey): Promise<SiteAssetsMap>;
 }

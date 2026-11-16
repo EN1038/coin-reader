@@ -1,5 +1,5 @@
 import type { CoinCurrency } from '../lib/types';
-import { CURRENCY_DIAMOND, CURRENCY_GOLD } from '../lib/brand';
+import { useSiteAsset } from '../context/SiteAssetsContext';
 
 /** แสดงจำนวน Gold / Diamond ด้วยรูปแบรนด์ */
 export function CoinAmount({
@@ -13,8 +13,10 @@ export function CoinAmount({
   className?: string;
   currency?: CoinCurrency;
 }) {
+  const gold = useSiteAsset('currency_gold');
+  const diamond = useSiteAsset('currency_diamond');
   const text = typeof value === 'number' ? value.toLocaleString('th-TH') : value;
-  const src = currency === 'diamond' ? CURRENCY_DIAMOND : CURRENCY_GOLD;
+  const src = currency === 'diamond' ? diamond : gold;
   const alt = currency === 'diamond' ? 'เพชร' : 'เหรียญ';
   return (
     <span className={`coin-amount coin-${currency}${className ? ` ${className}` : ''}`}>

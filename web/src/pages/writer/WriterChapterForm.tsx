@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { mockDb, type AuthorRecord } from '../../lib/mock/store';
-import { CURRENCY_GOLD } from '../../lib/brand';
+import { useSiteAsset } from '../../context/SiteAssetsContext';
 import { requireApprovedAuthor } from './WriterLayout';
 
 const UPLOAD_SPEED_KEY = 'sm-writer-upload-speed';
@@ -16,6 +16,7 @@ export function WriterChapterForm() {
   const { author } = useOutletContext<{ author?: AuthorRecord }>();
   const gate = requireApprovedAuthor(author);
   const nav = useNavigate();
+  const goldIcon = useSiteAsset('currency_gold');
   const work = workId ? mockDb.getWriterWork(workId) : undefined;
   const fileRef = useRef<HTMLInputElement>(null);
   const zipRef = useRef<HTMLInputElement>(null);
@@ -175,7 +176,7 @@ export function WriterChapterForm() {
             <div className="field">
               <label className="wf-label-row">
                 <span>ราคา (0 = ฟรี)</span>
-                <img src={CURRENCY_GOLD} alt="" width={18} height={18} className="coin-amount-img" />
+                <img src={goldIcon} alt="" width={18} height={18} className="coin-amount-img" />
               </label>
               <input type="number" min={0} step={1} value={price} onChange={(e) => setPrice(Math.max(0, Number(e.target.value) || 0))} />
               <div className="hint">หน่วย Gold · ตั้งได้ไม่เท่ากันทุกตอน</div>

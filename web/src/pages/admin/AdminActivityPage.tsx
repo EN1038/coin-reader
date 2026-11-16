@@ -21,6 +21,10 @@ const ACTION_OPTIONS: { value: FilterAction; label: string }[] = [
   { value: 'work_status', label: 'เปลี่ยนสถานะ' },
   { value: 'category_upsert', label: 'หมวดหมู่' },
   { value: 'category_delete', label: 'ลบหมวด' },
+  { value: 'banner_upsert', label: 'แบนเนอร์' },
+  { value: 'banner_delete', label: 'ลบแบนเนอร์' },
+  { value: 'site_asset_update', label: 'ภาพเริ่มต้น' },
+  { value: 'site_asset_reset', label: 'รีเซ็ตภาพ' },
   { value: 'author_review', label: 'คิวนักแปล' },
   { value: 'takedown_review', label: 'Takedown' },
 ];
@@ -55,6 +59,8 @@ export function AdminActivityPage() {
     if (e.target_type === 'author') return `/admin/authors/${e.target_id}`;
     if (e.work_id || e.target_type === 'work' || e.target_type === 'chapter') return '/admin/works';
     if (e.target_type === 'category') return '/admin/categories';
+    if (e.target_type === 'banner') return '/admin/banners';
+    if (e.target_type === 'site_asset') return '/admin/assets';
     if (e.target_type === 'takedown') return '/admin/takedowns';
     return null;
   }

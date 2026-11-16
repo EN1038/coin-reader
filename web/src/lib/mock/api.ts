@@ -564,4 +564,59 @@ export const mockApi: CoinReaderApi = {
       throw e;
     }
   },
+
+  async listBanners(activeOnly = true) {
+    return mockDb.listBanners(activeOnly);
+  },
+
+  async upsertBanner(input) {
+    requireUser();
+    try {
+      return mockDb.upsertBanner(input);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'VALIDATION') {
+        throw new ApiError(400, 'VALIDATION', 'กรุณาใส่รูปแบนเนอร์');
+      }
+      if (e instanceof Error && e.message === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
+
+  async deleteBanner(id) {
+    requireUser();
+    try {
+      mockDb.deleteBanner(id);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'NOT_FOUND') throw new ApiError(404, 'NOT_FOUND');
+      throw e;
+    }
+  },
+
+  async getSiteAssets() {
+    return mockDb.getSiteAssets();
+  },
+
+  async updateSiteAsset(key, imageUrl) {
+    requireUser();
+    try {
+      return mockDb.updateSiteAsset(key, imageUrl);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'VALIDATION') {
+        throw new ApiError(400, 'VALIDATION', 'รูปไม่ถูกต้อง');
+      }
+      throw e;
+    }
+  },
+
+  async resetSiteAsset(key) {
+    requireUser();
+    try {
+      return mockDb.resetSiteAsset(key);
+    } catch (e) {
+      if (e instanceof Error && e.message === 'VALIDATION') {
+        throw new ApiError(400, 'VALIDATION', 'คีย์ไม่ถูกต้อง');
+      }
+      throw e;
+    }
+  },
 };

@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { SiteAssetsProvider } from './context/SiteAssetsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AppShell } from './components/AppShell';
 import { HomePage } from './pages/HomePage';
@@ -46,6 +47,8 @@ import { AdminLedgerPage } from './pages/admin/AdminLedgerPage';
 import { AdminPayoutsPage } from './pages/admin/AdminPayoutsPage';
 import { AdminRefundsPage } from './pages/admin/AdminRefundsPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminBannersPage } from './pages/admin/AdminBannersPage';
+import { AdminAssetsPage } from './pages/admin/AdminAssetsPage';
 import { AdminAuthorDetailPage } from './pages/admin/AdminAuthorDetailPage';
 import { AdminActivityPage } from './pages/admin/AdminActivityPage';
 
@@ -53,6 +56,7 @@ export default function App() {
   return (
     <ThemeProvider>
     <AppProvider>
+    <SiteAssetsProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
@@ -103,6 +107,8 @@ export default function App() {
               <Route path="authors/:authorId" element={<AdminAuthorDetailPage />} />
               <Route path="works" element={<AdminWorksPage />} />
               <Route path="categories" element={<AdminCategoriesPage />} />
+              <Route path="banners" element={<AdminBannersPage />} />
+              <Route path="assets" element={<AdminAssetsPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="takedowns" element={<AdminTakedownsPage />} />
               <Route path="ledger" element={<AdminLedgerPage />} />
@@ -114,6 +120,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+    </SiteAssetsProvider>
     </AppProvider>
     </ThemeProvider>
   );

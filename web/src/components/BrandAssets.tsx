@@ -1,4 +1,5 @@
-import { BRAND_LOGO, BRAND_LOGO_TOPBAR, BRAND_MASCOT, PRODUCT_NAME } from '../lib/brand';
+import { PRODUCT_NAME } from '../lib/brand';
+import { useSiteAsset } from '../context/SiteAssetsContext';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -16,9 +17,11 @@ export function BrandLogo({
   alt?: string;
   variant?: 'default' | 'topbar';
 }) {
+  const logo = useSiteAsset('logo');
+  const logoTopbar = useSiteAsset('logo_topbar');
   return (
     <img
-      src={variant === 'topbar' ? BRAND_LOGO_TOPBAR : BRAND_LOGO}
+      src={variant === 'topbar' ? logoTopbar : logo}
       alt={alt}
       className={`brand-logo brand-logo-${size}${variant === 'topbar' ? ' brand-logo-topbar' : ''}${className ? ` ${className}` : ''}`}
       style={{ height: LOGO_H[size] }}
@@ -36,9 +39,10 @@ export function BrandMascot({
   className?: string;
   alt?: string;
 }) {
+  const mascot = useSiteAsset('mascot');
   return (
     <img
-      src={BRAND_MASCOT}
+      src={mascot}
       alt={alt}
       className={`brand-mascot brand-mascot-${size}${className ? ` ${className}` : ''}`}
       style={{ height: MASCOT_H[size] }}

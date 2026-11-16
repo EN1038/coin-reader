@@ -5,9 +5,10 @@ import type { LedgerEntry, LedgerKind } from '../lib/types';
 import { useApp } from '../context/AppContext';
 import { CoinAmount } from '../components/CoinAmount';
 import { Topbar } from '../components/Topbar';
+import { useSiteAsset } from '../context/SiteAssetsContext';
 import { mockDb } from '../lib/mock/store';
 import { profilePathFor } from '../lib/profileSlug';
-import { IconChevronRight, IconCoin, IconDiamond, IconTicket } from '../components/icons';
+import { IconChevronRight, IconTicket } from '../components/icons';
 
 const KIND: Record<LedgerKind, string> = {
   topup: 'เติม Gold',
@@ -35,6 +36,8 @@ function formatWhen(iso: string): string {
 
 export function WalletPage() {
   const { user, gold, diamond, tickets, isMock, refresh } = useApp();
+  const goldIcon = useSiteAsset('currency_gold');
+  const diamondIcon = useSiteAsset('currency_diamond');
   const nav = useNavigate();
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [readerTier, setReaderTier] = useState(() =>
@@ -80,7 +83,9 @@ export function WalletPage() {
           <section className="wallet-balances" aria-label="ยอดคงเหลือ">
             <div className="wallet-bal-card wallet-bal-gold">
               <div className="wallet-bal-head">
-                <span className="wallet-bal-ic" aria-hidden><IconCoin size={18} /></span>
+                <span className="wallet-bal-ic" aria-hidden>
+                  <img src={goldIcon} alt="" width={28} height={28} decoding="async" />
+                </span>
                 <div>
                   <strong>Gold</strong>
                   <span>ใช้ปลดล็อกตอน</span>
@@ -89,12 +94,16 @@ export function WalletPage() {
               <div className="wallet-bal-value">
                 <CoinAmount value={gold} size={28} currency="gold" />
               </div>
-              <Link to="/wallet/topup" className="btn btn-coin btn-block">เติม Gold</Link>
+              <Link to="/wallet/topup" className="btn btn-ghost btn-block">
+                เติม Gold <IconChevronRight size={16} />
+              </Link>
             </div>
 
             <div className="wallet-bal-card wallet-bal-diamond">
               <div className="wallet-bal-head">
-                <span className="wallet-bal-ic" aria-hidden><IconDiamond size={18} /></span>
+                <span className="wallet-bal-ic" aria-hidden>
+                  <img src={diamondIcon} alt="" width={28} height={28} decoding="async" />
+                </span>
                 <div>
                   <strong>Diamond</strong>
                   <span>รายได้นักแปล</span>

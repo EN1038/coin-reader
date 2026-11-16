@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { mockDb } from '../../lib/mock/store';
-import { CURRENCY_DIAMOND, CURRENCY_GOLD } from '../../lib/brand';
 import { AdminModal, AdminPageHeader } from '../../components/AdminModal';
 import { PillMenu } from '../../components/PillMenu';
 import { Badge } from '../../components/Badge';
@@ -9,6 +8,7 @@ import { api } from '../../lib/supabase';
 import type { CategoryIconKey } from '../../lib/types';
 import { CategoryIcon } from '../../components/icons';
 import { errMessage } from '../../context/AppContext';
+import { useSiteAsset } from '../../context/SiteAssetsContext';
 
 const ICON_KEYS: CategoryIconKey[] = ['book', 'zap', 'sparkles', 'heart', 'ghost', 'masks', 'rocket', 'search'];
 
@@ -37,6 +37,8 @@ function Stat({
 
 export function AdminDashboard() {
   const s = mockDb.adminSummary();
+  const goldIcon = useSiteAsset('currency_gold');
+  const diamondIcon = useSiteAsset('currency_diamond');
   const [catOpen, setCatOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -100,10 +102,10 @@ export function AdminDashboard() {
         <div>
           <div className="admin-section-h" style={{ marginTop: 0 }}>เศรษฐกิจ</div>
           <div className="stat-grid admin-stat-4">
-            <Stat label="Gold ในระบบ" value={s.gold_liability} icon={CURRENCY_GOLD} sub="liability นักอ่าน" />
-            <Stat label="Diamond ค้างจ่าย" value={s.diamond_outstanding} icon={CURRENCY_DIAMOND} sub="รวมนักแปล" />
-            <Stat label="เติมวันนี้" value={s.topup_today} icon={CURRENCY_GOLD} />
-            <Stat label="GMV วันนี้" value={s.gmv_today} icon={CURRENCY_GOLD} sub="ปลดล็อก + ทิป" />
+            <Stat label="Gold ในระบบ" value={s.gold_liability} icon={goldIcon} sub="liability นักอ่าน" />
+            <Stat label="Diamond ค้างจ่าย" value={s.diamond_outstanding} icon={diamondIcon} sub="รวมนักแปล" />
+            <Stat label="เติมวันนี้" value={s.topup_today} icon={goldIcon} />
+            <Stat label="GMV วันนี้" value={s.gmv_today} icon={goldIcon} sub="ปลดล็อก + ทิป" />
           </div>
 
           <div className="admin-section-h">การใช้งาน</div>

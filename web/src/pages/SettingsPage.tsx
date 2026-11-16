@@ -143,7 +143,7 @@ export function SettingsPage() {
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/*"
                 hidden
                 onChange={(e) => {
                   void onPickFile(e.target.files?.[0]);

@@ -9,8 +9,8 @@ import {
   type SeriesStatus,
   type WorkAdminStatus,
 } from '../../lib/mock/store';
-import { COVER_DEFAULT } from '../../lib/brand';
 import { IconChevronLeft, IconChevronRight } from '../../components/icons';
+import { useSiteAsset } from '../../context/SiteAssetsContext';
 import { requireApprovedAuthor } from './WriterLayout';
 
 const CAT_PAGE = 6;
@@ -26,6 +26,7 @@ export function WriterWorkForm() {
   const gate = requireApprovedAuthor(author);
   const nav = useNavigate();
   const coverInput = useRef<HTMLInputElement>(null);
+  const coverDefault = useSiteAsset('cover_default');
 
   const categories = mockDb.listCategories(false);
   const [title, setTitle] = useState('');
@@ -43,8 +44,12 @@ export function WriterWorkForm() {
   const [catQuery, setCatQuery] = useState('');
   const [catPage, setCatPage] = useState(0);
   const [freeCount, setFreeCount] = useState(2);
-  const [coverUrl, setCoverUrl] = useState<string>(COVER_DEFAULT);
+  const [coverUrl, setCoverUrl] = useState<string>('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isNew && !coverUrl) setCoverUrl(coverDefault);
+  }, [isNew, coverDefault, coverUrl]);
 
   useEffect(() => {
     if (!isNew && workId) {
@@ -63,10 +68,10 @@ export function WriterWorkForm() {
         setStatus(w.status === 'takedown' ? 'suspended' : w.status);
         setCategoryIds(w.category_ids?.length ? w.category_ids : []);
         setFreeCount(w.free_episode_count ?? 0);
-        setCoverUrl(w.cover_url || COVER_DEFAULT);
+        setCoverUrl(w.cover_url || coverDefault);
       }
     }
-  }, [isNew, workId]);
+  }, [isNew, workId, coverDefault]);
 
   useEffect(() => {
     if (!slugTouched && title) setSlug(slugify(title));
@@ -86,13 +91,20 @@ export function WriterWorkForm() {
     setCategoryIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  function onCover(file: File | undefined) {
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') setCoverUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
+  async function onCover(file: File | undefined) {
+    if (!file) return;
+    try {
+      const { optimizeImageFile } = await import('../../lib/optimizeImage');
+      const out = await optimizeImageFile(file, {
+        maxEdge: 1200,
+        maxBytes: 700_000,
+        quality: 0.82,
+      });
+      setCoverUrl(out.dataUrl);
+      setError('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'อัปโหลดรูปไม่สำเร็จ');
+    }
   }
 
   function onSubmit(e: React.FormEvent) {
@@ -303,7 +315,7 @@ export function WriterWorkForm() {
               onClick={() => coverInput.current?.click()}
               style={{ backgroundImage: coverUrl ? `url(${coverUrl})` : undefined }}
             >
-              {!coverUrl || coverUrl === COVER_DEFAULT ? (
+              {!coverUrl || coverUrl === coverDefault ? (
                 <span className="wf-cover-empty">NO IMAGE · คลิกอัปโหลดปก</span>
               ) : (
                 <span className="wf-cover-change">เปลี่ยนปก</span>
@@ -314,7 +326,7 @@ export function WriterWorkForm() {
               type="file"
               accept="image/*"
               hidden
-              onChange={(e) => onCover(e.target.files?.[0])}
+              onChange={(e) => { void onCover(e.target.files?.[0]); }}
             />
           </div>
         </section>

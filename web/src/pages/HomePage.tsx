@@ -1,20 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/supabase';
-import type { Category, ReadingProgress, SeriesUpdate, Work } from '../lib/types';
+import type { Category, HeroBanner, ReadingProgress, SeriesUpdate, Work } from '../lib/types';
 import { CoverBadges } from '../components/SeriesCard';
 import { Cover } from '../components/CoverCard';
-import { relativeTime } from '../lib/format';
+import { HeroCarousel } from '../components/HeroCarousel';
+import { relativeTime, formatCount } from '../lib/format';
 import { useApp } from '../context/AppContext';
 import { BrandMascot } from '../components/BrandAssets';
-import { BRAND_HERO, PRODUCT_NAME } from '../lib/brand';
+import { PRODUCT_NAME } from '../lib/brand';
 import {
   CategoryIcon,
   IconBook,
   IconChevronRight,
   IconClock,
   IconCrown,
+  IconEye,
   IconFolder,
+  IconHeart,
+  IconShelf,
   IconStar,
   IconThumbsUp,
 } from '../components/icons';
@@ -32,6 +36,7 @@ export function HomePage() {
   const { user } = useApp();
   const [works, setWorks] = useState<Work[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [banners, setBanners] = useState<HeroBanner[]>([]);
   const [updates, setUpdates] = useState<SeriesUpdate[]>([]);
   const [continueItems, setContinueItems] = useState<ContinueItem[]>([]);
   const [rankPeriod, setRankPeriod] = useState<RankPeriod>('weekly');
@@ -40,12 +45,13 @@ export function HomePage() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    Promise.all([api.listWorks(), api.listRecentUpdates(8), api.listCategories(true)])
-      .then(async ([all, recent, cats]) => {
+    Promise.all([api.listWorks(), api.listRecentUpdates(8), api.listCategories(true), api.listBanners(true)])
+      .then(async ([all, recent, cats, hero]) => {
         if (!alive) return;
         setWorks(all);
         setUpdates(recent);
         setCategories(cats);
+        setBanners(hero);
 
         if (!user) {
           setContinueItems([]);
@@ -85,17 +91,7 @@ export function HomePage() {
 
   return (
     <div className="home clean-home">
-      <section className="cm-hero" aria-label="แบนเนอร์ Stock Manga">
-        <Link to="/discover" className="cm-hero-banner" aria-label="เริ่มอ่านเลย">
-          <img
-            src={BRAND_HERO}
-            alt="อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน — คลังมังงะคุณภาพ หลากหลายแนว อ่านได้ฟรี สะดวก ทุกอุปกรณ์"
-            width={1600}
-            height={520}
-            decoding="async"
-          />
-        </Link>
-      </section>
+      <HeroCarousel banners={banners} />
 
       <section className="cm-section" aria-label="หมวดหมู่ยอดนิยม">
         <div className="sec">
@@ -295,8 +291,9 @@ export function MangaPosterCard({ work, showNew }: { work: Work; showNew?: boole
       <div className="cm-poster-body">
         <div className="cm-poster-title">{work.title}</div>
         <div className="cm-poster-meta">
-          <span className="cm-star meta-inline"><IconStar size={12} className="ic-star" /> {work.score.toFixed(1)}</span>
-          <span>{work.chapter_count} ตอน</span>
+          <span className="meta-inline" title="วิว"><IconEye size={12} /> {formatCount(work.views)}</span>
+          <span className="meta-inline" title="บุ๊คมาร์ก"><IconShelf size={12} /> {formatCount(work.bookmark_count ?? 0)}</span>
+          <span className="meta-inline" title="ไลค์"><IconHeart size={12} /> {formatCount(work.rating_count)}</span>
         </div>
       </div>
     </Link>

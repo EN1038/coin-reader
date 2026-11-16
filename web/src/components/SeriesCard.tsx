@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Work } from '../lib/types';
 import { Cover } from './CoverCard';
 import { formatCount, kindLabel } from '../lib/format';
-import { IconEye, IconStar } from './icons';
+import { IconEye, IconHeart, IconShelf } from './icons';
 
 export function CoverBadges({ work }: { work: Work }) {
   return (
@@ -22,8 +22,9 @@ export function SeriesCard({ work }: { work: Work }) {
       </div>
       <div className="series-card-title">{work.title}</div>
       <div className="series-card-stat">
-        <span className="meta-inline"><IconStar size={12} className="ic-star" /> {work.score.toFixed(1)}</span>
-        <span className="meta-inline"><IconEye size={12} /> {formatCount(work.views)}</span>
+        <span className="meta-inline" title="วิว"><IconEye size={12} /> {formatCount(work.views)}</span>
+        <span className="meta-inline" title="บุ๊คมาร์ก"><IconShelf size={12} /> {formatCount(work.bookmark_count ?? 0)}</span>
+        <span className="meta-inline" title="ไลค์"><IconHeart size={12} /> {formatCount(work.rating_count)}</span>
       </div>
       <div className="series-card-sub">
         {work.chapter_count} ตอน · {work.category}

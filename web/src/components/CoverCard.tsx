@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Work } from '../lib/types';
+import { useSiteAsset } from '../context/SiteAssetsContext';
 import { Badge } from './Badge';
-import { COVER_DEFAULT } from '../lib/brand';
-
-function resolveCover(url?: string | null): string {
-  const src = url?.trim();
-  return src || COVER_DEFAULT;
-}
 
 export function Cover({
   work, tag, className = '',
@@ -16,11 +11,12 @@ export function Cover({
   tag?: React.ReactNode;
   className?: string;
 }) {
-  const [src, setSrc] = useState(() => resolveCover(work.cover_url));
+  const fallback = useSiteAsset('cover_default');
+  const [src, setSrc] = useState(() => work.cover_url?.trim() || fallback);
 
   useEffect(() => {
-    setSrc(resolveCover(work.cover_url));
-  }, [work.cover_url]);
+    setSrc(work.cover_url?.trim() || fallback);
+  }, [work.cover_url, fallback]);
 
   return (
     <div className={`cover has-img ${className}`.trim()}>
@@ -29,10 +25,13 @@ export function Cover({
         className="cover-img"
         src={src}
         alt={work.title}
+        width={240}
+        height={320}
+        sizes="(max-width: 720px) 42vw, 160px"
         loading="lazy"
         decoding="async"
         onError={() => {
-          if (src !== COVER_DEFAULT) setSrc(COVER_DEFAULT);
+          if (src !== fallback) setSrc(fallback);
         }}
       />
     </div>

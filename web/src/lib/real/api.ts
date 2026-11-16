@@ -4,10 +4,21 @@ import { getSupabase } from '../supabase';
 import type {
   Work, Chapter, ChapterContent, CoinPack, SessionUser,
   UnlockResult, TopupResult, MangaPageUrl, BookshelfItem, ReadingProgress, LedgerEntry, Category,
+  HeroBanner,
 } from '../types';
 import { seedCategories, seedWorks, seedChapters } from '../mock/seed';
-import { COVER_DEFAULT } from '../brand';
+import { BRAND_HERO, COVER_DEFAULT } from '../brand';
 import type { ListWorksParams } from '../api';
+
+const FALLBACK_BANNERS: HeroBanner[] = [{
+  id: 'fallback-hero',
+  title: 'Stock Manga',
+  alt: 'อ่านมังงะออนไลน์ อัปเดตตอนใหม่ทุกวัน',
+  image_url: BRAND_HERO,
+  href: '/discover',
+  sort_order: 1,
+  active: true,
+}];
 
 function withCover(work: Work): Work {
   return { ...work, cover_url: work.cover_url?.trim() || COVER_DEFAULT };
@@ -39,6 +50,7 @@ function mapWork(row: Record<string, unknown>): Work {
     chapter_count: Number(row.chapter_count ?? 0),
     free_episode_count: Number(row.free_episode_count ?? 0),
     views: Number(row.views ?? 0),
+    bookmark_count: Number(row.bookmark_count ?? 0),
     score: Number(row.score ?? 0),
     rating_count: Number(row.rating_count ?? 0),
     rank_daily: Number(row.rank_daily ?? 0),
@@ -509,5 +521,119 @@ export const realApi: CoinReaderApi = {
 
   async deleteCategory() {
     throw new ApiError(501, 'MOCK_DISABLED', 'จัดการหมวดหมู่ผ่าน admin mock ก่อน หรือใช้ SQL บน Supabase');
+  },
+
+  async listBanners(activeOnly = true) {
+    try {
+      let q = sb().from('hero_banners').select('id,title,alt,image_url,href,sort_order,active').order('sort_order');
+      if (activeOnly) q = q.eq('active', true);
+      const { data, error } = await q;
+      if (error || !data?.length) return FALLBACK_BANNERS;
+      return data.map((row) => ({
+        id: String(row.id),
+        title: String(row.title ?? ''),
+        alt: String(row.alt ?? ''),
+        image_url: String(row.image_url ?? ''),
+        href: String(row.href ?? '/discover'),
+        sort_order: Number(row.sort_order ?? 0),
+        active: Boolean(row.active),
+      }));
+    } catch {
+      return FALLBACK_BANNERS;
+    }
+  },
+
+  async upsertBanner(input) {
+    const client = sb();
+    const { data: auth } = await client.auth.getUser();
+    if (!auth.user) throw new ApiError(401, 'UNAUTHORIZED');
+    const payload = {
+      title: input.title.trim() || 'แบนเนอร์',
+      alt: input.alt.trim() || input.title.trim() || 'แบนเนอร์',
+      image_url: input.image_url.trim(),
+      href: input.href.trim() || '/discover',
+      sort_order: input.sort_order,
+      active: input.active,
+    };
+    if (!payload.image_url) throw new ApiError(400, 'VALIDATION', 'กรุณาใส่รูปแบนเนอร์');
+
+    if (input.id && input.id !== 'fallback-hero') {
+      const { data, error } = await client.from('hero_banners').update(payload).eq('id', input.id).select('*').maybeSingle();
+      if (error) throw new ApiError(400, 'VALIDATION', error.message);
+      if (!data) throw new ApiError(404, 'NOT_FOUND');
+      return {
+        id: String(data.id),
+        title: String(data.title ?? ''),
+        alt: String(data.alt ?? ''),
+        image_url: String(data.image_url ?? ''),
+        href: String(data.href ?? '/discover'),
+        sort_order: Number(data.sort_order ?? 0),
+        active: Boolean(data.active),
+      };
+    }
+
+    const { data, error } = await client.from('hero_banners').insert(payload).select('*').single();
+    if (error) throw new ApiError(400, 'VALIDATION', error.message);
+    return {
+      id: String(data.id),
+      title: String(data.title ?? ''),
+      alt: String(data.alt ?? ''),
+      image_url: String(data.image_url ?? ''),
+      href: String(data.href ?? '/discover'),
+      sort_order: Number(data.sort_order ?? 0),
+      active: Boolean(data.active),
+    };
+  },
+
+  async deleteBanner(id) {
+    if (id === 'fallback-hero') throw new ApiError(400, 'VALIDATION', 'ลบแบนเนอร์เริ่มต้นไม่ได้');
+    const { error } = await sb().from('hero_banners').delete().eq('id', id);
+    if (error) throw new ApiError(400, 'VALIDATION', error.message);
+  },
+
+  async getSiteAssets() {
+    const { mergeSiteAssets, SITE_ASSET_DEFAULTS } = await import('../siteAssets');
+    try {
+      const { data, error } = await sb().from('site_assets').select('key,image_url');
+      if (error || !data?.length) return { ...SITE_ASSET_DEFAULTS };
+      const partial: Record<string, string> = {};
+      for (const row of data) {
+        if (row.key && row.image_url) partial[String(row.key)] = String(row.image_url);
+      }
+      return mergeSiteAssets(partial);
+    } catch {
+      return { ...SITE_ASSET_DEFAULTS };
+    }
+  },
+
+  async updateSiteAsset(key, imageUrl) {
+    const client = sb();
+    const { data: auth } = await client.auth.getUser();
+    if (!auth.user) throw new ApiError(401, 'UNAUTHORIZED');
+    const url = imageUrl.trim();
+    if (!url) throw new ApiError(400, 'VALIDATION', 'รูปไม่ถูกต้อง');
+    const { error } = await client.from('site_assets').upsert({
+      key,
+      image_url: url,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw new ApiError(400, 'VALIDATION', error.message);
+    return this.getSiteAssets();
+  },
+
+  async resetSiteAsset(key) {
+    const client = sb();
+    const { data: auth } = await client.auth.getUser();
+    if (!auth.user) throw new ApiError(401, 'UNAUTHORIZED');
+    const { SITE_ASSET_DEFAULTS } = await import('../siteAssets');
+    const fallback = SITE_ASSET_DEFAULTS[key];
+    if (!fallback) throw new ApiError(400, 'VALIDATION', 'คีย์ไม่ถูกต้อง');
+    const { error } = await client.from('site_assets').upsert({
+      key,
+      image_url: fallback,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw new ApiError(400, 'VALIDATION', error.message);
+    return this.getSiteAssets();
   },
 };

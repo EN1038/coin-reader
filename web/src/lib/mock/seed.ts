@@ -287,6 +287,7 @@ function build(spec: Spec): { work: Work; chapters: Chapter[] } {
     chapter_count: spec.chapters,
     free_episode_count: spec.free,
     views: spec.views,
+    bookmark_count: Math.max(12, Math.round(spec.views / 48)),
     score: spec.score,
     rating_count: spec.rating_count,
     rank_daily: spec.rank_daily,
