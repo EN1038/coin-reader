@@ -1,4 +1,5 @@
 import { useTheme } from '../context/ThemeContext';
+import { IconMoon, IconSun } from './icons';
 
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const { theme, setTheme, toggleTheme } = useTheme();
@@ -7,12 +8,12 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
     return (
       <button
         type="button"
-        className="icon-btn"
+        className="icon-btn header-tool-btn"
         aria-label={theme === 'dark' ? 'สลับเป็นโหมดสว่าง' : 'สลับเป็นโหมดมืด'}
         title={theme === 'dark' ? 'โหมดสว่าง' : 'โหมดมืด'}
         onClick={toggleTheme}
       >
-        {theme === 'dark' ? '☀' : '☾'}
+        {theme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
       </button>
     );
   }
@@ -22,7 +23,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
       <div>
         <div style={{ fontFamily: 'var(--font-head)', fontWeight: 600 }}>ธีม</div>
         <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-          {theme === 'dark' ? 'โหมดมืด · Twilight' : 'โหมดสว่าง'}
+          {theme === 'dark' ? 'โหมดมืด' : 'โหมดสว่าง'}
         </div>
       </div>
       <div className="theme-seg">

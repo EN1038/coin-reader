@@ -1,62 +1,46 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { Topbar } from '../components/Topbar';
+import { Link, Navigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Badge } from '../components/Badge';
+import { BrandMascot } from '../components/BrandAssets';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { IconChevronRight } from '../components/icons';
+import { profilePathFor } from '../lib/profileSlug';
 
+/** /me → ไป /u/ชื่อ เมื่อล็อกอินแล้ว · ถ้ายังไม่ล็อกอินแสดงเกสต์ฮับ */
 export function MePage() {
-  const { user, balance, logout, isMock } = useApp();
-  const nav = useNavigate();
+  const { user, loading } = useApp();
 
-  async function onLogout() {
-    await logout();
-    nav('/');
+  if (loading) {
+    return <div className="pad muted center" style={{ paddingTop: 48 }}>กำลังโหลด…</div>;
+  }
+
+  if (user) {
+    return <Navigate to={profilePathFor(user)} replace />;
   }
 
   return (
-    <>
-      <Topbar title="บัญชีของฉัน" showCoin />
-      <div className="pad form-narrow">
-        {user ? (
-          <div className="card mb-3">
-            <div style={{ fontFamily: 'var(--font-head)', fontWeight: 700, fontSize: 18 }}>{user.display_name}</div>
-            <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{user.email}</div>
-            <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Badge kind="note">🪙 {balance}</Badge>
-              {isMock && <Badge kind="ex">mock</Badge>}
-            </div>
-          </div>
-        ) : (
-          <div className="card mb-3 center">
-            <p className="mb-3">ยังไม่ได้เข้าสู่ระบบ</p>
-            <Link to="/auth/login" className="btn btn-primary btn-block">เข้าสู่ระบบ</Link>
-            <Link to="/auth/signup" className="btn btn-ghost btn-block mt-2">สมัครสมาชิก</Link>
-          </div>
-        )}
-
-        <div className="mb-3"><ThemeToggle /></div>
-
-        <nav className="stack">
-          {user && <Link to="/me/settings" className="card row-between">ตั้งค่าบัญชี <span>→</span></Link>}
-          <Link to="/help" className="card row-between">ศูนย์ช่วยเหลือ <span>→</span></Link>
-          <Link to="/wallet" className="card row-between">กระเป๋าเหรียญ <span>→</span></Link>
-          <Link to="/wallet/topup" className="card row-between">เติมเหรียญ (mock) <span>→</span></Link>
-          <Link to="/library" className="card row-between">ชั้นหนังสือ <span>→</span></Link>
-          <Link to="/history" className="card row-between">ประวัติการอ่าน <span>→</span></Link>
-          <Link to="/legal/tos" className="card row-between">ข้อกำหนดการใช้ <span>→</span></Link>
-          <Link to="/legal/privacy" className="card row-between">ความเป็นส่วนตัว <span>→</span></Link>
-          <Link to="/legal/coins" className="card row-between">นโยบายเหรียญ <span>→</span></Link>
-          <Link to="/legal/takedown" className="card row-between">แจ้งละเมิดลิขสิทธิ์ <span>→</span></Link>
-          <Link to="/writer" className="card row-between">นักเขียน (mock demo) <span>→</span></Link>
-          <Link to="/admin" className="card row-between">แอดมิน (mock demo) <span>→</span></Link>
-        </nav>
-
-        {user && (
-          <button type="button" className="btn btn-danger btn-block mt-4" onClick={onLogout}>
-            ออกจากระบบ
-          </button>
-        )}
+    <div className="profile-page">
+      <div className="profile-hero profile-hero-guest">
+        <BrandMascot size="md" className="me-guest-mascot" />
+        <h1>โปรไฟล์</h1>
+        <p className="profile-hero-sub">เข้าสู่ระบบเพื่อเปิดหน้าโปรไฟล์เป็นชื่อของคุณ</p>
+        <div className="profile-hero-actions">
+          <Link to="/auth/login?next=/me" className="btn btn-primary">เข้าสู่ระบบ</Link>
+          <Link to="/auth/signup" className="btn btn-ghost profile-btn-on-hero">สมัครสมาชิก</Link>
+        </div>
       </div>
-    </>
+
+      <div className="pad profile-body">
+        <div className="profile-theme-row"><ThemeToggle /></div>
+        <section className="profile-section">
+          <h2 className="profile-section-title">สำรวจ</h2>
+          <nav className="profile-links">
+            <Link to="/library" className="profile-link profile-link-plain">ชั้นหนังสือ <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/check-in" className="profile-link profile-link-plain">เช็คอินรายวัน <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/ranking" className="profile-link profile-link-plain">อันดับ <IconChevronRight size={18} className="profile-link-chev" /></Link>
+            <Link to="/help" className="profile-link profile-link-plain">ศูนย์ช่วยเหลือ <IconChevronRight size={18} className="profile-link-chev" /></Link>
+          </nav>
+        </section>
+      </div>
+    </div>
   );
 }

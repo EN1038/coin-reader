@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Topbar } from '../components/Topbar';
 import { useApp, errMessage } from '../context/AppContext';
 import { MockBanner } from '../components/MockBanner';
-import { PRODUCT_NAME } from '../lib/brand';
+import { BrandLogo } from '../components/BrandAssets';
 
 export function SignupPage() {
   const { signup, isMock } = useApp();
@@ -13,6 +13,7 @@ export function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [refCode, setRefCode] = useState(sp.get('ref') ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -21,7 +22,7 @@ export function SignupPage() {
     setBusy(true);
     setError('');
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, refCode.trim() || undefined);
       nav(next);
     } catch (err) {
       setError(errMessage(err));
@@ -34,8 +35,10 @@ export function SignupPage() {
     <>
       <Topbar title="สมัครสมาชิก" back showCoin={false} />
       <div className="pad form-narrow">
-        <p className="center head" style={{ fontSize: 22, marginBottom: 4 }}>{PRODUCT_NAME}</p>
-        <p className="center muted" style={{ fontSize: 13, marginBottom: 16 }}>สร้างบัญชีเพื่อปลดล็อกและเก็บชั้นหนังสือ</p>
+        <div className="auth-hero">
+          <BrandLogo size="xl" />
+          <p className="center muted" style={{ fontSize: 13 }}>สร้างบัญชีเพื่อปลดล็อกและเก็บชั้นหนังสือ</p>
+        </div>
         {isMock && <div className="mb-3"><MockBanner>สมัครใน mock เก็บในเครื่องคุณเท่านั้น</MockBanner></div>}
         <form onSubmit={onSubmit}>
           <div className="field">
@@ -45,6 +48,10 @@ export function SignupPage() {
           <div className="field">
             <label htmlFor="email">อีเมล</label>
             <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="ref">รหัสชวนเพื่อน (ไม่บังคับ)</label>
+            <input id="ref" value={refCode} onChange={(e) => setRefCode(e.target.value)} placeholder="เช่น SM7DEMO" autoCapitalize="characters" />
           </div>
           <div className="field">
             <label htmlFor="password">รหัสผ่าน (อย่างน้อย 6 ตัว)</label>

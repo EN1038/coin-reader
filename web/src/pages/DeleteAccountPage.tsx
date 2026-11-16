@@ -66,7 +66,7 @@ export function DeleteAccountPage() {
       <div className="pad">
         <h2 style={{ fontSize: 20, marginBottom: 8 }}>ยืนยันการลบบัญชี</h2>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          การดำเนินการนี้ปิดบัญชี Twilight Blue ของคุณ (ตัวอย่าง flow · ยังไม่ลบข้อมูลจริงในม็อก)
+          การดำเนินการนี้ปิดบัญชี Stock Manga ของคุณ (ตัวอย่าง flow · ยังไม่ลบข้อมูลจริงในม็อก)
         </p>
         <div
           style={{
@@ -84,7 +84,7 @@ export function DeleteAccountPage() {
           <ul style={{ paddingLeft: 18, margin: '8px 0 0' }}>
             <li>เข้าสู่ระบบด้วยอีเมลนี้ไม่ได้</li>
             <li>ชั้นหนังสือและประวัติการอ่านเข้าไม่ได้</li>
-            <li>เหรียญคงเหลือ <u>ไม่คืนเป็นเงินสด</u> และใช้ต่อไม่ได้</li>
+            <li>เหรียญคงเหลือ <u>ไม่คืนเป็นเงินสด</u> โอนไม่ได้ และจะหายไปเมื่อปิดบัญชี</li>
           </ul>
         </div>
         <form onSubmit={onDelete}>

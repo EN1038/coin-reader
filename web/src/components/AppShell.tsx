@@ -1,17 +1,33 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { BottomNav } from './BottomNav';
+import { ReaderHeader } from './ReaderHeader';
 
-const HIDE_NAV = [/^\/read\//, /^\/auth\//, /^\/wallet\/pay/, /^\/legal\//, /^\/writer/, /^\/admin/];
+/** Hide main chrome entirely (reader / auth / desks). */
+const HIDE_CHROME = [/^\/read\//, /^\/auth\//, /^\/writer/, /^\/admin/];
+
+/** Pages that render their own Topbar — avoid stacking with ReaderHeader. */
+const PAGE_TOPBAR = [
+  /^\/auth\//,
+  /^\/legal\//,
+  /^\/help/,
+  /^\/me\/settings/,
+  /^\/wallet$/,
+  /^\/wallet\/pay\//,
+];
 
 export function AppShell() {
   const { pathname } = useLocation();
-  const hide = HIDE_NAV.some((re) => re.test(pathname));
+  const hideChrome = HIDE_CHROME.some((re) => re.test(pathname));
+  const hideMainHeader = hideChrome || PAGE_TOPBAR.some((re) => re.test(pathname));
+  const showBottomNav = !hideChrome;
+
   return (
-    <div className="app-shell">
-      <div className="content" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div className={showBottomNav ? 'app-shell has-nav' : 'app-shell'}>
+      {!hideMainHeader && <ReaderHeader />}
+      <div className="content">
         <Outlet />
       </div>
-      {!hide && <BottomNav />}
+      {showBottomNav && <BottomNav />}
     </div>
   );
 }

@@ -35,3 +35,5 @@ secrets.json
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*

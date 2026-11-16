@@ -1,19 +1,39 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Work } from '../lib/types';
+import { useSiteAsset } from '../context/SiteAssetsContext';
 import { Badge } from './Badge';
 
 export function Cover({
   work, tag, className = '',
 }: {
-  work: Pick<Work, 'title' | 'cover_tone'>;
+  work: Pick<Work, 'title' | 'cover_tone' | 'cover_url'>;
   tag?: React.ReactNode;
   className?: string;
 }) {
-  const tone = work.cover_tone === 'default' ? '' : work.cover_tone;
+  const fallback = useSiteAsset('cover_default');
+  const [src, setSrc] = useState(() => work.cover_url?.trim() || fallback);
+
+  useEffect(() => {
+    setSrc(work.cover_url?.trim() || fallback);
+  }, [work.cover_url, fallback]);
+
   return (
-    <div className={`cover ${tone} ${className}`.trim()}>
+    <div className={`cover has-img ${className}`.trim()}>
       {tag && <span className="tag">{tag}</span>}
-      <span className="cover-title">{work.title}</span>
+      <img
+        className="cover-img"
+        src={src}
+        alt={work.title}
+        width={240}
+        height={320}
+        sizes="(max-width: 720px) 42vw, 160px"
+        loading="lazy"
+        decoding="async"
+        onError={() => {
+          if (src !== fallback) setSrc(fallback);
+        }}
+      />
     </div>
   );
 }

@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/supabase';
 import type { Chapter, Work } from '../lib/types';
 import { Badge } from '../components/Badge';
+import { IconArrowLeft, IconArrowRight } from '../components/icons';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
+import { CommentThread } from '../components/CommentThread';
+import { ReaderAccessGate, type ReaderGateKind } from '../components/ReaderAccessGate';
+import { isFreeEpisode, readPathFor } from '../lib/access';
+import { useReadingProgress } from '../hooks/useReadingProgress';
 
 export function ReadNovelPage() {
   const { workId, chapterId } = useParams();
@@ -16,43 +21,77 @@ export function ReadNovelPage() {
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [body, setBody] = useState('');
   const [siblings, setSiblings] = useState<Chapter[]>([]);
-  const [error, setError] = useState('');
+  const [gate, setGate] = useState<ReaderGateKind | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useReadingProgress(workId, chapterId, !!user && !!body && !gate);
 
   useEffect(() => {
     if (!workId || !chapterId) return;
+    let cancelled = false;
+    setLoading(true);
+    setGate(null);
+    setBody('');
     (async () => {
       try {
         const w = await api.getWork(workId);
         const c = await api.getChapter(chapterId);
-        const content = await api.getChapterContent(chapterId);
-        const chs = await api.listChapters(workId);
+        if (cancelled) return;
         setWork(w);
         setChapter(c);
+
+        const free = isFreeEpisode(w, c);
+        const unlocked = await api.isChapterUnlocked(chapterId);
+        if (cancelled) return;
+
+        if (!unlocked) {
+          if (!user) {
+            setGate('need_login');
+            return;
+          }
+          if (!free) {
+            setGate('need_unlock');
+            return;
+          }
+        }
+
+        const [content, chs] = await Promise.all([
+          api.getChapterContent(chapterId),
+          api.listChapters(workId),
+        ]);
+        if (cancelled) return;
         setBody(content.body);
         setSiblings(chs);
-        if (user) await api.saveProgress(workId, chapterId, 0.1);
       } catch {
-        setError('อ่านไม่ได้ — อาจยังไม่ได้ปลดล็อกหรือต้องเข้าสู่ระบบ');
+        if (!cancelled) setGate('error');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [workId, chapterId, user]);
 
-  if (error) {
+  if (gate) {
     return (
-      <div className={`${readerClass} reader-shell`} style={{ padding: 24 }}>
-        <p>{error}</p>
-        <Link to={work ? `/works/${work.slug}` : '/'} style={{ color: 'var(--accent-coin)' }}>กลับหน้าเรื่อง</Link>
-      </div>
+      <ReaderAccessGate
+        kind={gate}
+        work={work}
+        chapter={chapter}
+        readerClass={readerClass}
+      />
     );
   }
-  if (!work || !chapter) {
+
+  if (loading || !work || !chapter || !body) {
     return <div className={`${readerClass} reader-shell`} style={{ padding: 24, color: 'var(--text-muted)' }}>กำลังโหลด…</div>;
   }
 
   const idx = siblings.findIndex((c) => c.id === chapter.id);
   const prev = idx > 0 ? siblings[idx - 1] : null;
   const next = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
-  const go = (c: Chapter) => nav(`/read/novel/${work.id}/${c.id}`);
+  const go = (c: Chapter) => nav(readPathFor(work, c.id));
 
   return (
     <div className={`${readerClass} reader-shell`}>
@@ -67,14 +106,22 @@ export function ReadNovelPage() {
         <h1 style={{ fontSize: 22, marginBottom: 8 }}>ตอนที่ {chapter.number} — {chapter.title}</h1>
         <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 24 }}>
           {work.title} · {work.author_name} · <Badge kind="ex">ข้อความตัวอย่าง</Badge>
+          {!user && isFreeEpisode(work, chapter) && (
+            <span> · อ่านฟรีโดยไม่ต้องสมัคร</span>
+          )}
         </div>
         {body.split(/\n\n+/).map((para, i) => (
           <p key={i} style={{ marginBottom: '1.1em' }}>{para}</p>
         ))}
       </article>
+      {user && <CommentThread chapterId={chapter.id} />}
       <div className="reader-nav">
-        <button type="button" className="btn" disabled={!prev} onClick={() => prev && go(prev)}>← ก่อนหน้า</button>
-        <button type="button" className="btn" disabled={!next} onClick={() => next && go(next)}>ถัดไป →</button>
+        <button type="button" className="btn reader-nav-btn" disabled={!prev} onClick={() => prev && go(prev)}>
+          <IconArrowLeft size={16} /> ก่อนหน้า
+        </button>
+        <button type="button" className="btn reader-nav-btn" disabled={!next} onClick={() => next && go(next)}>
+          ถัดไป <IconArrowRight size={16} />
+        </button>
       </div>
     </div>
   );

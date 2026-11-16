@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
+import { SiteAssetsProvider } from './context/SiteAssetsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { AppShell } from './components/AppShell';
 import { HomePage } from './pages/HomePage';
@@ -14,7 +15,11 @@ import { PayResultPage } from './pages/PayResultPage';
 import { WalletPage } from './pages/WalletPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { HistoryPage } from './pages/HistoryPage';
+import { RankingPage } from './pages/RankingPage';
+import { CheckInPage } from './pages/CheckInPage';
+import { ReferralPage } from './pages/ReferralPage';
 import { MePage } from './pages/MePage';
+import { ProfilePage } from './pages/ProfilePage';
 import { LegalTosPage } from './pages/LegalTosPage';
 import { LegalPrivacyPage } from './pages/LegalPrivacyPage';
 import { LegalCoinsPage } from './pages/LegalCoinsPage';
@@ -41,16 +46,26 @@ import { AdminTakedownsPage } from './pages/admin/AdminTakedownsPage';
 import { AdminLedgerPage } from './pages/admin/AdminLedgerPage';
 import { AdminPayoutsPage } from './pages/admin/AdminPayoutsPage';
 import { AdminRefundsPage } from './pages/admin/AdminRefundsPage';
+import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminBannersPage } from './pages/admin/AdminBannersPage';
+import { AdminAssetsPage } from './pages/admin/AdminAssetsPage';
+import { AdminAuthorDetailPage } from './pages/admin/AdminAuthorDetailPage';
+import { AdminActivityPage } from './pages/admin/AdminActivityPage';
 
 export default function App() {
   return (
     <ThemeProvider>
     <AppProvider>
+    <SiteAssetsProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="search" element={<SearchPage />} />
+            <Route path="discover" element={<SearchPage />} />
+            <Route path="ranking" element={<RankingPage />} />
+            <Route path="check-in" element={<CheckInPage />} />
+            <Route path="referral" element={<ReferralPage />} />
             <Route path="works/:slug" element={<SeriesPage />} />
             <Route path="read/novel/:workId/:chapterId" element={<ReadNovelPage />} />
             <Route path="read/manga/:workId/:chapterId" element={<ReadMangaPage />} />
@@ -63,6 +78,7 @@ export default function App() {
             <Route path="library" element={<LibraryPage />} />
             <Route path="history" element={<HistoryPage />} />
             <Route path="me" element={<MePage />} />
+            <Route path="u/:slug" element={<ProfilePage />} />
             <Route path="me/settings" element={<SettingsPage />} />
             <Route path="me/settings/delete" element={<DeleteAccountPage />} />
             <Route path="help" element={<HelpPage />} />
@@ -86,8 +102,13 @@ export default function App() {
 
             <Route path="admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="activity" element={<AdminActivityPage />} />
               <Route path="authors" element={<AdminAuthorsPage />} />
+              <Route path="authors/:authorId" element={<AdminAuthorDetailPage />} />
               <Route path="works" element={<AdminWorksPage />} />
+              <Route path="categories" element={<AdminCategoriesPage />} />
+              <Route path="banners" element={<AdminBannersPage />} />
+              <Route path="assets" element={<AdminAssetsPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="takedowns" element={<AdminTakedownsPage />} />
               <Route path="ledger" element={<AdminLedgerPage />} />
@@ -99,6 +120,7 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+    </SiteAssetsProvider>
     </AppProvider>
     </ThemeProvider>
   );

@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom';
+import { AdminPageHeader } from '../../components/AdminModal';
 
 export function AdminRefundsPage() {
   return (
-    <>
-      <h1 style={{ fontSize: 20, marginBottom: 12 }}>คืนเงิน (ชำระผิดพลาด)</h1>
-      <div className="card" style={{ maxWidth: 640, lineHeight: 1.65 }}>
+    <div className="admin-page">
+      <AdminPageHeader
+        title="คืนเงิน"
+        desc="กรณีชำระผิดพลาดจาก gateway — ไม่ใช่การคืนเหรียญในวอลเล็ต"
+      />
+      <div className="admin-list-item" style={{ maxWidth: 640, lineHeight: 1.65 }}>
         <div
           className="card"
           style={{
@@ -19,13 +23,13 @@ export function AdminRefundsPage() {
         </div>
         <p className="muted" style={{ fontSize: 14 }}>
           หน้านี้เป็น stub สำหรับกรณีชำระเงินผ่าน gateway จริงแล้วเกิดข้อผิดพลาดจากระบบ
-          (เมื่อมี gateway) อาจพิจารณาคืนเป็นเงินผ่านช่องทางชำระเดิม — ไม่ใช่การคืนเหรียญในวอลเล็ต
+          อาจพิจารณาคืนเป็นเงินผ่านช่องทางชำระเดิม
         </p>
         <p className="muted" style={{ fontSize: 14, marginTop: 10 }}>
-          MVP mock ไม่มีปุ่มคืนเหรียญ · ดูนโยบายที่{' '}
+          MVP mock ไม่มีปุ่มคืนเหรียญ · ดู{' '}
           <Link to="/legal/coins" style={{ color: 'var(--primary)', fontWeight: 600 }}>นโยบายเหรียญ</Link>
         </p>
       </div>
-    </>
+    </div>
   );
 }

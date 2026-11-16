@@ -2,6 +2,37 @@ export type WorkKind = 'novel' | 'manga';
 export type Pricing = 'free' | 'coin';
 export type CoverTone = 'default' | 'warm' | 'teal' | 'rose' | 'blue';
 
+/** icon_key maps to SVG in CategoryIcon — managed from admin/backend */
+export type CategoryIconKey =
+  | 'book'
+  | 'zap'
+  | 'sparkles'
+  | 'heart'
+  | 'ghost'
+  | 'masks'
+  | 'rocket'
+  | 'search';
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  icon_key: CategoryIconKey;
+  sort_order: number;
+  active: boolean;
+}
+
+/** Homepage hero slides — managed from admin CMS */
+export interface HeroBanner {
+  id: string;
+  title: string;
+  alt: string;
+  image_url: string;
+  href: string;
+  sort_order: number;
+  active: boolean;
+}
+
 export interface Author {
   id: string;
   display_name: string;
@@ -15,13 +46,30 @@ export interface Work {
   kind: WorkKind;
   category: string;
   tags: string[];
+  /** 'ทั่วไป' or '18+' — badge only, not an age check */
   rating: string;
+  /** published = กำลังดำเนินเรื่อง, completed = จบ */
   status: 'published' | 'completed';
   cover_tone: CoverTone;
+  /** URL ปกเรื่อง — ว่างหรือโหลดไม่ได้ให้ใช้ COVER_DEFAULT */
+  cover_url?: string | null;
   author_id: string;
   author_name: string;
   price_full_work: number | null;
   chapter_count: number;
+  /** first N episodes are free regardless of the stored per-episode price */
+  free_episode_count: number;
+  views: number;
+  /** จำนวนติดตาม/บุ๊คมาร์ก */
+  bookmark_count: number;
+  score: number;
+  /** จำนวนคนให้คะแนน — แสดงเป็นไลค์บนการ์ด */
+  rating_count: number;
+  /** higher sorts first on /ranking tabs */
+  rank_daily: number;
+  rank_weekly: number;
+  rank_monthly: number;
+  latest_at: string;
   is_example_data: true;
   featured?: boolean;
   popular?: boolean;
@@ -35,6 +83,9 @@ export interface Chapter {
   title: string;
   pricing: Pricing;
   coin_price: number;
+  /** followers can read this paid episode without spending coins */
+  follow_free?: boolean;
+  published_at: string;
   status: 'published';
   is_example_data: true;
 }
@@ -54,7 +105,10 @@ export interface ChapterPage {
 export interface CoinPack {
   id: string;
   name: string;
+  /** paid coins, the base used for referral (bonus excluded) */
   coins: number;
+  /** extra coins that are not part of the paid top-up */
+  bonus_coins: number;
   amount_thb: number;
   active: boolean;
   is_example_data: true;
@@ -65,13 +119,40 @@ export interface SessionUser {
   email: string;
   display_name: string;
   watermark_id: string;
+  /** Public URL or data URL for profile photo */
+  avatar_url?: string | null;
 }
+
+export interface UpdateProfileInput {
+  display_name: string;
+  /** Compressed image blob; omit to keep current photo */
+  avatar_blob?: Blob | null;
+  /** Clear photo without uploading a new one */
+  clear_avatar?: boolean;
+}
+
+export type CoinCurrency = 'gold' | 'diamond';
+
+export type LedgerKind =
+  | 'topup'
+  | 'topup_bonus'
+  | 'unlock'
+  | 'unlock_work'
+  | 'checkin'
+  | 'referral'
+  | 'tip'
+  | 'diamond_earn'
+  | 'diamond_payout'
+  | 'diamond_to_gold';
 
 export interface LedgerEntry {
   id: string;
-  kind: 'topup' | 'unlock' | 'unlock_work';
-  amount: number; // signed for wallet view: +topup, -spend
+  user_id?: string;
+  kind: LedgerKind;
+  amount: number; // signed for wallet view: +credit, -spend
   coins: number;
+  /** gold = reader spendable; diamond = translator earnings */
+  currency?: CoinCurrency;
   label: string;
   created_at: string;
   transaction_id: string;
@@ -100,6 +181,11 @@ export interface ReadingProgress {
 }
 
 export interface WalletInfo {
+  /** Reader spendable currency (เติม/ซื้อตอน) */
+  gold: number;
+  /** Translator earnings currency */
+  diamond: number;
+  /** Alias of gold — kept for older call sites */
   balance: number;
 }
 
@@ -109,6 +195,7 @@ export type ApiErrorCode =
   | 'PRICE_CHANGED'
   | 'NOT_FOUND'
   | 'IDEMPOTENCY_CONFLICT'
+  | 'CONFLICT'
   | 'VALIDATION'
   | 'MOCK_DISABLED'
   | 'ALREADY_UNLOCKED'
@@ -137,6 +224,8 @@ export interface UnlockResult {
   already?: boolean;
   transaction_id?: string;
   balance: number;
+  gold?: number;
+  diamond?: number;
   chapter_id?: string;
   work_id?: string;
 }
@@ -144,8 +233,28 @@ export interface UnlockResult {
 export interface TopupResult {
   transaction_id: string;
   balance: number;
+  gold?: number;
   coins_added: number;
+  bonus_added?: number;
   replayed: boolean;
+}
+
+export interface ReaderAchievementInfo {
+  lifetime_topup: number;
+  tier_id: string;
+  tier_label: string;
+  bonus_percent: number;
+  next_tier_at: number | null;
+}
+
+export interface WriterAchievementInfo {
+  lifetime_sales: number;
+  month_sales: number;
+  month_key: string;
+  tier_id: string;
+  tier_label: string;
+  fee_bps: number;
+  maintain_need: number;
 }
 
 export interface MangaPageUrl {
@@ -153,4 +262,62 @@ export interface MangaPageUrl {
   url: string;
   expires_in: number;
   watermarked: boolean;
+}
+
+export interface SeriesUpdate {
+  work: Work;
+  episodes: Pick<Chapter, 'id' | 'number' | 'title' | 'published_at'>[];
+}
+
+export interface CheckInCalendar {
+  month: string;
+  today: string;
+  claimed: string[];
+  claimed_today: boolean;
+  tickets: number;
+  daily_coins: number;
+  month_end_coins: number;
+  month_end_tickets: number;
+  days_in_month: number;
+}
+
+export interface CheckInClaim {
+  already: boolean;
+  coins: number;
+  tickets: number;
+  balance: number;
+  ticket_balance: number;
+  month_end: boolean;
+  today: string;
+}
+
+export interface ReferralFriend {
+  display_name: string;
+  paid_coins: number;
+  reward_coins: number;
+  created_at: string;
+}
+
+export interface ReferralInfo {
+  code: string;
+  percent: number;
+  earned_coins: number;
+  friends: ReferralFriend[];
+}
+
+export interface ReaderComment {
+  id: string;
+  chapter_id: string;
+  user_id: string;
+  display_name: string;
+  body: string;
+  created_at: string;
+  like_count: number;
+  liked_by_me: boolean;
+}
+
+export interface RatingResult {
+  score: number;
+  rating_count: number;
+  mine: number;
 }
